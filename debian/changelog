@@ -1,0 +1,24 @@
+libmedia-service (0.2.0-2) unstable; urgency=low
+
+  * Remove libmedia-thumbnail dependancy
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-2
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 5 Jan 2011 18:30:00 +0900
+
+libmedia-service (0.2.0-1) unstable; urgency=low
+
+  * Remove md5 codes
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-1
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 3 Jan 2011 18:30:00 +0900
+
+libmedia-service (0.2.0-0) unstable; urgency=low
+
+  * Initial Release
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-0
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 07 Dec 2011 12:35:23 +0900
+

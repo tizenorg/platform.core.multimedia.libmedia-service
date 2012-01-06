@@ -1,0 +1,37 @@
+Source: libmedia-service
+Section: libs
+Priority: extra
+Maintainer: Hyunjun Ko<zzoon.ko@samsung.com>, Haejeong Kim <backto.kim@samsung.com>, Byungwook Jang <bw.jang@samsung.com>
+Uploaders: Hyunjun Ko<zzoon.ko@samsung.com>, Haejeong Kim <backto.kim@samsung.com>
+Build-Depends: debhelper (>= 5), libglib2.0-dev,
+               dlog-dev,
+               libslp-db-util-dev,
+               libsqlite3-dev, 
+               libmm-fileinfo-dev, 
+               libmm-utility-dev, 
+               drm-service-dev,
+               libexif-dev,
+               libevas-dev,
+               libecore-dev,
+               libaul-1-dev
+Standards-Version: 0.1
+Homepage: N/A
+
+Package: libmedia-service
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Media information service library for multimedia applications.
+
+Package: libmedia-service-dev
+Section: libdevel
+Architecture: any
+Depends: libmedia-service (= ${Source-Version}), libsqlite3-dev, libslp-db-util-dev, libmm-common-dev, libmm-fileinfo-dev, libmm-utility-dev, libglib2.0-dev, libxext-dev, dlog-dev, drm-service-dev, libevas-dev, libecore-dev, libexif-dev, libaul-1-dev
+Description: Media information service library for multimedia applications. (development)
+
+Package: libmedia-service-dbg
+Section: debug
+Architecture: any
+Depends:  ${misc:Depends}, libmedia-service (= ${Source-Version})
+Description: Media information service library for multimedia applications. (unstripped)
+
