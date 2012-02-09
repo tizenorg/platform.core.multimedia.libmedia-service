@@ -39,6 +39,7 @@
 #define _MB_SVC_THUMB_H_
 
 #include "media-svc-structures.h"
+#include "media-svc-types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,7 +90,7 @@ int
 mb_svc_video_create_thumb(const char *file_fullpath, char* thumb_path_hash, size_t max_thumb_length);
 
 /**
-* @fn    int  mb_svc_get_video_meta(char* file_full_path, mb_svc_video_meta_record_s *video_record);
+* @fn    int  mb_svc_get_video_meta(MediaSvcHandle *mb_svc_handle, char* file_full_path, mb_svc_video_meta_record_s *video_record);
 * This function gets video_meta record by filefull path
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -102,11 +103,11 @@ mb_svc_video_create_thumb(const char *file_fullpath, char* thumb_path_hash, size
 */	
 
 int
-mb_svc_get_video_meta(const char* file_full_path, mb_svc_video_meta_record_s *video_record);
+mb_svc_get_video_meta(MediaSvcHandle *mb_svc_handle, const char* file_full_path, mb_svc_video_meta_record_s *video_record);
 
 
 /**
-* @fn    int mb_svc_get_image_meta(char* file_full_path, mb_svc_image_meta_record_s *image_record, bool *thumb_done);
+* @fn    int mb_svc_get_image_meta(MediaSvcHandle *mb_svc_handle, char* file_full_path, mb_svc_image_meta_record_s *image_record, bool *thumb_done);
 * This function gets image_meta record by filefull path
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -120,7 +121,7 @@ mb_svc_get_video_meta(const char* file_full_path, mb_svc_video_meta_record_s *vi
 */	
 
 int
-mb_svc_get_image_meta(const char* file_full_path, mb_svc_image_meta_record_s *image_record, bool *thumb_done);
+mb_svc_get_image_meta(MediaSvcHandle *mb_svc_handle, const char* file_full_path, mb_svc_image_meta_record_s *image_record, bool *thumb_done);
 
 /**
 * @brief  Delete thumbnail file of original file.

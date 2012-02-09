@@ -42,10 +42,10 @@ void utc_minfo_get_meta_info_func_01()
 {
 	int ret = -1;
 	Mmeta* mt = NULL;
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 
 
-	ret = minfo_get_meta_info(media_uuid, &mt);
+	ret = minfo_get_meta_info(handle, media_uuid, &mt);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to get meta record of media Mitem. error code->%d", ret);
 	minfo_destroy_mtype_item(mt);
@@ -65,6 +65,7 @@ void utc_minfo_get_meta_info_func_02()
 	Mmeta* mt = NULL;
 	const char *media_uuid = NULL;
 
-	ret = minfo_get_meta_info(media_uuid, &mt);
+	ret = minfo_get_meta_info(handle, media_uuid, &mt);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting meta record of media Mitem should be failed because of the media_id parameter.");
 }
+

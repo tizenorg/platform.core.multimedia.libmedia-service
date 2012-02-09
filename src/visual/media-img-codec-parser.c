@@ -24,12 +24,12 @@
 #include <string.h>
 
 #if defined(_PERFORMANCE_CHECK_) && defined(_USE_LOG_FILE_)
-#include "media-info-debug.h"
+#include "media-svc-debug.h"
 #include <time.h>
 #include <sys/time.h>
 #endif
 
-#include "media-svc-debug.h"
+#include "visual-svc-debug.h"
 #include "media-img-codec-common.h"
 #include "media-img-codec-parser.h"
 

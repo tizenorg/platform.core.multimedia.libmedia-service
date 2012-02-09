@@ -20,17 +20,17 @@
  */
 
 #include "minfo-meta.h"
-#include "minfo-api.h"
+#include "visual-svc.h"
 #include "minfo-bookmark.h"
 #include "media-svc-api.h"
-#include "media-svc-util.h"
-#include "media-svc-debug.h"
-#include "media-svc-error.h"
+#include "visual-svc-util.h"
+#include "visual-svc-debug.h"
+#include "visual-svc-error.h"
 #include <string.h>
 
 static void _minfo_mmeta_init(Mmeta *mmeta);
 
-int minfo_mmeta_load(Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
+int minfo_mmeta_load(MediaSvcHandle *mb_svc_handle, Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
 {
 	int ret = -1;
 	mb_svc_media_record_s media_record = {"",};
@@ -39,7 +39,7 @@ int minfo_mmeta_load(Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
 
 	if (p_md_record == NULL) {
 		ret =
-		    mb_svc_get_media_record_by_id(mmeta->media_uuid,
+		    mb_svc_get_media_record_by_id(mb_svc_handle, mmeta->media_uuid,
 						  &media_record);
 		if (ret < 0) {
 			mb_svc_debug
@@ -52,7 +52,7 @@ int minfo_mmeta_load(Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
 
 	if (media_record.content_type == MINFO_ITEM_IMAGE) {
 		ret =
-		    mb_svc_get_image_record_by_media_id(mmeta->media_uuid,
+		    mb_svc_get_image_record_by_media_id(mb_svc_handle, mmeta->media_uuid,
 							&image_meta_record);
 		if (ret < 0) {
 			return ret;
@@ -67,7 +67,7 @@ int minfo_mmeta_load(Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
 		mmeta->height = image_meta_record.height;
 		mmeta->datetaken = image_meta_record.datetaken;
 
-		mmeta->image_info = minfo_mimage_new(NULL);
+		mmeta->image_info = minfo_mimage_new(mb_svc_handle, NULL);
 		if (mmeta->image_info == NULL) {
 			return MB_SVC_ERROR_INTERNAL;
 		}
@@ -76,7 +76,7 @@ int minfo_mmeta_load(Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
 
 	else if (media_record.content_type == MINFO_ITEM_VIDEO) {
 		ret =
-		    mb_svc_get_video_record_by_media_id(mmeta->media_uuid,
+		    mb_svc_get_video_record_by_media_id(mb_svc_handle, mmeta->media_uuid,
 							&video_meta_record);
 		if (ret < 0) {
 			return ret;
@@ -91,7 +91,7 @@ int minfo_mmeta_load(Mmeta *mmeta, mb_svc_media_record_s *p_md_record)
 		mmeta->height = video_meta_record.height;
 		mmeta->datetaken = video_meta_record.datetaken;
 
-		mmeta->video_info = minfo_mvideo_new(mmeta->media_uuid);
+		mmeta->video_info = minfo_mvideo_new(mb_svc_handle, mmeta->media_uuid);
 
 		if (mmeta->video_info == NULL) {
 			return MB_SVC_ERROR_INTERNAL;
@@ -115,7 +115,7 @@ static void _minfo_mmeta_init(Mmeta *mmeta)
 	mmeta->latitude = 0.0f;
 }
 
-Mmeta *minfo_mmeta_new(const char *media_uuid, mb_svc_media_record_s *p_md_record)
+Mmeta *minfo_mmeta_new(MediaSvcHandle *mb_svc_handle, const char *media_uuid, mb_svc_media_record_s *p_md_record)
 {
 	Mmeta *mmeta = NULL;
 	int ret = 0;
@@ -131,11 +131,11 @@ Mmeta *minfo_mmeta_new(const char *media_uuid, mb_svc_media_record_s *p_md_recor
 
 	if (p_md_record) {
 		strncpy(mmeta->media_uuid, p_md_record->media_uuid, MB_SVC_UUID_LEN_MAX + 1);
-		ret = minfo_mmeta_load(mmeta, p_md_record);
+		ret = minfo_mmeta_load(mb_svc_handle, mmeta, p_md_record);
 	} else if (media_uuid != NULL) {
 		strncpy(mmeta->media_uuid, media_uuid, MB_SVC_UUID_LEN_MAX + 1);
 
-		ret = minfo_mmeta_load(mmeta, NULL);
+		ret = minfo_mmeta_load(mb_svc_handle, mmeta, NULL);
 		if (ret < 0) {
 			free(mmeta);
 			return NULL;
@@ -179,13 +179,13 @@ static int _minfo_bm_ite_fn(Mbookmark *bookmark, void *user_data)
 	return 0;
 }
 
-int minfo_mvideo_load(const char *media_id, Mvideo *mvideo)
+int minfo_mvideo_load(MediaSvcHandle *mb_svc_handle, const char *media_id, Mvideo *mvideo)
 {
 	mb_svc_video_meta_record_s video_meta_record = { 0 };
 	int ret = 0;
 	int length = 0;
 
-	ret = mb_svc_get_video_record_by_media_id(media_id, &video_meta_record);
+	ret = mb_svc_get_video_record_by_media_id(mb_svc_handle, media_id, &video_meta_record);
 	if (ret < 0) {
 		return ret;
 	}
@@ -214,6 +214,14 @@ int minfo_mvideo_load(const char *media_id, Mvideo *mvideo)
 	memset(mvideo->title, 0x00, length);
 	strncpy(mvideo->title, video_meta_record.title, length);
 
+	length = strlen(video_meta_record.genre) + 1;
+	mvideo->genre = (char *)malloc(length);
+	if (mvideo->genre == NULL) {
+		return MB_SVC_ERROR_OUT_OF_MEMORY;
+	}
+	memset(mvideo->genre, 0x00, length);
+	strncpy(mvideo->genre, video_meta_record.genre, length);
+
 	mvideo->last_played_pos = video_meta_record.last_played_time;
 	mvideo->duration = video_meta_record.duration;
 
@@ -228,7 +236,7 @@ int minfo_mvideo_load(const char *media_id, Mvideo *mvideo)
 		length);
 
 	GList *tmp_list = NULL;
-	minfo_get_bookmark_list(media_id, _minfo_bm_ite_fn, &tmp_list);
+	minfo_get_bookmark_list(mb_svc_handle, media_id, _minfo_bm_ite_fn, &tmp_list);
 
 	mvideo->bookmarks = tmp_list;
 
@@ -244,6 +252,7 @@ static void _minfo_mvideo_init(Mvideo *mvideo)
 	mvideo->album_name = NULL;
 	mvideo->artist_name = NULL;
 	mvideo->title = NULL;
+	mvideo->genre = NULL;
 	mvideo->last_played_pos = 0;
 	mvideo->duration = 0;
 	mvideo->web_category = NULL;
@@ -251,7 +260,7 @@ static void _minfo_mvideo_init(Mvideo *mvideo)
 	mvideo->_reserved = NULL;
 }
 
-Mvideo *minfo_mvideo_new(const char *id)
+Mvideo *minfo_mvideo_new(MediaSvcHandle *mb_svc_handle, const char *id)
 {
 	Mvideo *mvideo = NULL;
 	int ret = 0;
@@ -264,7 +273,7 @@ Mvideo *minfo_mvideo_new(const char *id)
 	if (id == NULL) {
 		_minfo_mvideo_init(mvideo);
 	} else {
-		ret = minfo_mvideo_load(id, mvideo);
+		ret = minfo_mvideo_load(mb_svc_handle, id, mvideo);
 		if (ret < 0) {
 			minfo_mvideo_destroy(mvideo);
 			return NULL;
@@ -288,6 +297,9 @@ void minfo_mvideo_destroy(Mvideo *mvideo)
 		if (mvideo->title) {
 			free(mvideo->title);
 		}
+		if (mvideo->genre) {
+			free(mvideo->genre);
+		}
 		if (mvideo->web_category) {
 			free(mvideo->web_category);
 		}
@@ -307,18 +319,17 @@ void minfo_mvideo_destroy(Mvideo *mvideo)
 		free(mvideo);
 		mvideo = NULL;
 	}
-
 }
 
 /*-------------------------mimage--------------------------*/
 static void _minfo_mimage_init(Mimage *mimage);
 
-int minfo_mimage_load(const char *media_id, Mimage *mimage)
+int minfo_mimage_load(MediaSvcHandle *mb_svc_handle, const char *media_id, Mimage *mimage)
 {
 	mb_svc_image_meta_record_s image_meta_record = { 0 };
 	int ret = 0;
 
-	ret = mb_svc_get_image_record_by_media_id(media_id, &image_meta_record);
+	ret = mb_svc_get_image_record_by_media_id(mb_svc_handle, media_id, &image_meta_record);
 	if (ret < 0) {
 		return ret;
 	}
@@ -329,7 +340,7 @@ int minfo_mimage_load(const char *media_id, Mimage *mimage)
 	return 0;
 }
 
-Mimage *minfo_mimage_new(const char *id)
+Mimage *minfo_mimage_new(MediaSvcHandle *mb_svc_handle, const char *id)
 {
 	Mimage *mimage = NULL;
 	int ret = 0;
@@ -342,7 +353,7 @@ Mimage *minfo_mimage_new(const char *id)
 	if (id == NULL) {
 		_minfo_mimage_init(mimage);
 	} else {
-		ret = minfo_mimage_load(id, mimage);
+		ret = minfo_mimage_load(mb_svc_handle, id, mimage);
 		if (ret < 0) {
 			free(mimage);
 			return NULL;

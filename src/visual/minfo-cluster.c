@@ -21,19 +21,19 @@
 
 #include "minfo-cluster.h"
 #include "media-svc-api.h"
-#include "media-svc-util.h"
-#include "media-svc-error.h"
+#include "visual-svc-util.h"
+#include "visual-svc-error.h"
 #include <string.h>
 
 static void _minfo_mcluster_init(Mcluster *mcluster);
 
-int minfo_mcluster_load(Mcluster *mcluster)
+int minfo_mcluster_load(MediaSvcHandle *mb_svc_handle, Mcluster *mcluster)
 {
 	mb_svc_folder_record_s fd_record;
 	int ret = 0;
 	int length = 0;
 
-	ret = mb_svc_get_folder_record_by_id(mcluster->uuid, &fd_record);
+	ret = mb_svc_get_folder_record_by_id(mb_svc_handle, mcluster->uuid, &fd_record);
 	if (ret < 0) {
 		return ret;
 	}
@@ -50,7 +50,7 @@ int minfo_mcluster_load(Mcluster *mcluster)
 		MB_SVC_FILE_NAME_LEN_MAX);
 
 	mcluster->count =
-	    mb_svc_get_folder_content_count_by_folder_id(mcluster->uuid);
+	    mb_svc_get_folder_content_count_by_folder_id(mb_svc_handle, mcluster->uuid);
 	mcluster->sns_type = fd_record.sns_type;
 
 	length = strlen(fd_record.web_account_id) + 1;
@@ -74,7 +74,7 @@ int minfo_mcluster_load(Mcluster *mcluster)
 	return 0;
 }
 
-Mcluster *minfo_mcluster_new(const char *uuid)
+Mcluster *minfo_mcluster_new(MediaSvcHandle *mb_svc_handle, const char *uuid)
 {
 	Mcluster *mcluster = NULL;
 	int ret = 0;
@@ -90,7 +90,7 @@ Mcluster *minfo_mcluster_new(const char *uuid)
 		mcluster->uuid = (char *)malloc(MB_SVC_UUID_LEN_MAX + 1);
 		strncpy(mcluster->uuid, uuid, MB_SVC_UUID_LEN_MAX + 1);
 
-		ret = minfo_mcluster_load(mcluster);
+		ret = minfo_mcluster_load(mb_svc_handle, mcluster);
 		if (ret < 0) {
 			minfo_mcluster_destroy(mcluster);
 			return NULL;

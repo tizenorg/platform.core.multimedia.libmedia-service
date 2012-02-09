@@ -40,9 +40,9 @@ void utc_minfo_add_tag_func_01()
 {
 	int ret = -1;
 	const char *tag = "Family";
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 	
-	ret = minfo_add_tag(media_uuid, tag);
+	ret = minfo_add_tag(handle, media_uuid, tag);
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to add a tag. error code->%d", ret);
 }
 
@@ -57,10 +57,10 @@ void utc_minfo_add_tag_func_01()
 void utc_minfo_add_tag_func_02()
 {
 	int ret = -1;
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 	const char *tag = NULL;
 	
-	ret = minfo_add_tag(media_uuid, tag);
+	ret = minfo_add_tag(handle, media_uuid, tag);
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "Adding a tag should be failed because of the cluster_url NULL.");
 }
@@ -76,10 +76,10 @@ void utc_minfo_add_tag_func_02()
 void utc_minfo_delete_tag_func_01()
 {
 	int ret = -1;
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 	const char *tag = "Family";
 
-	ret = minfo_delete_tag(media_uuid, tag);
+	ret = minfo_delete_tag(handle, media_uuid, tag);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to delete a tag. error code->%d", ret);
 }
@@ -95,10 +95,10 @@ void utc_minfo_delete_tag_func_01()
 void utc_minfo_delete_tag_func_02()
 {
 	int ret = -1;
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 	const char *tag = NULL;
 
-	ret = minfo_delete_tag(media_uuid, tag);
+	ret = minfo_delete_tag(handle, media_uuid, tag);
 	 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "deleting a tag should be failed because of the cluster_id -1.");
 }

@@ -66,7 +66,7 @@ void utc_audio_svc_get_path_by_audio_id_func_01()
 		dts_fail("get_item_audio_id","fail to get audio_id.");
 	}
 	//retrieve the file path by track audio_id.
-	ret = audio_svc_get_path_by_audio_id(audio_id, pathname, AUDIO_SVC_PATHNAME_SIZE);
+	ret = audio_svc_get_path_by_audio_id(db_handle, audio_id, pathname, AUDIO_SVC_PATHNAME_SIZE);
 	dts_check_eq("audio_svc_get_path_by_audio_id", ret, AUDIO_SVC_ERROR_NONE, "failed to get path.");
 
 }
@@ -84,7 +84,7 @@ void utc_audio_svc_get_path_by_audio_id_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	char * audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
-	ret = audio_svc_get_path_by_audio_id(audio_id, NULL, AUDIO_SVC_PATHNAME_SIZE);
+	ret = audio_svc_get_path_by_audio_id(db_handle, audio_id, NULL, AUDIO_SVC_PATHNAME_SIZE);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_get_path_by_audio_id","abnormal condition test for invalid NULL parameter.");

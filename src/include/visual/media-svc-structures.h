@@ -38,7 +38,7 @@
 #define _MEDIA_SVC_STRUCTURES_H_
 
 #include <sqlite3.h>
-#include "minfo-types.h"
+#include "visual-svc-types.h"
 
 
 #ifdef __cplusplus
@@ -123,15 +123,16 @@ typedef struct {
 * This structure defines the mb_svc_media_record_s.
 */
 typedef struct {
-	char media_uuid[MB_SVC_UUID_LEN_MAX+1];					/**< UUID */
+	char media_uuid[MB_SVC_UUID_LEN_MAX+1];				/**< UUID */
 	char path[MB_SVC_FILE_PATH_LEN_MAX+1];    			/**< path */
 	char folder_uuid[MB_SVC_UUID_LEN_MAX+1];			/**< folder UUID */
 	char display_name[MB_SVC_FILE_NAME_LEN_MAX+1];		/**< media name */
-	minfo_file_type content_type;							/**< media type,   1:image, 2:video*/
+	minfo_file_type content_type;						/**< media type,   1:image, 2:video*/
 	bool rate;											/**< favoriate option */
-	int modified_date;                              				/**< modified time */
+	int modified_date;                              	/**< modified time */
 	char thumbnail_path[MB_SVC_FILE_PATH_LEN_MAX+1];	/**< thumbail path */
 	char http_url[MB_SVC_DIR_PATH_LEN_MAX +1];			/**< http url */
+	int size;											/**< file size */
 }mb_svc_media_record_s;
 
 
@@ -142,17 +143,18 @@ typedef struct {
 * This structure defines the mb_svc_video_meta_record_s.
 */
 typedef struct {
-	int _id;											/**< video meta id.  Prime Key */
-	char media_uuid[MB_SVC_UUID_LEN_MAX+1];		/**< media UUID */
-	char album[MB_SVC_FILE_NAME_LEN_MAX+1];		/**< album */
-	char artist[MB_SVC_ARRAY_LEN_MAX+1];				/**< artist */
+	int _id;										/**< video meta id.  Prime Key */
+	char media_uuid[MB_SVC_UUID_LEN_MAX+1];			/**< media UUID */
+	char album[MB_SVC_FILE_NAME_LEN_MAX+1];			/**< album */
+	char artist[MB_SVC_ARRAY_LEN_MAX+1];			/**< artist */
 	char title[MB_SVC_FILE_NAME_LEN_MAX+1];			/**< title */
+	char genre[MB_SVC_FILE_NAME_LEN_MAX+1];			/**< genre */
 	char description[MB_SVC_ARRAY_LEN_MAX+1];		/**< description */
 	char youtube_category[MB_SVC_ARRAY_LEN_MAX+1];	/**< youtube_category */
-	int last_played_time;								/**< last palyed time*/
-	int duration;										/**< duration */
-	double longitude;									/**< longitude */
-	double latitude;									/**< latitude */
+	int last_played_time;							/**< last palyed time*/
+	int duration;									/**< duration */
+	double longitude;								/**< longitude */
+	double latitude;								/**< latitude */
 	int width;										/**< width */
 	int height;										/**< height */
 	int datetaken;									/**< datetaken */

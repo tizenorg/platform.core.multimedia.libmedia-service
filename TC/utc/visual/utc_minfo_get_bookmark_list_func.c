@@ -49,10 +49,10 @@ void utc_minfo_get_bookmark_list_func_01()
 {
 	int ret = -1;
 
-	const char *media_uuid = "2f08863e-52fd-eaf8-269c-3d0798e7aa0e";
+	const char *media_uuid = "77b876ed-5db9-4114-82c0-d08e814b5051";
 	GList *p_list = NULL;
 
-	ret = minfo_get_bookmark_list(media_uuid, _minfo_bm_ite_fn, &p_list);
+	ret = minfo_get_bookmark_list(handle, media_uuid, _minfo_bm_ite_fn, &p_list);
 
 	if (ret == MB_SVC_ERROR_DB_NO_RECORD) {
 		dts_pass(API_NAME, "No record. This is normal operation");
@@ -76,7 +76,7 @@ void utc_minfo_get_bookmark_list_func_02()
 	const char *media_uuid = NULL;
 	GList *p_list = NULL;
 
-	ret = minfo_get_bookmark_list(media_uuid, NULL, &p_list);
+	ret = minfo_get_bookmark_list(handle, media_uuid, NULL, &p_list);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"get all of bookmark for a media content should be failed because of the p_list non-NULL.");
 }

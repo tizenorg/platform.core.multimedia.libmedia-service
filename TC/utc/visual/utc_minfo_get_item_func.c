@@ -42,9 +42,9 @@ void utc_minfo_get_item_func_01()
 	int ret = -1;
 	
 	Mitem *mi = NULL;
-	char* file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
+	char* file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
 
-	ret = minfo_get_item(file_url, &mi);
+	ret = minfo_get_item(handle, file_url, &mi);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to get a item record from media table with Mitem type . error code->%d", ret);
 }
@@ -62,9 +62,9 @@ void utc_minfo_get_item_func_02()
 	int ret = -1;
 	
 	Mitem *mi = NULL;
-	char* file_url = NULL;/*= "/opt/media/Images/Wallpapers/Home_01.png";*/
+	char* file_url = NULL;/*= "/opt/media/Images/Wallpapers/Home_01.jpg";*/
 
-	ret = minfo_get_item(file_url, &mi);
+	ret = minfo_get_item(handle, file_url, &mi);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "get a item record from media table with Mitem type should be failed because of the file_url NULL.");
 

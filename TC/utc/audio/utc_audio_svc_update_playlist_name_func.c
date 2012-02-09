@@ -65,7 +65,7 @@ void utc_audio_svc_update_playlist_name_func_01()
 		dts_fail("get_playlist_id","fail to get playlist id.");
 	}
 	
-	ret = audio_svc_update_playlist_name(playlist_id, "new name");
+	ret = audio_svc_update_playlist_name(db_handle, playlist_id, "new name");
 	dts_check_eq("audio_svc_update_playlist_name", ret, AUDIO_SVC_ERROR_NONE, "failed to update playlist name.");
 
 }
@@ -83,7 +83,7 @@ void utc_audio_svc_update_playlist_name_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int playlist_id = 1;
 
-	ret = audio_svc_update_playlist_name(playlist_id, NULL);
+	ret = audio_svc_update_playlist_name(db_handle, playlist_id, NULL);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_update_playlist_name","abnormal condition test for invalid NULL parameter.");

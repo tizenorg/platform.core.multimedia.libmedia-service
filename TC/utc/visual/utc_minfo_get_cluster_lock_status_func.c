@@ -42,9 +42,9 @@ void utc_minfo_get_cluster_lock_status_func_01()
 {
 	int ret = -1;
 	int status = 0;
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 
-    ret = minfo_get_cluster_lock_status(cluster_uuid, &status);
+    ret = minfo_get_cluster_lock_status(handle, cluster_uuid, &status);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to varify password to lock/unlock.  error code->%d", ret);
 }
@@ -63,7 +63,7 @@ void utc_minfo_get_cluster_lock_status_func_02()
 	const char *cluster_uuid = NULL;
 	int status = 0;
 
-    ret = minfo_get_cluster_lock_status(cluster_uuid, &status);
+    ret = minfo_get_cluster_lock_status(handle, cluster_uuid, &status);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"Get status for lock should be failed because the passed status is NULL.");
 }
 

@@ -22,21 +22,21 @@
 #include "minfo-item.h"
 #include "minfo-meta.h"
 #include "media-svc-api.h"
-#include "media-svc-util.h"
-#include "media-svc-debug.h"
-#include "media-svc-error.h"
+#include "visual-svc-util.h"
+#include "visual-svc-debug.h"
+#include "visual-svc-error.h"
 #include <string.h>
 
 static void _minfo_mitem_init(Mitem *mitem);
 
-static int minfo_mitem_load(Mitem *mitem, mb_svc_media_record_s * p_md_record)
+static int minfo_mitem_load(MediaSvcHandle *mb_svc_handle, Mitem *mitem, mb_svc_media_record_s * p_md_record)
 {
 	mb_svc_media_record_s md_record = {"",};
 	int ret = 0;
 	int length = 0;
 
 	if (p_md_record == NULL) {
-		ret = mb_svc_get_media_record_by_id(mitem->uuid, &md_record);
+		ret = mb_svc_get_media_record_by_id(mb_svc_handle, mitem->uuid, &md_record);
 	} else {
 		md_record = *p_md_record;
 	}
@@ -98,17 +98,13 @@ static int minfo_mitem_load(Mitem *mitem, mb_svc_media_record_s * p_md_record)
 	strncpy(mitem->display_name, md_record.display_name, length);
 
 	mitem->rate = md_record.rate;
+	mitem->size = md_record.size;
 	mitem->_reserved = NULL;
 
 	return 0;
 }
 
-Mitem *minfo_mitem_new(const char *uuid)
-{
-	return minfo_media_item_new(uuid, NULL);
-}
-
-Mitem *minfo_media_item_new(const char *uuid, mb_svc_media_record_s * p_md_record)
+Mitem *minfo_media_item_new(MediaSvcHandle *mb_svc_handle, const char *uuid, mb_svc_media_record_s * p_md_record)
 {
 	Mitem *mitem = NULL;
 	int ret = 0;
@@ -123,12 +119,12 @@ Mitem *minfo_media_item_new(const char *uuid, mb_svc_media_record_s * p_md_recor
 	if (p_md_record) {
 		mitem->uuid = (char *)malloc(MB_SVC_UUID_LEN_MAX + 1);
 		strncpy(mitem->uuid, p_md_record->media_uuid, MB_SVC_UUID_LEN_MAX + 1);
-		ret = minfo_mitem_load(mitem, p_md_record);
+		ret = minfo_mitem_load(mb_svc_handle, mitem, p_md_record);
 	} else if (uuid != NULL) {
 		mitem->uuid = (char *)malloc(MB_SVC_UUID_LEN_MAX + 1);
 		strncpy(mitem->uuid, uuid, MB_SVC_UUID_LEN_MAX + 1);
 
-		ret = minfo_mitem_load(mitem, NULL);
+		ret = minfo_mitem_load(mb_svc_handle, mitem, NULL);
 		if (ret < 0) {
 			free(mitem);
 			return NULL;
@@ -185,6 +181,7 @@ static void _minfo_mitem_init(Mitem *mitem)
 	mitem->cluster_uuid = NULL;
 	mitem->display_name = NULL;
 	mitem->rate = 0;
+	mitem->size = 0;
 	mitem->meta_info = NULL;
 	mitem->_reserved = NULL;
 }

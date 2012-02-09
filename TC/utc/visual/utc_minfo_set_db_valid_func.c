@@ -44,7 +44,7 @@ void utc_minfo_set_db_valid_func_01()
 
 	minfo_store_type storage_type = MINFO_PHONE;
 
-    ret = minfo_set_db_valid(storage_type, valid);
+    ret = minfo_set_db_valid(handle, storage_type, valid);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to set value of valid. error code->%d", ret);
 }
@@ -64,7 +64,7 @@ void utc_minfo_set_db_valid_func_02()
 
 	minfo_store_type storage_type = MINFO_PHONE;
 
-    ret = minfo_set_db_valid(storage_type, valid);
+    ret = minfo_set_db_valid(handle, storage_type, valid);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "Setting value of valid should be failed because of the status is invalid.");
 }
 

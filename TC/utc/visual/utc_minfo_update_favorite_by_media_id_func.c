@@ -42,11 +42,11 @@ void utc_minfo_update_favorite_by_media_id_func_01()
 {
 	int ret = -1;
 	
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 
 	int favorite = 0;
 
-	ret = minfo_update_media_favorite(media_uuid, favorite);
+	ret = minfo_update_media_favorite(handle, media_uuid, favorite);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to update favorite field for media file. error code->%d", ret);
 }
@@ -66,7 +66,7 @@ void utc_minfo_update_favorite_by_media_id_func_02()
 	const char *media_uuid = NULL;
 	int favorite = 2;
 
-	ret = minfo_update_media_favorite(media_uuid, favorite);
+	ret = minfo_update_media_favorite(handle, media_uuid, favorite);
 	
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "update favorite field for media file should be failed because of the media_id parameter -1.");
 }

@@ -23,18 +23,19 @@
 *	common API
 */
 
-#include "media-info-util.h"
+#include <sqlite3.h>
 #include "media-svc-util.h"
+#include "visual-svc-util.h"
 #include "media-svc-db-util.h"
-#include "media-svc-debug.h"
-#include "media-svc-error.h"
+#include "visual-svc-debug.h"
+#include "visual-svc-error.h"
 
-int mb_svc_query_sql_gstring(GString *query_string)
+int mb_svc_query_sql_gstring(MediaSvcHandle *mb_svc_handle, GString *query_string)
 {
 	int err = -1;
 	char *err_msg;
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -60,12 +61,12 @@ int mb_svc_query_sql_gstring(GString *query_string)
 	return err;
 }
 
-int mb_svc_query_sql(char *query_str)
+int mb_svc_query_sql(MediaSvcHandle *mb_svc_handle, char *query_str)
 {
 	int err = -1;
 	char *err_msg;
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -90,11 +91,11 @@ int mb_svc_query_sql(char *query_str)
 	return err;
 }
 
-int mb_svc_sqlite3_begin_trans(void)
+int mb_svc_sqlite3_begin_trans(MediaSvcHandle *mb_svc_handle)
 {
 	char *err_msg = NULL;
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -113,11 +114,11 @@ int mb_svc_sqlite3_begin_trans(void)
 	return 0;
 }
 
-int mb_svc_sqlite3_commit_trans(void)
+int mb_svc_sqlite3_commit_trans(MediaSvcHandle *mb_svc_handle)
 {
 	char *err_msg = NULL;
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -135,11 +136,11 @@ int mb_svc_sqlite3_commit_trans(void)
 	return 0;
 }
 
-int mb_svc_sqlite3_rollback_trans(void)
+int mb_svc_sqlite3_rollback_trans(MediaSvcHandle *mb_svc_handle)
 {
 	char *err_msg = NULL;
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;

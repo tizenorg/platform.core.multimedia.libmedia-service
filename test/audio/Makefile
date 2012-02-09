@@ -1,5 +1,5 @@
 CC =gcc
-LIBS = libmedia-info
+LIBS = libmedia-service
 
 OBJS = audio_svc_test.o
 SRCS = audio_svc_test.c

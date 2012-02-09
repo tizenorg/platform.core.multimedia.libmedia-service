@@ -52,7 +52,7 @@ void utc_minfo_destroy_mtype_item_func_01()
 	void* p = NULL;
 
     minfo_cluster_filter cluster_filter ={MINFO_CLUSTER_TYPE_ALL,MINFO_CLUSTER_SORT_BY_NONE,0,5};
-	ret = minfo_get_cluster_list(cluster_filter, _cluster_ite_fn, &p_list);
+	ret = minfo_get_cluster_list(handle, cluster_filter, _cluster_ite_fn, &p_list);
 
 	if( ret < MB_SVC_ERROR_NONE ) {
 		dts_fail(API_NAME, "unable to get list of clusters.  error code->%d", ret);

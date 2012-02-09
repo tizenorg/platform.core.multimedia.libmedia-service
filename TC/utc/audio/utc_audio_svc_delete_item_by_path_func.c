@@ -61,7 +61,7 @@ void utc_audio_svc_delete_item_by_path_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 	
-	ret = audio_svc_delete_item_by_path(DEFAULT_FILE);
+	ret = audio_svc_delete_item_by_path(db_handle, DEFAULT_FILE);
 	dts_check_eq("audio_svc_delete_item_by_path", ret, AUDIO_SVC_ERROR_NONE, "failed to delete item by path.");
 
 }
@@ -79,7 +79,7 @@ void utc_audio_svc_delete_item_by_path_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char * path = NULL;
 
-	ret = audio_svc_delete_item_by_path(path);
+	ret = audio_svc_delete_item_by_path(db_handle, path);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

@@ -37,8 +37,9 @@
 #ifndef _MINFO_ITEM_H_
 #define _MINFO_ITEM_H_
 
-#include "minfo-types.h"
+#include "visual-svc-types.h"
 #include "media-svc-structures.h"
+#include "media-svc-types.h"
 
 #define MINFO_TYPE_MITEM		(0x55550)
 #define MINFO_MITEM(obj)		((Mitem*)(obj))
@@ -57,12 +58,9 @@
 *                                                             
 *                                                          
 */
-__attribute__((deprecated))
-Mitem* 
-minfo_mitem_new(const char *uuid); 
 
 Mitem*
-minfo_media_item_new	(const char *uuid, mb_svc_media_record_s *p_md_record);
+minfo_media_item_new	(MediaSvcHandle *mb_svc_handle, const char *uuid, mb_svc_media_record_s *p_md_record);
 
 
 /**

@@ -64,7 +64,7 @@ void utc_audio_svc_list_item_get_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 	
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_list_item","unable to get count.");
@@ -82,7 +82,7 @@ void utc_audio_svc_list_item_get_func_01()
 	}
 	
 	//get the all tracks item.
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,

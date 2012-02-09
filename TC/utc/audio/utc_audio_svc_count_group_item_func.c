@@ -54,7 +54,7 @@ void utc_audio_svc_count_group_item_func_01()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ARTIST, "", "", "", "", &count);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ARTIST, "", "", "", "", &count);
 	dts_check_eq("audio_svc_count_group_item", ret, AUDIO_SVC_ERROR_NONE, "failed to get groups.");
 
 }
@@ -71,7 +71,7 @@ void utc_audio_svc_count_group_item_func_02()
 {	
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ARTIST_ALBUM, NULL, "", "", "", &count);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ARTIST_ALBUM, NULL, "", "", "", &count);
 	
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

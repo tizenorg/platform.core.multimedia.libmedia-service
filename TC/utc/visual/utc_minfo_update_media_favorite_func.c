@@ -41,17 +41,17 @@
 void utc_minfo_update_media_favorite_func_01()
 {
 	int ret = -1;
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 	int favorite_level = 1;
 
-    ret = minfo_update_media_favorite(media_uuid, favorite_level);
+    ret = minfo_update_media_favorite(handle, media_uuid, favorite_level);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to update 'favorite' feild of a media content in media table. error code->%d", ret);
 	}
 	
-    ret = minfo_update_media_favorite(media_uuid, 0);
+    ret = minfo_update_media_favorite(handle, media_uuid, 0);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -76,6 +76,6 @@ void utc_minfo_update_media_favorite_func_02()
 	const char *media_uuid = NULL;
 	int favorite_level = 1;
 
-    ret = minfo_update_media_favorite(media_uuid, favorite_level);
+    ret = minfo_update_media_favorite(handle, media_uuid, favorite_level);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "update 'favorite' feild of a media content in media table should be failed because of the new_name NULL.");
 }

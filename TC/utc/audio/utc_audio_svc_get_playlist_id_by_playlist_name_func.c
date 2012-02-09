@@ -64,7 +64,7 @@ void utc_audio_svc_get_playlist_id_by_playlist_name_func_01()
 		dts_fail("check_default_playlist_exist","fail to check default playlist.");
 	}
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_playlists","unable to get playlist.");
@@ -77,7 +77,7 @@ void utc_audio_svc_get_playlist_id_by_playlist_name_func_01()
 	}
 	
 	//get all the playlists in db.
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle, 
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,
@@ -102,7 +102,7 @@ void utc_audio_svc_get_playlist_id_by_playlist_name_func_01()
 		dts_fail("audio_svc_playlists_get_val","unable to get name of playlist.");
 	}
 	
-	ret = audio_svc_get_playlist_id_by_playlist_name(p, &playlist_id);
+	ret = audio_svc_get_playlist_id_by_playlist_name(db_handle, p, &playlist_id);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_playlist_free(playlists);
@@ -127,7 +127,7 @@ void utc_audio_svc_get_playlist_id_by_playlist_name_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int playlist_id = -1;
 	
-	ret = audio_svc_get_playlist_id_by_playlist_name(NULL, &playlist_id);
+	ret = audio_svc_get_playlist_id_by_playlist_name(db_handle, NULL, &playlist_id);
 	if (ret !=  AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_get_playlist_id_by_playlist_name","abnormal condition test for invalid playlist name parameter.");

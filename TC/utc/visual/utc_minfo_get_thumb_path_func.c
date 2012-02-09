@@ -44,9 +44,9 @@ void utc_minfo_get_thumb_path_func_01()
 	int size = 256;
 	
 	char thumb_path[256] = {'\0'};
-	char *file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
+	char *file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
 
-	ret = minfo_get_thumb_path(file_url,thumb_path, size);
+	ret = minfo_get_thumb_path(handle, file_url,thumb_path, size);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to get thumbnail pathname for a media content. error code->%d", ret);
 }
@@ -65,8 +65,8 @@ void utc_minfo_get_thumb_path_func_02()
 	int size = 20;
 	
 	char thumb_path[256] = {'\0'};
-	char *file_url = NULL;/* = "/opt/media/Images/Wallpapers/Home_01.png";*/
+	char *file_url = NULL;/* = "/opt/media/Images/Wallpapers/Home_01.jpg";*/
 
-	ret = minfo_get_thumb_path(file_url,thumb_path, size);
+	ret = minfo_get_thumb_path(handle, file_url,thumb_path, size);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "get thumbnail pathname for a media content should be failed because of the file_url NULL.");
 }

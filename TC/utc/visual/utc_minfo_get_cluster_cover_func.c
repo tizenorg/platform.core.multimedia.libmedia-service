@@ -30,10 +30,10 @@
 
 #include "utc_minfo_get_cluster_cover_func.h"
 
-static int _cover_ite_fn( char* thumb_path, void* user_data)
+static int _cover_ite_fn(const char* thumb_path, void* user_data)
 {
 	GList** list = (GList**) user_data;
-	*list = g_list_append( *list, thumb_path );
+	*list = g_list_append( *list, (char *)thumb_path );
 
 	return 0;
 }
@@ -51,9 +51,9 @@ void utc_minfo_get_cluster_cover_func_01()
 	
 	GList *p_list = NULL;
 	int img_cnt = 5;
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 	
-	ret = minfo_get_cluster_cover(cluster_uuid, img_cnt, _cover_ite_fn, &p_list);
+	ret = minfo_get_cluster_cover(handle, cluster_uuid, img_cnt, _cover_ite_fn, &p_list);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to get cover of a cluster/folder. error code->%d", ret);
 }
@@ -74,7 +74,7 @@ void utc_minfo_get_cluster_cover_func_02()
 	int img_cnt = 5;
 	const char *cluster_uuid = NULL;
 	
-	ret = minfo_get_cluster_cover(cluster_uuid, img_cnt, NULL, &p_list);
+	ret = minfo_get_cluster_cover(handle, cluster_uuid, img_cnt, NULL, &p_list);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"get cover of a cluster/folder should be failed because of the p_list non-NULL.");
 }

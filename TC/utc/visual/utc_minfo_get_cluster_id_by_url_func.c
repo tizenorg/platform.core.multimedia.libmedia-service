@@ -43,8 +43,8 @@ void utc_minfo_get_cluster_id_by_url_func_01()
 	int ret = -1;
 	 
 	char cluster_uuid[256] = {0,};
-	char *folder_full_path = "/opt/media/Images and videos/Wallpapers";
-	ret = minfo_get_cluster_id_by_url(folder_full_path, cluster_uuid, sizeof(cluster_uuid));
+	char *folder_full_path = "/opt/media/Images/Wallpapers";
+	ret = minfo_get_cluster_id_by_url(handle, folder_full_path, cluster_uuid, sizeof(cluster_uuid));
 	
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to get folder id using it's full name. error code->%d", ret);
 
@@ -65,7 +65,7 @@ void utc_minfo_get_cluster_id_by_url_func_02()
 	char *cluster_uuid = NULL;
 	char *folder_full_path = NULL; /*= "/opt/media/Images/Wallpapers";*/
 
-	ret = minfo_get_cluster_id_by_url(folder_full_path, cluster_uuid, sizeof(cluster_uuid));
+	ret = minfo_get_cluster_id_by_url(handle, folder_full_path, cluster_uuid, sizeof(cluster_uuid));
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"get folder id using it's full name should be failed because of the folder_full_path parameter NULL.");
 }

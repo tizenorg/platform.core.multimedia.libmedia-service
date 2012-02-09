@@ -13,7 +13,7 @@ endif
 TS1=utc_audio_svc_add_item_to_playlist_func
 TS2=utc_audio_svc_add_playlist_func
 TS3=utc_audio_svc_check_duplicate_insertion_in_playlist_func
-TS4=utc_audio_svc_close_func
+#TS4=utc_audio_svc_close_func
 TS5=utc_audio_svc_get_playlist_func
 TS7=utc_audio_svc_count_group_item_func
 TS8=utc_audio_svc_count_list_item_func
@@ -37,7 +37,7 @@ TS30=utc_audio_svc_list_item_get_func
 TS31=utc_audio_svc_list_item_get_val_func
 TS32=utc_audio_svc_list_item_new_func
 TS34=utc_audio_svc_move_item_func
-TS35=utc_audio_svc_open_func
+#TS35=utc_audio_svc_open_func
 TS36=utc_audio_svc_playlist_free_func
 TS37=utc_audio_svc_playlist_get_item_func
 TS38=utc_audio_svc_playlist_get_val_func
@@ -54,14 +54,13 @@ TS55=utc_audio_svc_delete_invalid_items_func
 TS56=utc_audio_svc_check_item_exist_func
 TS57=utc_audio_svc_get_playlist_id_by_playlist_name_func
 
-LIBS = `pkg-config --libs libmedia-info`
-LIBS +=-L/usr/lib/:/usr/lib/pkgconfig
+LIBS = `pkg-config --libs libmedia-service`
 LIBS +=$(TET_ROOT)/lib/tet3/tcm_s.o
-LIBS +=-L$(TET_ROOT)/lib/tet3 -ltcm_s
-LIBS +=-L$(TET_ROOT)/lib/tet3/ -lapi_s
+LIBS +=-L$(TET_ROOT)/lib/tet3/ -ltcm_s
+LIBS +=-lapi_s
 LIBS +=utc_audio_svc_common.o
 
-INCS = -I. `pkg-config --cflags  libmedia-info`
+INCS = -I. `pkg-config --cflags  libmedia-service`
 INCS += -I$(TET_ROOT)/inc/tet3
 INCS += -I/usr/include
 

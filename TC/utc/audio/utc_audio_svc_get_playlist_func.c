@@ -66,7 +66,7 @@ void utc_audio_svc_get_playlist_func_01()
 		dts_fail("check_default_playlist_exist","fail to check default playlist.");
 	}
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_playlist","unable to get playlist.");
@@ -78,7 +78,7 @@ void utc_audio_svc_get_playlist_func_01()
 		dts_fail("audio_svc_playlist_new","unable to create playlist.");
 	}
 	
-	ret = audio_svc_get_playlist("", "", 0, count, result_records);
+	ret = audio_svc_get_playlist(db_handle, "", "", 0, count, result_records);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_playlist_free(result_records);
@@ -103,7 +103,7 @@ void utc_audio_svc_get_playlist_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	AudioHandleType *result_records = NULL;
 	
-	ret = audio_svc_get_playlist( "", "", 0, ret, result_records);
+	ret = audio_svc_get_playlist(db_handle, "", "", 0, ret, result_records);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

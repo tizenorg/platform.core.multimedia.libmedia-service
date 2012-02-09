@@ -29,10 +29,11 @@
 * @date		2010-10-13
 */
 
-#ifndef __UTS_MINFO_SVC_COMMON_H_
-#define __UTS_MINFO_SVC_COMMON_H_
+#ifndef __UTS_VISUAL_SVC_COMMON_H_
+#define __UTS_VISUAL_SVC_COMMON_H_
 
 #include <media-svc.h>
+#include <visual-svc.h>
 #include <string.h>
 #include <tet_api.h>
 #include <unistd.h>
@@ -41,30 +42,32 @@
 #define MAX_STRING_LEN 256
 
 #define UTC_MM_LOG(fmt, args...)	tet_printf("[%s(L%d)]:"fmt"\n", __FUNCTION__, __LINE__, ##args)
-#define API_NAME "libmedia-info"
+#define API_NAME "libmedia-service"
 
-#define UTC_MINFO_INIT() \
+MediaSvcHandle *handle;
+
+#define UTC_MEDIA_SVC_CONNECT() \
 do \
 { \
 	int ret = 0; \
-	ret = minfo_init(); \
+	ret = media_svc_connect(&handle); \
 	if (ret < MB_SVC_ERROR_NONE) \
 	{ \
-		UTC_MM_LOG( "unable to open media db. error code->%d", ret); \
+		UTC_MM_LOG( "unable to connect to media db. error code->%d", ret); \
 		tet_result(TET_FAIL); \
 		return; \
 	} \
 } \
 while(0);
 
-#define UTC_MINFO_FINALIZE() \
+#define UTC_MEDIA_SVC_DISCONNECT() \
 do \
 { \
 	int ret = 0; \
-	ret = minfo_finalize(); \
+	ret = media_svc_disconnect(handle); \
 	if (ret < MB_SVC_ERROR_NONE) \
 	{ \
-		UTC_MM_LOG( "unable to close media db. error code->%d", ret); \
+		UTC_MM_LOG( "unable to disconnect. error code->%d", ret); \
 		tet_result(TET_FAIL); \
 		return; \
 	} \
@@ -73,13 +76,13 @@ while(0);
 
 void startup()
 {
-	UTC_MINFO_INIT()
+	UTC_MEDIA_SVC_CONNECT()
 }
 
 void cleanup()
 {
-	UTC_MINFO_FINALIZE()
+	UTC_MEDIA_SVC_DISCONNECT()
 }
 
 
-#endif //__UTS_MINFO_SVC_COMMON_H_
+#endif //__UTS_VISUAL_SVC_COMMON_H_

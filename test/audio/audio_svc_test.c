@@ -20,19 +20,18 @@
  */
 
 #include <audio-svc.h>
-#include <audio-svc-error.h>
+#include <media-svc.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 
 void insert_into_db(const char * dir_path);
-//void list_items(int count, mp_search_record_t *tracks);
 void msg_print(int line, char *msg);
 
 int main()
 {
-	int ret = AUDIO_SVC_ERROR_NONE;;
+	int ret = AUDIO_SVC_ERROR_NONE;
 	char * audio_id = NULL;
 	int size = 0;
 	int idx=0, j;
@@ -40,18 +39,19 @@ int main()
 	AudioHandleType *tracks = NULL;
 	AudioHandleType *item = NULL;
 	AudioHandleType  *groups = NULL;
+	MediaSvcHandle * db_handle = NULL;
 	
 	//db open ==================================================
-	ret = audio_svc_open();
+	ret = media_svc_connect(&db_handle);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to open music database");
+		msg_print(__LINE__, "error to open music database");
 		return -1;
 	}
 #if 0
 	//create table test ==================================================
 	ret = audio_svc_create_table();
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to create table");
+		msg_print(__LINE__, "error to create table");
 		return -1;
 	}
 #endif
@@ -59,16 +59,16 @@ int main()
 	//insert music files to db ==================================================
 	ret = audio_svc_delete_all(AUDIO_SVC_STORAGE_PHONE);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to delete all items on phone");
+		msg_print(__LINE__, "error to delete all items on phone");
 		return -1;
 	}
 	//insert_into_db("/opt/media/Sounds/Music");
 #endif
 	//iterate all tracks and get the info of tracks ==================================================
 	msg_print(__LINE__, "iterate all tracks");
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &rows);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to delete all items on phone");
+		msg_print(__LINE__, "error to delete all items on phone");
 		return -1;
 	}
 
@@ -81,11 +81,11 @@ int main()
 	
 	ret = audio_svc_list_item_new(&tracks, rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to alloc memory for list item");
+		msg_print(__LINE__, "error to alloc memory for list item");
 		return -1;
 	}
 	
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,
@@ -95,7 +95,7 @@ int main()
 		tracks
 		);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to get list item");
+		msg_print(__LINE__, "error to get list item");
 		return -1;
 	}
 	
@@ -104,13 +104,13 @@ int main()
 	{
 		ret = audio_svc_list_item_get_val(tracks, idx, AUDIO_SVC_LIST_ITEM_AUDIO_ID, &audio_id, &size, -1);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_get_val");
+			msg_print(__LINE__, "error audio_svc_list_item_get_val");
 			return -1;
 		}
 		fprintf(stderr, "[audio_id] = %s \n", audio_id);
-		ret = audio_svc_get_item_by_audio_id(audio_id, item);
+		ret = audio_svc_get_item_by_audio_id(db_handle, audio_id, item);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer to get item by audio_id");
+			msg_print(__LINE__, "error to get item by audio_id");
 			return -1;
 		}
 		
@@ -128,7 +128,7 @@ int main()
 				AUDIO_SVC_TRACK_DATA_YEAR, &year, &size,
 				-1);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_item_get_val");
+				msg_print(__LINE__, "error audio_svc_item_get_val");
 				return -1;
 			}
 			fprintf(stderr, "**** ITEM INFO[%d] ****\n", idx);
@@ -142,9 +142,9 @@ int main()
 			fprintf(stderr, "	**year = %s\n", year);
 			
 
-			ret = audio_svc_get_thumbnail_path_by_path(path, thumb_path, AUDIO_SVC_PATHNAME_SIZE);
+			ret = audio_svc_get_thumbnail_path_by_path(db_handle, path, thumb_path, AUDIO_SVC_PATHNAME_SIZE);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_item_get_val");
+				msg_print(__LINE__, "error audio_svc_item_get_val");
 				return -1;
 			}
 			fprintf(stderr, "	**thumb_path = %s\n\n", thumb_path);
@@ -154,12 +154,12 @@ int main()
 	
 	ret = audio_svc_item_free(item);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_item_free");
+		msg_print(__LINE__, "error audio_svc_item_free");
 		return -1;
 	}
 	ret = audio_svc_list_item_free(tracks);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_list_item_free");
+		msg_print(__LINE__, "error audio_svc_list_item_free");
 		return -1;
 	}
 
@@ -180,16 +180,16 @@ int main()
 			AUDIO_SVC_TRACK_DATA_ALBUM_RATING, AUDIO_SVC_RATING_5,
 			-1);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_update_item_metadata");
+		msg_print(__LINE__, "error audio_svc_update_item_metadata");
 		return -1;
 	}
 #endif
 	//iterate all albums and its tracks ==================================================
 	msg_print(__LINE__, "iterate all albums and its tracks");
 
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ALBUM, NULL, NULL, NULL, NULL, &rows);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, NULL, NULL, NULL, NULL, &rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_count_group_item");
+		msg_print(__LINE__, "error audio_svc_count_group_item");
 		return -1;
 	}
 	if(rows < 1) {
@@ -201,11 +201,11 @@ int main()
 	
 	ret = audio_svc_group_item_new(&groups, rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_list_item_new");
+		msg_print(__LINE__, "error audio_svc_list_item_new");
 		return -1;
 	}
 	
-	ret = audio_svc_get_group_item(		AUDIO_SVC_GROUP_BY_ALBUM, //group_type,
+	ret = audio_svc_get_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, //group_type,
 		NULL, //limit_string1,
 		NULL, //limit_string2,
 		NULL, //filter_string,
@@ -215,7 +215,7 @@ int main()
 		groups);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_get_group_item");
+		msg_print(__LINE__, "error audio_svc_get_group_item");
 		return -1;
 	}
 	
@@ -233,7 +233,7 @@ int main()
 			-1);
 
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_group_item_get_val");
+			msg_print(__LINE__, "error audio_svc_group_item_get_val");
 			return -1;
 		}
 		
@@ -244,9 +244,9 @@ int main()
 		fprintf(stderr, "	**album_rating = %d\n\n", album_rating);
 		
 		//iterate tracks of albums ==================================================
-		ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_BY_ALBUM, main_info, "", "", "", &count);
+		ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_BY_ALBUM, main_info, "", "", "", &count);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_count_list_item");
+			msg_print(__LINE__, "error audio_svc_count_list_item");
 			return -1;
 		}
 		if(count < 1) {
@@ -258,16 +258,16 @@ int main()
 
 		ret = audio_svc_list_item_new(&tracks, count);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_new");
+			msg_print(__LINE__, "error audio_svc_list_item_new");
 			return -1;
 		}
 
-		ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_BY_ALBUM, main_info, NULL, NULL, NULL, 0, count, tracks);
+		ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_BY_ALBUM, main_info, NULL, NULL, NULL, 0, count, tracks);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_new");
+			msg_print(__LINE__, "error audio_svc_list_item_new");
 			ret = audio_svc_group_item_free(groups);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_list_item_free");
+				msg_print(__LINE__, "error audio_svc_list_item_free");
 				return -1;
 			}
 			return -1;
@@ -290,10 +290,10 @@ int main()
 				AUDIO_SVC_LIST_ITEM_RATING, &rating,
 				-1);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_list_item_get_val");
+				msg_print(__LINE__, "error audio_svc_list_item_get_val");
 				ret = audio_svc_list_item_free(tracks);
 				if (ret != AUDIO_SVC_ERROR_NONE) {
-					msg_print(__LINE__, "errer audio_svc_list_item_free");
+					msg_print(__LINE__, "error audio_svc_list_item_free");
 					return -1;
 				}
 				return -1;
@@ -310,7 +310,7 @@ int main()
 		
 		ret = audio_svc_list_item_free(tracks);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_free");
+			msg_print(__LINE__, "error audio_svc_list_item_free");
 			return -1;
 		}
 
@@ -318,7 +318,7 @@ int main()
 	
 	ret = audio_svc_group_item_free(groups);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_list_item_free");
+		msg_print(__LINE__, "error audio_svc_list_item_free");
 		return -1;
 	}
 
@@ -326,9 +326,9 @@ int main()
 	//iterate all Folder and its tracks ==================================================
 	msg_print(__LINE__, "iterate all Folder and its tracks");
 	//AudioHandleType  *groups = NULL;
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_FOLDER, NULL, NULL, NULL, NULL, &rows);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_FOLDER, NULL, NULL, NULL, NULL, &rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_count_group_item");
+		msg_print(__LINE__, "error audio_svc_count_group_item");
 		return -1;
 	}
 	if(rows < 1) {
@@ -340,11 +340,11 @@ int main()
 	
 	ret = audio_svc_group_item_new(&groups, rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_group_item_new");
+		msg_print(__LINE__, "error audio_svc_group_item_new");
 		return -1;
 	}
 	
-	ret = audio_svc_get_group_item(AUDIO_SVC_GROUP_BY_FOLDER, //group_type,
+	ret = audio_svc_get_group_item(db_handle, AUDIO_SVC_GROUP_BY_FOLDER, //group_type,
 		NULL, //limit_string1,
 		NULL, //limit_string2,
 		NULL, //filter_string,
@@ -353,10 +353,10 @@ int main()
 		rows, //rows,
 		groups);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_get_group_item of get folder");
+			msg_print(__LINE__, "error audio_svc_get_group_item of get folder");
 			ret = audio_svc_list_item_free(tracks);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_list_item_free");
+				msg_print(__LINE__, "error audio_svc_list_item_free");
 				return -1;
 			}
 			return -1;
@@ -376,10 +376,10 @@ int main()
 			-1);
 
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_get_val of get folder");
+			msg_print(__LINE__, "error audio_svc_list_item_get_val of get folder");
 			ret = audio_svc_list_item_free(tracks);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_list_item_free");
+				msg_print(__LINE__, "error audio_svc_list_item_free");
 				return -1;
 			}
 			return -1;
@@ -392,9 +392,9 @@ int main()
 		fprintf(stderr, "	**rating = %d\n\n", rating);
 		
 		//iterate tracks of albums ==================================================
-		ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_BY_FOLDER, sub_info, "", "", "", &count);
+		ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_BY_FOLDER, sub_info, "", "", "", &count);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_count_list_item");
+			msg_print(__LINE__, "error audio_svc_count_list_item");
 			return -1;
 		}
 		if(count < 1) {
@@ -402,17 +402,17 @@ int main()
 			return -1;
 		}
 		else
-			fprintf(stderr, "	rows = [%d]\n", count);
+			fprintf(stderr, "	rows = [%d]\n\n", count);
 
 		ret = audio_svc_list_item_new(&tracks, count);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_new");
+			msg_print(__LINE__, "error audio_svc_list_item_new");
 			return -1;
 		}
 
-		ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_BY_FOLDER, sub_info, NULL, NULL, NULL, 0, count, tracks);
+		ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_BY_FOLDER, sub_info, NULL, NULL, NULL, 0, count, tracks);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_new");
+			msg_print(__LINE__, "error audio_svc_list_item_new");
 			return -1;
 		}
 		
@@ -433,16 +433,16 @@ int main()
 				AUDIO_SVC_LIST_ITEM_RATING, &rating,
 				-1);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
-				msg_print(__LINE__, "errer audio_svc_list_item_get_val");
+				msg_print(__LINE__, "error audio_svc_list_item_get_val");
 				ret = audio_svc_list_item_free(tracks);
 				if (ret != AUDIO_SVC_ERROR_NONE) {
-					msg_print(__LINE__, "errer audio_svc_list_item_free");
+					msg_print(__LINE__, "error audio_svc_list_item_free");
 					return -1;
 				}
 				return -1;
 			}
 
-			fprintf(stderr, "	**audio_id = %s\n\n", audio_id);
+			fprintf(stderr, "	**audio_id = %s\n", audio_id);
 			fprintf(stderr, "	**thumbnail_path = %s\n", thumbname);
 			fprintf(stderr, "	**title = %s\n", title);
 			fprintf(stderr, "	**artist = %s\n", artist);
@@ -453,7 +453,7 @@ int main()
 		
 		ret = audio_svc_list_item_free(tracks);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_free");
+			msg_print(__LINE__, "error audio_svc_list_item_free");
 			return -1;
 		}
 
@@ -461,7 +461,7 @@ int main()
 	
 	ret = audio_svc_group_item_free(groups);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_list_item_free");
+		msg_print(__LINE__, "error audio_svc_list_item_free");
 		return -1;
 	}
 
@@ -471,9 +471,9 @@ int main()
 	AudioHandleType*playlists = NULL;
 	char plst_name[AUDIO_SVC_PLAYLIST_NAME_SIZE] = {0};
 
-	ret = audio_svc_count_playlist(NULL, NULL, &plst_count);
+	ret = audio_svc_count_playlist(db_handle, NULL, NULL, &plst_count);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_count_playlist");
+		msg_print(__LINE__, "error audio_svc_count_playlist");
 		return -1;
 	}
 	if(plst_count < 1) {
@@ -485,18 +485,18 @@ int main()
 	
 	ret = audio_svc_playlist_new(&playlists, plst_count);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_playlist_new");
+		msg_print(__LINE__, "error audio_svc_playlist_new");
 		return -1;
 	}
 
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle, 
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,
 				plst_count, //rows
 				playlists);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_playlist_new");
+		msg_print(__LINE__, "error audio_svc_playlist_new");
 		return -1;
 	}
 
@@ -513,13 +513,13 @@ int main()
 
 	ret = audio_svc_playlist_free(playlists);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_playlist_new");
+		msg_print(__LINE__, "error audio_svc_playlist_new");
 		return -1;
 	}
 
-	ret = audio_svc_count_playlist_item(plst_id, "", "", &rows);
+	ret = audio_svc_count_playlist_item(db_handle, plst_id, "", "", &rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_count_list_item");
+		msg_print(__LINE__, "error audio_svc_count_list_item");
 		return -1;
 	}
 
@@ -532,11 +532,11 @@ int main()
 
 	ret = audio_svc_playlist_item_new(&tracks, rows);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to alloc memory for list item");
+		msg_print(__LINE__, "error to alloc memory for list item");
 		return -1;
 	}
 	
-	ret = audio_svc_get_playlist_item(
+	ret = audio_svc_get_playlist_item(db_handle, 
 		plst_id,
 		NULL, //filter_string,
 		NULL, //filter_string2,
@@ -545,7 +545,7 @@ int main()
 		tracks
 		);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to get list item");
+		msg_print(__LINE__, "error to get list item");
 		return -1;
 	}
 
@@ -569,7 +569,7 @@ int main()
 			AUDIO_SVC_PLAYLIST_ITEM_PLAY_ORDER, &play_order,
 			-1);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			msg_print(__LINE__, "errer audio_svc_list_item_get_val");
+			msg_print(__LINE__, "error audio_svc_list_item_get_val");
 			return -1;
 		}
 
@@ -586,21 +586,21 @@ int main()
 
 	ret = audio_svc_playlist_item_free(tracks);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_list_item_free");
+		msg_print(__LINE__, "error audio_svc_list_item_free");
 		return -1;
 	}
 	
-	ret = audio_svc_get_playlist_name_by_playlist_id(plst_id, plst_name, AUDIO_SVC_PLAYLIST_NAME_SIZE);
+	ret = audio_svc_get_playlist_name_by_playlist_id(db_handle, plst_id, plst_name, AUDIO_SVC_PLAYLIST_NAME_SIZE);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer audio_svc_get_playlist_name_by_playlist_id");
+		msg_print(__LINE__, "error audio_svc_get_playlist_name_by_playlist_id");
 		return -1;
 	}
 	fprintf(stderr,"playlist id = %d, playlist name = %s\n", plst_id, plst_name);
 
 	//db close ==================================================
-	ret = audio_svc_close();
+	ret = media_svc_disconnect(db_handle);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
-		msg_print(__LINE__, "errer to close music database");
+		msg_print(__LINE__, "error to close music database");
 		return -1;
 	}
 
@@ -626,29 +626,17 @@ void insert_into_db(const char * dir_path)
 
 		fprintf(stderr,"[file path] : %s\n", fpath);
 
+		#if 0
 		int ret = audio_svc_insert_item(AUDIO_SVC_STORAGE_PHONE, fpath, AUDIO_SVC_CATEGORY_MUSIC);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
-			fprintf(stderr,"[errer to insert music] : %s\n", fpath);
+			fprintf(stderr,"[error to insert music] : %s\n", fpath);
 		}
-
+		#endif
 		audio_id++;
 	}
 
 
 }
-/*
-void list_items(int count, mp_search_record_t *tracks)
-{
-	int i;
-	for (i = 0; i < count; i++)
-	{
-		fprintf(stderr, "--- [audio_id]		: %d ---\n", tracks[i].audio_id);
-		fprintf(stderr, "--- [firstname]	: %s ---\n", tracks[i].firstname);
-		fprintf(stderr, "--- [secondname]	: %s ---\n", tracks[i].secondname);
-		fprintf(stderr, "--- [thumbnail_path]	: %s ---\n\n", tracks[i].thumbnail_path);
-	}
-}
-*/
 
 void msg_print(int line, char *msg)
 {

@@ -28,7 +28,7 @@
 
 #include <glib.h>
 #include <sys/stat.h>
-#include "media-info-util.h"
+#include "media-svc-util.h"
 #include "audio-svc-error.h"
 #include "audio-svc-music-table.h"
 #include "audio-svc-playlist-table.h"
@@ -79,39 +79,28 @@ typedef enum {
 #define AUDIO_SVC_COLLATE_NOCASE		"COLLATE NOCASE"
 
 static const char *g_audio_svc_music_fields =
-    "audio_id, path, thumbnail_path, title, album, artist, genre, author, year,\
-copyright, description, format, bitrate,track_num,duration, rating, played_count, last_played_time, added_time, modified_date, size, category, valid, folder_id, storage_type";
+    "audio_uuid, path, thumbnail_path, title, album, artist, genre, author, year,\
+copyright, description, format, bitrate,track_num,duration, rating, played_count, last_played_time, added_time, modified_date, size, category, valid, folder_uuid, storage_type";
 
 static __thread GList *g_audio_svc_item_valid_query_list = NULL;
 static __thread GList *g_audio_svc_move_item_query_list = NULL;
 static __thread GList *g_audio_svc_insert_item_query_list = NULL;
 
 
-static int __audio_svc_create_music_db_table();
-static void __audio_svc_get_next_record(audio_svc_audio_item_s *item,
-					sqlite3_stmt *stmt);
-static int
-__audio_svc_count_invalid_records_with_thumbnail(audio_svc_storage_type_e
-						 storage_type);
-static int __audio_svc_count_records_with_thumbnail(audio_svc_storage_type_e
-						    storage_type);
-static int
-__audio_svc_get_invalid_records_with_thumbnail(audio_svc_storage_type_e
-					       storage_type, int count,
-					       mp_thumbnailpath_record_t *
-					       thumb_path);
-static int __audio_svc_get_records_with_thumbnail(audio_svc_storage_type_e
-						  storage_type, int count,
-						  mp_thumbnailpath_record_t *
-						  thumb_path);
+static int __audio_svc_create_music_db_table(sqlite3 *handle);
+static void __audio_svc_get_next_record(audio_svc_audio_item_s *item, sqlite3_stmt *stmt);
+static int __audio_svc_count_invalid_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e storage_type);
+static int __audio_svc_count_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e storage_type);
+static int __audio_svc_get_invalid_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e storage_type, int count, mp_thumbnailpath_record_t * thumb_path);
+static int __audio_svc_get_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e storage_type, int count, mp_thumbnailpath_record_t * thumb_path);
 
 
-static int __audio_svc_create_music_db_table(void)
+static int __audio_svc_create_music_db_table(sqlite3 *handle)
 {
 	int err = -1;
 
 	char *sql = sqlite3_mprintf("create table if not exists %s (\
-				audio_id			text primary key, \
+				audio_uuid		text primary key, \
 				path				text unique, \
 				thumbnail_path	text, \
 				title				text, \
@@ -136,14 +125,14 @@ static int __audio_svc_create_music_db_table(void)
 				size				integer default 0, \
 				category 		INTEGER default 0, \
 				valid		   		integer default 0, \
-				folder_id			TEXT NOT NULL, \
+				folder_uuid			TEXT NOT NULL, \
 				storage_type		integer, \
 				favourite			integer default 0, \
 				content_type		integer default %d);",
 				AUDIO_SVC_DB_TABLE_AUDIO,
 				AUDIO_SVC_CONTENT_TYPE);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to create db table (%d)", err);
@@ -159,8 +148,8 @@ static int __audio_svc_create_music_db_table(void)
 static void __audio_svc_get_next_record(audio_svc_audio_item_s *item,
 					sqlite3_stmt *stmt)
 {
-	_strncpy_safe(item->audio_id,
-		      (const char *)sqlite3_column_text(stmt, AUDIO_SVC_AUDIO_INFO_AUDIO_ID), sizeof(item->audio_id));
+	_strncpy_safe(item->audio_uuid,
+		      (const char *)sqlite3_column_text(stmt, AUDIO_SVC_AUDIO_INFO_AUDIO_ID), sizeof(item->audio_uuid));
 	_strncpy_safe(item->pathname,
 		      (const char *)sqlite3_column_text(stmt, AUDIO_SVC_AUDIO_INFO_PATH), sizeof(item->pathname));
 	_strncpy_safe(item->thumbname,
@@ -199,7 +188,7 @@ static void __audio_svc_get_next_record(audio_svc_audio_item_s *item,
 }
 
 static int
-__audio_svc_count_invalid_records_with_thumbnail(audio_svc_storage_type_e
+__audio_svc_count_invalid_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e
 						 storage_type)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
@@ -210,7 +199,7 @@ __audio_svc_count_invalid_records_with_thumbnail(audio_svc_storage_type_e
 	    ("select count(*) from %s where valid=0 and storage_type=%d and thumbnail_path is not null",
 	     AUDIO_SVC_DB_TABLE_AUDIO, storage_type);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -227,7 +216,7 @@ __audio_svc_count_invalid_records_with_thumbnail(audio_svc_storage_type_e
 
 }
 
-static int __audio_svc_count_records_with_thumbnail(audio_svc_storage_type_e
+static int __audio_svc_count_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e
 						    storage_type)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
@@ -238,7 +227,7 @@ static int __audio_svc_count_records_with_thumbnail(audio_svc_storage_type_e
 	    ("select count(*) from %s where storage_type=%d and thumbnail_path is not null",
 	     AUDIO_SVC_DB_TABLE_AUDIO, storage_type);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -256,7 +245,7 @@ static int __audio_svc_count_records_with_thumbnail(audio_svc_storage_type_e
 }
 
 static int
-__audio_svc_get_invalid_records_with_thumbnail(audio_svc_storage_type_e
+__audio_svc_get_invalid_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e
 					       storage_type, int count,
 					       mp_thumbnailpath_record_t *
 					       thumb_path)
@@ -264,13 +253,13 @@ __audio_svc_get_invalid_records_with_thumbnail(audio_svc_storage_type_e
 	int err = -1;
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
-
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	char *sql =
 	    sqlite3_mprintf
 	    ("select thumbnail_path from %s where valid=0 and storage_type=%d and thumbnail_path is not null",
@@ -299,7 +288,7 @@ __audio_svc_get_invalid_records_with_thumbnail(audio_svc_storage_type_e
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-static int __audio_svc_get_records_with_thumbnail(audio_svc_storage_type_e
+static int __audio_svc_get_records_with_thumbnail(sqlite3 *handle, audio_svc_storage_type_e
 						  storage_type, int count,
 						  mp_thumbnailpath_record_t *
 						  thumb_path)
@@ -307,13 +296,13 @@ static int __audio_svc_get_records_with_thumbnail(audio_svc_storage_type_e
 	int err = -1;
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
-
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	char *sql =
 	    sqlite3_mprintf
 	    ("select thumbnail_path from %s where storage_type=%d and thumbnail_path is not null",
@@ -342,17 +331,17 @@ static int __audio_svc_get_records_with_thumbnail(audio_svc_storage_type_e
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_create_music_table(void)
+int _audio_svc_create_music_table(sqlite3 *handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = __audio_svc_create_music_db_table();
+	ret = __audio_svc_create_music_db_table(handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_truncate_music_table(audio_svc_storage_type_e storage_type)
+int _audio_svc_truncate_music_table(sqlite3 *handle, audio_svc_storage_type_e storage_type)
 {
 	int idx = 0;
 	mp_thumbnailpath_record_t *thumbpath_record = NULL;
@@ -360,7 +349,7 @@ int _audio_svc_truncate_music_table(audio_svc_storage_type_e storage_type)
 	int invalid_count = 0;
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	invalid_count = __audio_svc_count_records_with_thumbnail(storage_type);
+	invalid_count = __audio_svc_count_records_with_thumbnail(handle, storage_type);
 	audio_svc_debug("invalid count: %d\n", invalid_count);
 
 	if (invalid_count > 0) {
@@ -374,10 +363,7 @@ int _audio_svc_truncate_music_table(audio_svc_storage_type_e storage_type)
 		memset(thumbpath_record, 0,
 		       sizeof(mp_thumbnailpath_record_t) * invalid_count);
 
-		ret =
-		    __audio_svc_get_records_with_thumbnail(storage_type,
-							   invalid_count,
-							   thumbpath_record);
+		ret = __audio_svc_get_records_with_thumbnail(handle, storage_type, invalid_count, thumbpath_record);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
 			audio_svc_error("error when get thumbnail record");
 			SAFE_FREE(thumbpath_record);
@@ -390,7 +376,7 @@ int _audio_svc_truncate_music_table(audio_svc_storage_type_e storage_type)
 	char *sql =
 	    sqlite3_mprintf("delete from %s where storage_type=%d",
 			    AUDIO_SVC_DB_TABLE_AUDIO, storage_type);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to truncate table (%d)", err);
@@ -404,9 +390,7 @@ int _audio_svc_truncate_music_table(audio_svc_storage_type_e storage_type)
 
 	for (idx = 0; idx < invalid_count; idx++) {
 		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
-			ret =
-			    _audio_svc_check_and_remove_thumbnail
-			    (thumbpath_record[idx].thumbnail_path);
+			ret = _audio_svc_check_and_remove_thumbnail(handle, thumbpath_record[idx].thumbnail_path);
 			if (ret != AUDIO_SVC_ERROR_NONE) {
 				audio_svc_error
 				    ("error _audio_svc_check_and_remove_thumbnail");
@@ -421,17 +405,17 @@ int _audio_svc_truncate_music_table(audio_svc_storage_type_e storage_type)
 
 }
 
-int _audio_svc_create_folder_table(void)
+int _audio_svc_create_folder_table(sqlite3 *handle)
 {
 	int err = -1;
 	char *sql = sqlite3_mprintf("create table if not exists %s (\
-			_id				text primary key, \
+			folder_uuid		text primary key, \
 			path				text,\
 			folder_name		text,\
 			storage_type		integer,\
 			modified_date	integer default 0);", AUDIO_SVC_DB_TABLE_AUDIO_FOLDER);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("error while create folder table");
@@ -444,7 +428,7 @@ int _audio_svc_create_folder_table(void)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_delete_folder(audio_svc_storage_type_e storage_type, const char *folder_id)
+int _audio_svc_delete_folder(sqlite3 *handle, audio_svc_storage_type_e storage_type, const char *folder_id)
 {
 	int err = -1;
 	char *sql = NULL;
@@ -457,7 +441,7 @@ int _audio_svc_delete_folder(audio_svc_storage_type_e storage_type, const char *
 	if ((storage_type == AUDIO_SVC_STORAGE_MMC) && (folder_id == NULL)) {	/* when mmc card removed. */
 		sql = sqlite3_mprintf("delete from %s where storage_type=%d", 
 				    AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, storage_type);
-		err = _audio_svc_sql_query(sql);
+		err = _audio_svc_sql_query(handle, sql);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			audio_svc_debug("It failed to delete item (%d)", err);
@@ -468,9 +452,9 @@ int _audio_svc_delete_folder(audio_svc_storage_type_e storage_type, const char *
 		}
 	} else {
 		sql =
-		    sqlite3_mprintf("delete from %s where _id='%q'",
+		    sqlite3_mprintf("delete from %s where folder_uuid='%q'",
 				    AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, folder_id);
-		err = _audio_svc_sql_query(sql);
+		err = _audio_svc_sql_query(handle, sql);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			audio_svc_debug("It failed to delete item (%d)", err);
@@ -484,7 +468,7 @@ int _audio_svc_delete_folder(audio_svc_storage_type_e storage_type, const char *
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_insert_item_with_data(audio_svc_audio_item_s *item, bool stack_query)
+int _audio_svc_insert_item_with_data(sqlite3 *handle, audio_svc_audio_item_s *item, bool stack_query)
 {
 	int err = -1;
 	int ret = AUDIO_SVC_ERROR_NONE;
@@ -495,12 +479,13 @@ int _audio_svc_insert_item_with_data(audio_svc_audio_item_s *item, bool stack_qu
 	int year = -1;
 	char *audio_id = NULL;
 
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	if (item == NULL) {
 		audio_svc_error("Invalid handle");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -527,7 +512,7 @@ int _audio_svc_insert_item_with_data(audio_svc_audio_item_s *item, bool stack_qu
 			      sizeof(item->audio.year));
 	}
 
-	ret = _audio_svc_get_and_append_folder_id_by_path(item->pathname,  item->storage_type, folder_id);
+	ret = _audio_svc_get_and_append_folder_id_by_path(handle, item->pathname,  item->storage_type, folder_id);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	char *sql =
@@ -563,7 +548,7 @@ int _audio_svc_insert_item_with_data(audio_svc_audio_item_s *item, bool stack_qu
 	audio_svc_debug("query : %s", sql);
 
 	if(!stack_query) {
-		err = _audio_svc_sql_query(sql);
+		err = _audio_svc_sql_query(handle, sql);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			audio_svc_error("failed to insert music record");
@@ -577,11 +562,11 @@ int _audio_svc_insert_item_with_data(audio_svc_audio_item_s *item, bool stack_qu
 		_audio_svc_sql_query_add(&g_audio_svc_insert_item_query_list, &sql);
 	}
 
-	//item->audio_id = sqlite3_last_insert_rowid(handle);
+	//item->audio_uuid = sqlite3_last_insert_rowid(handle);
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_select_music_record_by_audio_id(const char *audio_id,
+int _audio_svc_select_music_record_by_audio_id(sqlite3 *handle, const char *audio_id,
 					       audio_svc_audio_item_s *item)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
@@ -589,10 +574,10 @@ int _audio_svc_select_music_record_by_audio_id(const char *audio_id,
 
 	char *sql =
 	    sqlite3_mprintf
-	    ("select * from %s where audio_id='%q' and valid=1 and category=%d",
+	    ("select * from %s where audio_uuid='%q' and valid=1 and category=%d",
 	     AUDIO_SVC_DB_TABLE_AUDIO, audio_id, AUDIO_SVC_CATEGORY_MUSIC);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error("error when _audio_svc_select_music_record_by_audio_id. ret = [%d]", ret);
@@ -606,17 +591,17 @@ int _audio_svc_select_music_record_by_audio_id(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_select_music_record_by_path(const char *path,
+int _audio_svc_select_music_record_by_path(sqlite3 *handle, const char *path,
 					   audio_svc_audio_item_s *item)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
-	/* hjkim, 110211, remove category condition for the sound files */
+
 	char *sql =
 	    sqlite3_mprintf("select * from %s where valid=1 and path='%q' ",
 			    AUDIO_SVC_DB_TABLE_AUDIO, path);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -632,14 +617,14 @@ int _audio_svc_select_music_record_by_path(const char *path,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_delete_music_record_by_audio_id(const char *audio_id)
+int _audio_svc_delete_music_record_by_audio_id(sqlite3 *handle, const char *audio_id)
 {
 	int err = -1;
-	/* hjkim, 110211, remove category condition for the sound files */
 	char *sql =
-	    sqlite3_mprintf("delete from %s where valid=1 and audio_id='%q'",
+	    sqlite3_mprintf("delete from %s where valid=1 and audio_uuid='%q'",
 			    AUDIO_SVC_DB_TABLE_AUDIO, audio_id);
-	err = _audio_svc_sql_query(sql);
+
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to delete item (%d)", err);
@@ -651,14 +636,14 @@ int _audio_svc_delete_music_record_by_audio_id(const char *audio_id)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_metadata_in_music_record(const char *audio_id,
+int _audio_svc_update_metadata_in_music_record(sqlite3 *handle, const char *audio_id,
 					       audio_svc_audio_item_s *item)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
 	    ("update %s set thumbnail_path='%q',title='%q',album='%q',artist='%q',arist_seq='%q' ,genre='%q',author='%q',\
-		year=%d,copyright='%q',description='%q',format='%q',track_num=%d,duration=%d,bitrate=%d where valid=1 and audio_id='%q'",
+		year=%d,copyright='%q',description='%q',format='%q',track_num=%d,duration=%d,bitrate=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO,
 	     item->thumbname,
 	     item->audio.title,
@@ -676,7 +661,7 @@ int _audio_svc_update_metadata_in_music_record(const char *audio_id,
 	     item->audio.track, item->audio.duration, item->audio.bitrate,
 	     audio_id);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to update metadata (%d)", err);
@@ -689,7 +674,7 @@ int _audio_svc_update_metadata_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_path_in_music_record(const char *src_path,
+int _audio_svc_update_path_in_music_record(sqlite3 *handle, const char *src_path,
 					   const char *path, const char *title)
 {
 	char *sql = NULL;
@@ -707,7 +692,7 @@ int _audio_svc_update_path_in_music_record(const char *src_path,
 		     AUDIO_SVC_DB_TABLE_AUDIO, path, src_path);
 	}
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to update metadata (%d)", err);
@@ -720,13 +705,13 @@ int _audio_svc_update_path_in_music_record(const char *src_path,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_path_and_storage_in_music_record(const char *src_path, const char *path, audio_svc_storage_type_e storage_type)
+int _audio_svc_update_path_and_storage_in_music_record(sqlite3 *handle, const char *src_path, const char *path, audio_svc_storage_type_e storage_type)
 {
 	int err = -1;
 	char *sql = sqlite3_mprintf("update %s set path='%q', storage_type=%d where valid=1 and path='%q'",
 				 AUDIO_SVC_DB_TABLE_AUDIO, path, storage_type, src_path);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to update metadata (%d)", err);
@@ -739,13 +724,13 @@ int _audio_svc_update_path_and_storage_in_music_record(const char *src_path, con
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_folder_id_in_music_record(const char *path, const char *folder_id)
+int _audio_svc_update_folder_id_in_music_record(sqlite3 *handle, const char *path, const char *folder_id)
 {
 	int err = -1;
-	char *sql = sqlite3_mprintf("update %s set folder_id='%q' where path='%q'",
+	char *sql = sqlite3_mprintf("update %s set folder_uuid='%q' where path='%q'",
 			    AUDIO_SVC_DB_TABLE_AUDIO, folder_id, path);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to update metadata (%d)", err);
@@ -758,7 +743,7 @@ int _audio_svc_update_folder_id_in_music_record(const char *path, const char *fo
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_thumb_path_in_music_record(const char *file_path,
+int _audio_svc_update_thumb_path_in_music_record(sqlite3 *handle, const char *file_path,
 						 const char *path)
 {
 	int err = -1;
@@ -768,7 +753,7 @@ int _audio_svc_update_thumb_path_in_music_record(const char *file_path,
 	    ("update %s set thumbnail_path='%q' where valid=1 and path='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, path, file_path);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("It failed to update thumb path (%d)", err);
@@ -780,7 +765,7 @@ int _audio_svc_update_thumb_path_in_music_record(const char *file_path,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_rating_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_rating_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 	int err = -1;
 	int rated_time = -1;
@@ -788,10 +773,10 @@ int _audio_svc_update_rating_in_music_record(const char *audio_id, int changed_v
 
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set rating=%d, rated_time=%d where valid=1 and audio_id='%q'",
+	    ("update %s set rating=%d, rated_time=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, rated_time, audio_id);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_debug("To update rating is failed(%d)", err);
@@ -804,16 +789,16 @@ int _audio_svc_update_rating_in_music_record(const char *audio_id, int changed_v
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_playtime_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_playtime_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set last_played_time=%d where valid=1 and audio_id='%q'",
+	    ("update %s set last_played_time=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update last_played_time is failed(%d)",
@@ -827,16 +812,16 @@ int _audio_svc_update_playtime_in_music_record(const char *audio_id, int changed
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_playcount_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_playcount_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set played_count=%d where valid=1 and audio_id='%q'",
+	    ("update %s set played_count=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update played count is failed(%d)", err);
@@ -849,14 +834,14 @@ int _audio_svc_update_playcount_in_music_record(const char *audio_id, int change
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_addtime_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_addtime_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set added_time=%d where valid=1 and audio_id='%q'",
+	    ("update %s set added_time=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update added_time is failed(%d)", err);
@@ -869,14 +854,14 @@ int _audio_svc_update_addtime_in_music_record(const char *audio_id, int changed_
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_track_num_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_track_num_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set track_num=%d where valid=1 and audio_id='%q'",
+	    ("update %s set track_num=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("update track num is failed(%d)", err);
@@ -889,15 +874,15 @@ int _audio_svc_update_track_num_in_music_record(const char *audio_id, int change
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_album_rating_in_music_record(const char *audio_id,
+int _audio_svc_update_album_rating_in_music_record(sqlite3 *handle, const char *audio_id,
 						   int changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set album_rating=%d where valid=1 and audio_id='%q'",
+	    ("update %s set album_rating=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("update album_rating is failed(%d)", err);
@@ -910,14 +895,14 @@ int _audio_svc_update_album_rating_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_year_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_year_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set year=%d where valid=1 and audio_id='%q'",
+	    ("update %s set year=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("update year is failed(%d)", err);
@@ -930,15 +915,15 @@ int _audio_svc_update_year_in_music_record(const char *audio_id, int changed_val
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_title_in_music_record(const char *audio_id,
+int _audio_svc_update_title_in_music_record(sqlite3 *handle, const char *audio_id,
 					    const char *changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set title='%q' where valid=1 and audio_id='%q'",
+	    ("update %s set title='%q' where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update title is failed(%d)", err);
@@ -951,15 +936,15 @@ int _audio_svc_update_title_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_artist_in_music_record(const char *audio_id,
+int _audio_svc_update_artist_in_music_record(sqlite3 *handle, const char *audio_id,
 					     const char *changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set artist='%q' where valid=1 and audio_id='%q'",
+	    ("update %s set artist='%q' where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update artist is failed(%d)", err);
@@ -972,15 +957,15 @@ int _audio_svc_update_artist_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_album_in_music_record(const char *audio_id,
+int _audio_svc_update_album_in_music_record(sqlite3 *handle, const char *audio_id,
 					    const char *changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set album='%q' where valid=1 and audio_id='%q'",
+	    ("update %s set album='%q' where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update album is failed(%d)", err);
@@ -993,15 +978,15 @@ int _audio_svc_update_album_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_genre_in_music_record(const char *audio_id,
+int _audio_svc_update_genre_in_music_record(sqlite3 *handle, const char *audio_id,
 					    const char *changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set genre='%q' where valid=1 and audio_id='%q'",
+	    ("update %s set genre='%q' where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update genre is failed(%d)", err);
@@ -1014,15 +999,15 @@ int _audio_svc_update_genre_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_author_in_music_record(const char *audio_id,
+int _audio_svc_update_author_in_music_record(sqlite3 *handle, const char *audio_id,
 					     const char *changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set author='%q' where valid=1 and audio_id='%q'",
+	    ("update %s set author='%q' where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update author is failed(%d)", err);
@@ -1035,15 +1020,15 @@ int _audio_svc_update_author_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_description_in_music_record(const char *audio_id,
+int _audio_svc_update_description_in_music_record(sqlite3 *handle, const char *audio_id,
 						  const char *changed_value)
 {
 	int err = -1;
 	char *sql =
 	    sqlite3_mprintf
-	    ("update %s set description='%q' where valid=1 and audio_id='%q'",
+	    ("update %s set description='%q' where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update description is failed(%d)", err);
@@ -1056,12 +1041,12 @@ int _audio_svc_update_description_in_music_record(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_favourite_in_music_record(const char *audio_id, int changed_value)
+int _audio_svc_update_favourite_in_music_record(sqlite3 *handle, const char *audio_id, int changed_value)
 {
 	int err = -1;
-	char *sql = sqlite3_mprintf("update %s set favourite=%d where valid=1 and audio_id='%q'",
+	char *sql = sqlite3_mprintf("update %s set favourite=%d where valid=1 and audio_uuid='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, changed_value, audio_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("update album_rating is failed(%d)", err);
@@ -1074,7 +1059,7 @@ int _audio_svc_update_favourite_in_music_record(const char *audio_id, int change
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_count_music_group_records(audio_svc_group_type_e group_type,
+int _audio_svc_count_music_group_records(sqlite3 *handle, audio_svc_group_type_e group_type,
 					 const char *limit_string1,
 					 const char *limit_string2,
 					 const char *filter_string,
@@ -1089,12 +1074,13 @@ int _audio_svc_count_music_group_records(audio_svc_group_type_e group_type,
 	int text_bind = 1;
 
 	sqlite3_stmt *sql_stmt = NULL;
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -1168,13 +1154,13 @@ int _audio_svc_count_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_FOLDER:
 		{
 			snprintf(query, sizeof(query),
-				 "select count(distinct folder_id) from %s where valid=1 and category=%d",
+				 "select count(distinct folder_uuid) from %s where valid=1 and category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 			/*FIX ME. if filter_mode exist. */
 			if (filter_mode) {
 				snprintf(query, sizeof(query),
-					 "select count(distinct a.folder_id) from %s a inner join %s b on a.folder_id = b._id \
+					 "select count(distinct a.folder_uuid) from %s a inner join %s b on a.folder_uuid=b.folder_uuid \
 					where a.valid=1 and a.category=%d and b.path like ?",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, AUDIO_SVC_CATEGORY_MUSIC);
 			}
@@ -1428,7 +1414,7 @@ int _audio_svc_count_music_group_records(audio_svc_group_type_e group_type,
 
 }
 
-int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
+int _audio_svc_get_music_group_records(sqlite3 *handle, audio_svc_group_type_e group_type,
 				       const char *limit_string1,
 				       const char *limit_string2,
 				       const char *filter_string,
@@ -1446,12 +1432,13 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	int idx = 0;
 
 	sqlite3_stmt *sql_stmt = NULL;
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -1471,7 +1458,7 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_ALBUM:
 		{
 			snprintf(query, sizeof(query),
-				 "select album, min(audio_id), artist, thumbnail_path, album_rating from %s where valid=1 and category=%d",
+				 "select album, min(audio_uuid), artist, thumbnail_path, album_rating from %s where valid=1 and category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 
@@ -1492,7 +1479,7 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_ARTIST:
 		{
 			snprintf(query, sizeof(query),
-				 "select artist, min(audio_id), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
+				 "select artist, min(audio_uuid), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 
@@ -1514,12 +1501,12 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 		{
 			if (limit_string1 && strlen(limit_string1) > 0) {
 				snprintf(query, sizeof(query),
-					 "select album, min(audio_id), artist, thumbnail_path, album_rating \
+					 "select album, min(audio_uuid), artist, thumbnail_path, album_rating \
 				from %s where valid=1 and category=%d and artist=?",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 			} else {
 				snprintf(query, sizeof(query),
-					 "select album, min(audio_id), artist, thumbnail_path, album_rating \
+					 "select album, min(audio_uuid), artist, thumbnail_path, album_rating \
 					from %s where valid=1 and category=%d and artist is null",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 			}
@@ -1540,7 +1527,7 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_GENRE:
 		{
 			snprintf(query, sizeof(query),
-				 "select genre, min(audio_id), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
+				 "select genre, min(audio_uuid), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 
@@ -1561,24 +1548,24 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_FOLDER:
 		{
 			snprintf(query, sizeof(query),
-				 "select b.folder_name, min(a.audio_id), (b.path), (a.thumbnail_path), (a.album_rating) \
-								from %s as a inner join %s b on a.folder_id = b._id where a.valid=1 and a.category=%d",
+				 "select b.folder_name, min(a.audio_uuid), (b.path), (a.thumbnail_path), (a.album_rating) \
+								from %s as a inner join %s b on a.folder_uuid=b.folder_uuid where a.valid=1 and a.category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, AUDIO_SVC_CATEGORY_MUSIC);
 			if (filter_mode) {
 				snprintf(query, sizeof(query),
-					 "select b.folder_name, min(a.audio_id), (b.path), (a.thumbnail_path), (a.album_rating) \
-					from %s as a inner join %s b on a.folder_id = b._id where a.valid=1 and a.category=%d and b.path like ?",
+					 "select b.folder_name, min(a.audio_uuid), (b.path), (a.thumbnail_path), (a.album_rating) \
+					from %s as a inner join %s b on a.folder_uuid=b.folder_uuid where a.valid=1 and a.category=%d and b.path like ?",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, AUDIO_SVC_CATEGORY_MUSIC);
 			}
 			if (filter_mode2) {
 				snprintf(query, sizeof(query),
-					 "select b.folder_name, min(a.audio_id), (b.path), (a.thumbnail_path), (a.album_rating) \
-					from %s as a inner join %s b on a.folder_id = b._id where a.valid=1 and a.category=%d and b.path like ? and b.path like ?",
+					 "select b.folder_name, min(a.audio_uuid), (b.path), (a.thumbnail_path), (a.album_rating) \
+					from %s as a inner join %s b on a.folder_uuid=b.folder_uuid where a.valid=1 and a.category=%d and b.path like ? and b.path like ?",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, AUDIO_SVC_CATEGORY_MUSIC);
 			}
 
 			snprintf(tail_query, sizeof(tail_query),
-				 " group by a.folder_id order by b.folder_name %s, b.path %s limit %d,%d",
+				 " group by a.folder_uuid order by b.folder_name %s, b.path %s limit %d,%d",
 				 AUDIO_SVC_COLLATE_NOCASE, AUDIO_SVC_COLLATE_NOCASE, offset, rows);
 			g_strlcat(query, tail_query, sizeof(query));
 		}
@@ -1587,7 +1574,7 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_YEAR:
 		{
 			snprintf(query, sizeof(query),
-				 "select year, min(audio_id), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
+				 "select year, min(audio_uuid), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 
@@ -1610,7 +1597,7 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_COMPOSER:
 		{
 			snprintf(query, sizeof(query),
-				 "select author, min(audio_id), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
+				 "select author, min(audio_uuid), album, thumbnail_path, album_rating from %s where valid=1 and category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 
@@ -1632,12 +1619,12 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 		{
 			if (limit_string1 && strlen(limit_string1) > 0) {
 				snprintf(query, sizeof(query),
-					 "select artist, min(audio_id), album, thumbnail_path, album_rating \
+					 "select artist, min(audio_uuid), album, thumbnail_path, album_rating \
 					from %s where valid=1 and category=%d and genre=?",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 			} else {
 				snprintf(query, sizeof(query),
-					 "select artist, min(audio_id), album, thumbnail_path, album_rating \
+					 "select artist, min(audio_uuid), album, thumbnail_path, album_rating \
 					from %s where valid=1 and category=%d and genre is null",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 			}
@@ -1659,12 +1646,12 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 		{
 			if (limit_string1 && strlen(limit_string1) > 0) {
 				snprintf(query, sizeof(query),
-					 "select distinct album, min(audio_id), artist, thumbnail_path, album_rating \
+					 "select distinct album, min(audio_uuid), artist, thumbnail_path, album_rating \
 					from %s where valid=1 and category=%d and genre=?",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 			} else {
 				snprintf(query, sizeof(query),
-					 "select distinct album, min(audio_id), artist, thumbnail_path, album_rating \
+					 "select distinct album, min(audio_uuid), artist, thumbnail_path, album_rating \
 					from %s where valid=1 and category=%d and genre is null",
 					 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 			}
@@ -1687,24 +1674,24 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 			if (limit_string1 && strlen(limit_string1) > 0) {
 				if (limit_string2 && strlen(limit_string2) > 0) {
 					snprintf(query, sizeof(query),
-						 "select album, min(audio_id), artist, thumbnail_path, album_rating \
+						 "select album, min(audio_uuid), artist, thumbnail_path, album_rating \
 						from %s where valid=1 and category=%d and genre=? and artist=?",
 						 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 				} else {
 					snprintf(query, sizeof(query),
-						 "select album, min(audio_id), artist, thumbnail_path, album_rating \
+						 "select album, min(audio_uuid), artist, thumbnail_path, album_rating \
 						from %s where valid=1 and category=%d and genre=? and artist is null",
 						 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 				}
 			} else {
 				if (limit_string2 && strlen(limit_string2) > 0) {
 					snprintf(query, sizeof(query),
-						 "select album, min(audio_id), artist, thumbnail_path, album_rating \
+						 "select album, min(audio_uuid), artist, thumbnail_path, album_rating \
 						from %s where valid=1 and category=%d and genre is null and artist=?",
 						 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 				} else {
 					snprintf(query, sizeof(query),
-						 "select album, min(audio_id), artist, thumbnail_path, album_rating \
+						 "select album, min(audio_uuid), artist, thumbnail_path, album_rating \
 						from %s where valid=1 and category=%d and genre is null and artist is null",
 						 AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC);
 				}
@@ -1835,7 +1822,7 @@ int _audio_svc_get_music_group_records(audio_svc_group_type_e group_type,
 
 }
 
-int _audio_svc_count_music_track_records(audio_svc_track_type_e track_type,
+int _audio_svc_count_music_track_records(sqlite3 *handle, audio_svc_track_type_e track_type,
 					 const char *type_string,
 					 const char *type_string2,
 					 const char *filter_string,
@@ -1850,12 +1837,13 @@ int _audio_svc_count_music_track_records(audio_svc_track_type_e track_type,
 	int text_bind = 1;
 
 	sqlite3_stmt *sql_stmt = NULL;
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -1982,13 +1970,13 @@ int _audio_svc_count_music_track_records(audio_svc_track_type_e track_type,
 	case AUDIO_SVC_TRACK_BY_FOLDER:
 		if (type_string && strlen(type_string) > 0) {
 			snprintf(query, sizeof(query),
-				 "select count(*) from %s where valid=1 and category=%d and folder_id=(select _id from %s where path = ?)",
+				 "select count(*) from %s where valid=1 and category=%d and folder_uuid=(select folder_uuid from %s where path = ?)",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC,
 				 AUDIO_SVC_DB_TABLE_AUDIO_FOLDER);
 		} else {
 			snprintf(query, sizeof(query),
-				 "select count(*) from %s where valid=1 and category=%d and folder_id is null",
+				 "select count(*) from %s where valid=1 and category=%d and folder_uuid is null",
 				 AUDIO_SVC_DB_TABLE_AUDIO,
 				 AUDIO_SVC_CATEGORY_MUSIC);
 		}
@@ -2050,7 +2038,7 @@ int _audio_svc_count_music_track_records(audio_svc_track_type_e track_type,
 	case AUDIO_SVC_TRACK_BY_PLAYLIST:
 		{
 			snprintf(query, sizeof(query),
-				 "select count(*) from %s a, %s b where a.playlist_id=%d and b.audio_id=a.audio_id and b.valid=1 and b.category=%d",
+				 "select count(*) from %s a, %s b where a.playlist_id=%d and b.audio_uuid=a.audio_uuid and b.valid=1 and b.category=%d",
 				 AUDIO_SVC_DB_TABLE_AUDIO_PLAYLISTS_MAP,
 				 AUDIO_SVC_DB_TABLE_AUDIO, (int)type_string,
 				 AUDIO_SVC_CATEGORY_MUSIC);
@@ -2223,7 +2211,7 @@ int _audio_svc_count_music_track_records(audio_svc_track_type_e track_type,
 
 }
 
-int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
+int _audio_svc_get_music_track_records(sqlite3 *handle, audio_svc_track_type_e track_type,
 				       const char *type_string,
 				       const char *type_string2,
 				       const char *filter_string,
@@ -2232,7 +2220,7 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 {
 	char query[AUDIO_SVC_QUERY_SIZE] = { 0 };
 	char *result_field =
-	    "audio_id, path, thumbnail_path, title, artist, duration, rating";
+	    "audio_uuid, path, thumbnail_path, title, artist, duration, rating";
 
 	char tail_query[70] = { 0 };
 	char filter_query[AUDIO_SVC_METADATA_LEN_MAX + 5] = { 0 };
@@ -2245,11 +2233,13 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 	int idx = 0;
 
 	sqlite3_stmt *sql_stmt = NULL;
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
+#endif
 #define filter_condition(filter_mode, filter_mode2, query)	\
 	if ((filter_mode)) 	g_strlcat((query), " and title like ?", sizeof((query))); \
 	if ((filter_mode2))	g_strlcat((query), " and title like ?", sizeof((query)));
@@ -2343,7 +2333,6 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 
 	case AUDIO_SVC_TRACK_BY_ARTIST:
 		{
-/*hjkim, 110822, UX changed. query album info to sort by album and title.*/
 			if (type_string && strlen(type_string) > 0) {
 				snprintf(query, sizeof(query),
 					 "select %s, album from %s where valid=1 and category=%d and artist=?",
@@ -2426,13 +2415,13 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 		{
 			if (type_string && strlen(type_string) > 0) {
 				snprintf(query, sizeof(query),
-					 "select %s from %s where valid=1 and category=%d and folder_id=(select _id from %s where path = ?)",
+					 "select %s from %s where valid=1 and category=%d and folder_uuid=(select folder_uuid from %s where path = ?)",
 					 result_field, AUDIO_SVC_DB_TABLE_AUDIO,
 					 AUDIO_SVC_CATEGORY_MUSIC,
 					 AUDIO_SVC_DB_TABLE_AUDIO_FOLDER);
 			} else {
 				snprintf(query, sizeof(query),
-					 "select %s from %s where valid=1 and category=%d and folder_id is null",
+					 "select %s from %s where valid=1 and category=%d and folder_uuid is null",
 					 result_field, AUDIO_SVC_DB_TABLE_AUDIO,
 					 AUDIO_SVC_CATEGORY_MUSIC);
 			}
@@ -2554,10 +2543,10 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 	case AUDIO_SVC_TRACK_BY_PLAYLIST:
 		{
 			char *result_field_for_playlist =
-			    "b.audio_id, b.path, b.thumbnail_path, b.title, b.artist, b.duration, b.rating";
+			    "b.audio_uuid, b.path, b.thumbnail_path, b.title, b.artist, b.duration, b.rating";
 			len =
 			    snprintf(query, sizeof(query),
-				     "select %s from %s a, %s b where a.playlist_id=%d and b.audio_id=a.audio_id and b.valid=1 and b.category=%d ",
+				     "select %s from %s a, %s b where a.playlist_id=%d and b.audio_uuid=a.audio_uuid and b.valid=1 and b.category=%d ",
 				     result_field_for_playlist,
 				     AUDIO_SVC_DB_TABLE_AUDIO_PLAYLISTS_MAP,
 				     AUDIO_SVC_DB_TABLE_AUDIO, (int)type_string,
@@ -2686,8 +2675,8 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 	}
 
 	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
-		_strncpy_safe(track[idx].audio_id,
-			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_AUDIO_ID), sizeof(track[idx].audio_id));
+		_strncpy_safe(track[idx].audio_uuid,
+			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_AUDIO_ID), sizeof(track[idx].audio_uuid));
 		_strncpy_safe(track[idx].pathname,
 			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_PATHNAME), sizeof(track[idx].pathname));
 		_strncpy_safe(track[idx].thumbnail_path,
@@ -2698,8 +2687,8 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_ARTIST), sizeof(track[idx].artist));
 		track[idx].duration = sqlite3_column_int(sql_stmt, AUDIO_SVC_LIST_ITEM_DURATION);
 		track[idx].rating = sqlite3_column_int(sql_stmt, AUDIO_SVC_LIST_ITEM_RATING);
-		audio_svc_debug ("Index : %d : audio_id = %s, title = %s, pathname = %s, duration = %d",
-		     idx, track[idx].audio_id, track[idx].title, track[idx].pathname, track[idx].duration);
+		audio_svc_debug ("Index : %d : audio_uuid = %s, title = %s, pathname = %s, duration = %d",
+		     idx, track[idx].audio_uuid, track[idx].title, track[idx].pathname, track[idx].duration);
 
 		idx++;
 	}
@@ -2710,7 +2699,7 @@ int _audio_svc_get_music_track_records(audio_svc_track_type_e track_type,
 
 }
 
-int _audio_svc_delete_music_track_groups(audio_svc_group_type_e group_type,
+int _audio_svc_delete_music_track_groups(sqlite3 *handle, audio_svc_group_type_e group_type,
 					 const char *type_string)
 {
 	int err = -1;
@@ -2741,7 +2730,7 @@ int _audio_svc_delete_music_track_groups(audio_svc_group_type_e group_type,
 	case AUDIO_SVC_GROUP_BY_FOLDER:
 		sql =
 		    sqlite3_mprintf
-		    ("delete from %s where folder_id=(select _id from %s where path = '%q') and valid=1 and category=%d",
+		    ("delete from %s where folder_uuid=(select folder_uuid from %s where path = '%q') and valid=1 and category=%d",
 		     AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_DB_TABLE_AUDIO_FOLDER,
 		     type_string, AUDIO_SVC_CATEGORY_MUSIC);
 		break;
@@ -2766,7 +2755,7 @@ int _audio_svc_delete_music_track_groups(audio_svc_group_type_e group_type,
 
 	audio_svc_debug("query (%s)", sql);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To delete group is failed(%d)", err);
@@ -2779,7 +2768,7 @@ int _audio_svc_delete_music_track_groups(audio_svc_group_type_e group_type,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_search_audio_id_by_path(const char *path, char *audio_id)
+int _audio_svc_search_audio_id_by_path(sqlite3 *handle, const char *path, char *audio_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	*audio_id = -1;
@@ -2787,10 +2776,10 @@ int _audio_svc_search_audio_id_by_path(const char *path, char *audio_id)
 
 	char *sql =
 	    sqlite3_mprintf
-	    ("select audio_id from %s where valid=1 and category=%d and path='%q'",
+	    ("select audio_uuid from %s where valid=1 and category=%d and path='%q'",
 	     AUDIO_SVC_DB_TABLE_AUDIO, AUDIO_SVC_CATEGORY_MUSIC, path);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -2807,7 +2796,7 @@ int _audio_svc_search_audio_id_by_path(const char *path, char *audio_id)
 
 }
 
-int _audio_svc_update_valid_of_music_records(audio_svc_storage_type_e
+int _audio_svc_update_valid_of_music_records(sqlite3 *handle, audio_svc_storage_type_e
 					    storage_type, int valid)
 {
 	audio_svc_debug("storage_type: %d", storage_type);
@@ -2816,7 +2805,7 @@ int _audio_svc_update_valid_of_music_records(audio_svc_storage_type_e
 	char *sql =
 	    sqlite3_mprintf("update %s set valid = %d where storage_type = %d",
 			    AUDIO_SVC_DB_TABLE_AUDIO, valid, storage_type);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To set all items as invalid is failed(%d)",
@@ -2830,7 +2819,7 @@ int _audio_svc_update_valid_of_music_records(audio_svc_storage_type_e
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_count_record_with_path(const char *path)
+int _audio_svc_count_record_with_path(sqlite3 *handle, const char *path)
 {
 
 	int ret = AUDIO_SVC_ERROR_NONE;
@@ -2840,7 +2829,7 @@ int _audio_svc_count_record_with_path(const char *path)
 	    sqlite3_mprintf("select count(*) from %s where path='%q'",
 			    AUDIO_SVC_DB_TABLE_AUDIO, path);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -2857,7 +2846,7 @@ int _audio_svc_count_record_with_path(const char *path)
 
 }
 
-int _audio_svc_delete_invalid_music_records(audio_svc_storage_type_e
+int _audio_svc_delete_invalid_music_records(sqlite3 *handle, audio_svc_storage_type_e
 					    storage_type)
 {
 	int idx = 0;
@@ -2866,7 +2855,7 @@ int _audio_svc_delete_invalid_music_records(audio_svc_storage_type_e
 	int invalid_count = 0;
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	invalid_count = __audio_svc_count_invalid_records_with_thumbnail(storage_type);
+	invalid_count = __audio_svc_count_invalid_records_with_thumbnail(handle, storage_type);
 	audio_svc_debug("invalid count: %d\n", invalid_count);
 
 	if (invalid_count > 0) {
@@ -2877,7 +2866,7 @@ int _audio_svc_delete_invalid_music_records(audio_svc_storage_type_e
 		}
 		memset(thumbpath_record, 0, sizeof(mp_thumbnailpath_record_t) * invalid_count);
 
-		ret = __audio_svc_get_invalid_records_with_thumbnail(storage_type, invalid_count, thumbpath_record);
+		ret = __audio_svc_get_invalid_records_with_thumbnail(handle, storage_type, invalid_count, thumbpath_record);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
 			audio_svc_error("error when get thumbnail record");
 			SAFE_FREE(thumbpath_record);
@@ -2888,7 +2877,7 @@ int _audio_svc_delete_invalid_music_records(audio_svc_storage_type_e
 	}
 
 	char *sql = sqlite3_mprintf("delete from %s where valid = 0 and storage_type=%d", AUDIO_SVC_DB_TABLE_AUDIO, storage_type);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To delete invalid items is failed(%d)", err);
@@ -2931,13 +2920,13 @@ int _audio_svc_delete_invalid_music_records(audio_svc_storage_type_e
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_update_valid_in_music_record(const char *path, int valid)
+int _audio_svc_update_valid_in_music_record(sqlite3 *handle, const char *path, int valid)
 {
 	int err = -1;
 
 	char *sql = sqlite3_mprintf("update %s set valid=%d where path= '%q'",
 				    AUDIO_SVC_DB_TABLE_AUDIO, valid, path);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("To update item as valid is failed(%d)", err);
@@ -2950,7 +2939,7 @@ int _audio_svc_update_valid_in_music_record(const char *path, int valid)
 
 }
 
-int _audio_svc_update_valid_in_music_record_query_add(const char *path, int valid)
+int _audio_svc_update_valid_in_music_record_query_add(sqlite3 *handle, const char *path, int valid)
 {
 	char *sql = sqlite3_mprintf("update %s set valid=%d where path= '%q'",
 				    AUDIO_SVC_DB_TABLE_AUDIO, valid, path);
@@ -2962,7 +2951,7 @@ int _audio_svc_update_valid_in_music_record_query_add(const char *path, int vali
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_move_item_query_add(const char *src_path, const char *path, audio_svc_storage_type_e storage_type, const char *folder_id)
+int _audio_svc_move_item_query_add(sqlite3 *handle, const char *src_path, const char *path, audio_svc_storage_type_e storage_type, const char *folder_id)
 {
 	char *sql = NULL;
 	sql = sqlite3_mprintf("update %s set path='%q', storage_type=%d where valid=1 and path='%q'",
@@ -2971,7 +2960,7 @@ int _audio_svc_move_item_query_add(const char *src_path, const char *path, audio
 	audio_svc_debug("SQL = [%s]", sql);
 	_audio_svc_sql_query_add(&g_audio_svc_move_item_query_list, &sql);
 
-	sql = sqlite3_mprintf("update %s set folder_id='%q' where path='%q'",
+	sql = sqlite3_mprintf("update %s set folder_uuid='%q' where path='%q'",
 					AUDIO_SVC_DB_TABLE_AUDIO, folder_id, path);
 
 	audio_svc_debug("SQL = [%s]", sql);
@@ -2981,49 +2970,49 @@ int _audio_svc_move_item_query_add(const char *src_path, const char *path, audio
 }
 
 //call this API after beginning transaction. this API do sqlite_exec for the g_audio_svc_sqli_query_list.
-int _audio_svc_list_query_do(audio_svc_query_type_e query_type)
+int _audio_svc_list_query_do(sqlite3 *handle, audio_svc_query_type_e query_type)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	
-	ret = _audio_svc_sql_begin_trans();
+	ret = _audio_svc_sql_begin_trans(handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	if (query_type == AUDIO_SVC_QUERY_SET_ITEM_VALID)
-		ret = _audio_svc_sql_query_list(&g_audio_svc_item_valid_query_list);
+		ret = _audio_svc_sql_query_list(handle, &g_audio_svc_item_valid_query_list);
 	else if (query_type == AUDIO_SVC_QUERY_MOVE_ITEM)
-		ret = _audio_svc_sql_query_list(&g_audio_svc_move_item_query_list);
+		ret = _audio_svc_sql_query_list(handle, &g_audio_svc_move_item_query_list);
 	else if (query_type == AUDIO_SVC_QUERY_INSERT_ITEM)
-		ret = _audio_svc_sql_query_list(&g_audio_svc_insert_item_query_list);
+		ret = _audio_svc_sql_query_list(handle, &g_audio_svc_insert_item_query_list);
 	else
 		ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error("_audio_svc_list_query_do failed. start rollback");
-		_audio_svc_sql_rollback_trans();
+		_audio_svc_sql_rollback_trans(handle);
 		return ret;
 	}
 
-	ret = _audio_svc_sql_end_trans();
+	ret = _audio_svc_sql_end_trans(handle);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error("mb_svc_sqlite3_commit_trans failed.. Now start to rollback\n");
-		_audio_svc_sql_rollback_trans();
+		_audio_svc_sql_rollback_trans(handle);
 		return ret;
 	}
 
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_get_path(const char *audio_id, char *path)
+int _audio_svc_get_path(sqlite3 *handle, const char *audio_id, char *path)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 
 	char *sql =
 	    sqlite3_mprintf
-	    ("select path from %s where audio_id='%q' and valid=1 and category=%d",
+	    ("select path from %s where audio_uuid='%q' and valid=1 and category=%d",
 	     AUDIO_SVC_DB_TABLE_AUDIO, audio_id, AUDIO_SVC_CATEGORY_MUSIC);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error("error when _audio_svc_get_path. ret = [%d]",
@@ -3040,14 +3029,14 @@ int _audio_svc_get_path(const char *audio_id, char *path)
 
 }
 
-int _audio_svc_get_and_append_folder_id_by_path(const char *path, audio_svc_storage_type_e storage_type, char *folder_id)
+int _audio_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *path, audio_svc_storage_type_e storage_type, char *folder_id)
 {
 	char *path_name = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 	
 	path_name = g_path_get_dirname(path);
 
-	ret = _audio_svc_get_folder_id_by_foldername(path_name, folder_id);
+	ret = _audio_svc_get_folder_id_by_foldername(handle, path_name, folder_id);
 
 	if(ret == AUDIO_SVC_ERROR_DB_NO_RECORD) {
 		char *folder_name = NULL;
@@ -3062,7 +3051,7 @@ int _audio_svc_get_and_append_folder_id_by_path(const char *path, audio_svc_stor
 		folder_name = g_path_get_basename(path_name);
 		folder_modified_date = _audio_svc_get_file_dir_modified_date(path_name);
 
-		ret = _audio_svc_append_audio_folder(storage_type, folder_uuid, path_name, folder_name, folder_modified_date);
+		ret = _audio_svc_append_audio_folder(handle, storage_type, folder_uuid, path_name, folder_name, folder_modified_date);
 		SAFE_FREE(folder_name);
 		_strncpy_safe(folder_id, folder_uuid, AUDIO_SVC_UUID_SIZE+1);
 	}
@@ -3071,14 +3060,14 @@ int _audio_svc_get_and_append_folder_id_by_path(const char *path, audio_svc_stor
 
 	return ret;
 }
-int _audio_svc_get_folder_id_by_foldername(const char *folder_name, char *folder_id)
+int _audio_svc_get_folder_id_by_foldername(sqlite3 *handle, const char *folder_name, char *folder_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 
-	char *sql = sqlite3_mprintf("SELECT _id FROM %s WHERE path = '%q';", AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, folder_name);
+	char *sql = sqlite3_mprintf("SELECT folder_uuid FROM %s WHERE path = '%q';", AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, folder_name);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		if(ret == AUDIO_SVC_ERROR_DB_NO_RECORD) {
@@ -3097,19 +3086,20 @@ int _audio_svc_get_folder_id_by_foldername(const char *folder_name, char *folder
 	return ret;
 }
 
-int _audio_svc_append_audio_folder(audio_svc_storage_type_e storage_type,
+int _audio_svc_append_audio_folder(sqlite3 *handle, audio_svc_storage_type_e storage_type,
 				    const char *folder_id, const char *path_name, const char *folder_name, int modified_date)
 {
 	int err = -1;
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
-	char *sql = sqlite3_mprintf("insert into %s (_id, path, folder_name, storage_type, modified_date) values ('%q', '%q', '%q', '%d', '%d'); ",
+#endif
+	char *sql = sqlite3_mprintf("insert into %s (folder_uuid, path, folder_name, storage_type, modified_date) values ('%q', '%q', '%q', '%d', '%d'); ",
 					     AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, folder_id, path_name, folder_name, storage_type, modified_date);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("failed to insert albums");
@@ -3120,7 +3110,7 @@ int _audio_svc_append_audio_folder(audio_svc_storage_type_e storage_type,
 }
 
 /* handle by one items. */
-int _audio_svc_check_and_update_folder_table(const char *path_name)
+int _audio_svc_check_and_update_folder_table(sqlite3 *handle, const char *path_name)
 {
 	int err = -1;
 	char folder_id[AUDIO_SVC_UUID_SIZE+1] = {0,};
@@ -3133,7 +3123,7 @@ int _audio_svc_check_and_update_folder_table(const char *path_name)
 		return AUDIO_SVC_ERROR_INTERNAL;
 	}
 
-	ret = _audio_svc_get_folder_id_by_foldername(folder_path_name, folder_id);
+	ret = _audio_svc_get_folder_id_by_foldername(handle, folder_path_name, folder_id);
 	SAFE_FREE(folder_path_name);
 
 	if(ret == AUDIO_SVC_ERROR_DB_NO_RECORD) {
@@ -3143,10 +3133,10 @@ int _audio_svc_check_and_update_folder_table(const char *path_name)
 
 	char *sql =
 	    sqlite3_mprintf
-	    ("delete from %s where _id='%q' and ((SELECT count(*) FROM %s WHERE folder_id='%q')=0);",
+	    ("delete from %s where folder_uuid='%q' and ((SELECT count(*) FROM %s WHERE folder_uuid='%q')=0);",
 	     AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, folder_id,
 	     AUDIO_SVC_DB_TABLE_AUDIO, folder_id);
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("failed to delete audio_folder item");
@@ -3160,18 +3150,18 @@ int _audio_svc_check_and_update_folder_table(const char *path_name)
 }
 
 /* batch processing */
-int _audio_svc_update_folder_table(void)
+int _audio_svc_update_folder_table(sqlite3 *handle)
 {
 	int err = -1;
 	char *sql = NULL;
 
 	sql =
 	    sqlite3_mprintf
-	    ("delete from %s where _id IN (select _id FROM %s where _id NOT IN (select folder_id from %s))",
+	    ("delete from %s where folder_uuid IN (select folder_uuid FROM %s where folder_uuid NOT IN (select folder_uuid from %s))",
 	     AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, AUDIO_SVC_DB_TABLE_AUDIO_FOLDER,
 	     AUDIO_SVC_DB_TABLE_AUDIO);
 
-	err = _audio_svc_sql_query(sql);
+	err = _audio_svc_sql_query(handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		audio_svc_error("failed to delete audio_folder item");
@@ -3184,7 +3174,7 @@ int _audio_svc_update_folder_table(void)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_check_and_update_albums_table(const char *album)
+int _audio_svc_check_and_update_albums_table(sqlite3 *handle, const char *album)
 {
 	int err = -1;
 	char *sql = NULL;
@@ -3193,7 +3183,7 @@ int _audio_svc_check_and_update_albums_table(const char *album)
 	if(!STRING_VALID(album)) {
 		sql = sqlite3_mprintf("delete from %s where album_id NOT IN (SELECT album_id FROM %s);",
 			     AUDIO_SVC_DB_TABLE_ALBUMS, AUDIO_SVC_DB_TABLE_AUDIO);
-		err = _audio_svc_sql_query(sql);
+		err = _audio_svc_sql_query(handle, sql);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			audio_svc_error("failed to update albums table");
@@ -3205,7 +3195,7 @@ int _audio_svc_check_and_update_albums_table(const char *album)
 	} else {
 		sql = sqlite3_mprintf("delete from %s where album='%q' and ((SELECT count(*) FROM %s WHERE album='%q')=0);",
 		     AUDIO_SVC_DB_TABLE_ALBUMS, album, AUDIO_SVC_DB_TABLE_AUDIO, album);
-		err = _audio_svc_sql_query(sql);
+		err = _audio_svc_sql_query(handle, sql);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			audio_svc_error("failed to update albums table");
@@ -3219,17 +3209,17 @@ int _audio_svc_check_and_update_albums_table(const char *album)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_get_thumbnail_path_by_path(const char *path, char *thumb_path)
+int _audio_svc_get_thumbnail_path_by_path(sqlite3 *handle, const char *path, char *thumb_path)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
-	/* hjkim, 110211, remove category condition for the sound files */
+
 	char *sql =
 	    sqlite3_mprintf
 	    ("select thumbnail_path from %s where valid=1 and path='%q' ",
 	     AUDIO_SVC_DB_TABLE_AUDIO, path);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -3247,7 +3237,7 @@ int _audio_svc_get_thumbnail_path_by_path(const char *path, char *thumb_path)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-char *_audio_svc_get_thumbnail_path_by_album_id(int album_id)
+char *_audio_svc_get_thumbnail_path_by_album_id(sqlite3 *handle, int album_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
@@ -3257,7 +3247,7 @@ char *_audio_svc_get_thumbnail_path_by_album_id(int album_id)
 	    sqlite3_mprintf("select _data from %s where album_id=%d",
 			    AUDIO_SVC_DB_TABLE_ALBUM_ART, album_id);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
@@ -3274,7 +3264,7 @@ char *_audio_svc_get_thumbnail_path_by_album_id(int album_id)
 	return g_strdup(thumbnail_path);
 }
 
-int _audio_svc_check_and_remove_thumbnail(const char *thumbnail_path)
+int _audio_svc_check_and_remove_thumbnail(sqlite3 *handle, const char *thumbnail_path)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
@@ -3283,7 +3273,7 @@ int _audio_svc_check_and_remove_thumbnail(const char *thumbnail_path)
 	    sqlite3_mprintf("select count(*) from %s where thumbnail_path='%q'",
 			    AUDIO_SVC_DB_TABLE_AUDIO, thumbnail_path);
 
-	ret = _audio_svc_sql_prepare_to_step(sql, &sql_stmt);
+	ret = _audio_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_error
 		    ("error when _audio_svc_check_and_remove_thumbnail. err = [%d]",
@@ -3304,7 +3294,7 @@ int _audio_svc_check_and_remove_thumbnail(const char *thumbnail_path)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int _audio_svc_list_search(audio_svc_audio_item_s *item,
+int _audio_svc_list_search(sqlite3 *handle, audio_svc_audio_item_s *item,
 							char *where_query,
 							audio_svc_search_order_e order_field,
 							int offset,
@@ -3318,12 +3308,13 @@ int _audio_svc_list_search(audio_svc_audio_item_s *item,
 	char order_str[AUDIO_SVC_QUERY_SIZE] = { 0 };
 
 	sqlite3_stmt *sql_stmt = NULL;
+#if 0
 	sqlite3 *handle = _media_info_get_proper_handle();
 	if (handle == NULL) {
 		audio_svc_debug("handle is NULL");
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
-
+#endif
 	snprintf(query, sizeof(query), "SELECT * FROM audio_media WHERE %s", where_query);
 
 	audio_svc_debug("");

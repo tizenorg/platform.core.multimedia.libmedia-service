@@ -69,7 +69,7 @@ typedef struct {
  */
 typedef struct {
 	int		storage_type;									/**< Storage of media file : internal/external */
-	char		audio_id[AUDIO_SVC_PATHNAME_SIZE+1];		/**< Unique ID of item */
+	char		audio_uuid[AUDIO_SVC_UUID_SIZE+1];		/**< Unique ID of item */
 	char		pathname[AUDIO_SVC_PATHNAME_SIZE];			/**< Full path and file name of media file */
 	char		thumbname[AUDIO_SVC_PATHNAME_SIZE];		/**< Thumbnail image file path */
 	int		played_count;								/**< played count */
@@ -98,7 +98,7 @@ typedef struct{
  * List item search result record
  */
 typedef struct{
-	char	 audio_id[AUDIO_SVC_PATHNAME_SIZE+1];			/**< Unique ID of item */
+	char	 audio_uuid[AUDIO_SVC_UUID_SIZE+1];			/**< Unique ID of item */
 	char pathname[AUDIO_SVC_PATHNAME_SIZE];			/**< Full path and file name of media file */
 	char title[AUDIO_SVC_METADATA_LEN_MAX];				/**< title of track */
 	char artist[AUDIO_SVC_METADATA_LEN_MAX];			/**< artist of track */
@@ -118,7 +118,7 @@ typedef struct{
 
 typedef struct{
 	int u_id;												/**< Unique ID of playlist item*/	
-	char	 audio_id[AUDIO_SVC_PATHNAME_SIZE+1];			/**< Unique Audio ID */
+	char	 audio_uuid[AUDIO_SVC_UUID_SIZE+1];			/**< Unique Audio ID */
 	char pathname[AUDIO_SVC_PATHNAME_SIZE];			/**< Full path and file name of media file */
 	char title[AUDIO_SVC_METADATA_LEN_MAX];				/**< title of track */
 	char artist[AUDIO_SVC_METADATA_LEN_MAX];			/**< artist of track */

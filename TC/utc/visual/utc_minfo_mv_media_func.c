@@ -42,14 +42,15 @@ void utc_minfo_mv_media_func_01()
 {
 	int ret = -1;
 	
-	char *file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
+	char *file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
 	char src_media_uuid[256] = {0,};
 	char src_cluster_uuid[256] = {0,};
-	char *dst_cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	char *dst_cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
+
 	Mitem* item = NULL;
 
 
-	ret = minfo_get_item( file_url, &item );
+	ret = minfo_get_item(handle, file_url, &item );
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to get a media content from media table. error code->%d", ret);
@@ -58,14 +59,14 @@ void utc_minfo_mv_media_func_01()
 	strncpy(src_media_uuid, item->uuid, sizeof(src_media_uuid));
 	strncpy(src_cluster_uuid, item->cluster_uuid, sizeof(src_cluster_uuid));
 
-	ret = minfo_mv_media(src_media_uuid, dst_cluster_uuid);
+	ret = minfo_mv_media(handle, src_media_uuid, dst_cluster_uuid);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "failed to move a record identified by media id to destination folder identified by folder id. error code->%d", ret);
 	}
 
-	ret = minfo_mv_media(src_media_uuid, src_cluster_uuid);
+	ret = minfo_mv_media(handle, src_media_uuid, src_cluster_uuid);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -91,6 +92,6 @@ void utc_minfo_mv_media_func_02()
 	char *src_media_uuid = NULL;
 	char *dst_cluster_uuid = NULL;
 
-	ret = minfo_mv_media(src_media_uuid, dst_cluster_uuid);
+	ret = minfo_mv_media(handle, src_media_uuid, dst_cluster_uuid);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"move a record identified by media id to destination folder identified by folder id should be failed because of the src_media_id -1.");
 }

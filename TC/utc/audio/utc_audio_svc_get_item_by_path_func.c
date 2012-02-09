@@ -68,7 +68,7 @@ void utc_audio_svc_get_item_by_path_func_01()
 		dts_fail("audio_svc_item_new","failed to malloc.");
 	}
 
-	ret = audio_svc_get_item_by_path(DEFAULT_FILE, item);
+	ret = audio_svc_get_item_by_path(db_handle, DEFAULT_FILE, item);
 	if (ret  != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_item_free(item);
@@ -99,7 +99,7 @@ void utc_audio_svc_get_item_by_path_func_02()
 		dts_fail("audio_svc_item_new","failed to malloc.");
 	}
 	
-	ret = audio_svc_get_item_by_path(NULL, item);
+	ret = audio_svc_get_item_by_path(db_handle, NULL, item);
 	if (ret  != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_item_free(item);

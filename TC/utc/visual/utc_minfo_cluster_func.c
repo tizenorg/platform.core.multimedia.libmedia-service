@@ -34,7 +34,7 @@ int _get_id_by_url(const char *url, char *id)
 {
 	char cluster_id[256] = {0,};
 
-	if( minfo_get_cluster_id_by_url(url, cluster_id, sizeof(cluster_id)) < 0 )
+	if( minfo_get_cluster_id_by_url(handle, url, cluster_id, sizeof(cluster_id)) < 0 )
 	{
 		return -1;
 	}
@@ -55,10 +55,10 @@ int _get_id_by_url(const char *url, char *id)
 void utc_minfo_add_cluster_func_01()
 {
 	int ret = -1;
-	char *cluster_url = "/opt/media/Images and videos/ForTC";
+	char *cluster_url = "/opt/media/Images/ForTC";
 	char cluster_id[256] = {0,};
 	
-	ret = minfo_add_cluster(cluster_url, cluster_id, sizeof(cluster_id));
+	ret = minfo_add_cluster(handle, cluster_url, cluster_id, sizeof(cluster_id));
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to add a cluser record content in folder table. error code->%d", ret);
 }
 
@@ -76,7 +76,7 @@ void utc_minfo_add_cluster_func_02()
 	char *cluster_url = NULL; /*= "/opt/media/Images/Wallpapers_1";*/
 	char cluster_id[256] = {0,};
 	
-	ret = minfo_add_cluster(cluster_url, cluster_id, sizeof(cluster_id));
+	ret = minfo_add_cluster(handle, cluster_url, cluster_id, sizeof(cluster_id));
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "add a cluser record content in folder table should be failed because of the cluster_url NULL.");
 }
@@ -94,8 +94,8 @@ void utc_minfo_delete_cluster_func_01()
 	int ret = -1;
 
 	char cluster_id[256] = {0,};
-	 _get_id_by_url("/opt/media/Images and videos/ForTC", cluster_id);
-	ret = minfo_delete_cluster(cluster_id);
+	 _get_id_by_url("/opt/media/Images/ForTC", cluster_id);
+	ret = minfo_delete_cluster(handle, cluster_id);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to delete a cluster/folder identified by folder id. error code->%d", ret);
 }
@@ -113,7 +113,7 @@ void utc_minfo_delete_cluster_func_02()
 	int ret = -1;
 	 
 	const char *cluster_id = NULL;
-	ret = minfo_delete_cluster(cluster_id);
+	ret = minfo_delete_cluster(handle, cluster_id);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "delete a cluster/folder identified by folder id should be failed because of the cluster_id -1.");
 }

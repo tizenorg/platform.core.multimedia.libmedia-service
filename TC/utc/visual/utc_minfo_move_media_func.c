@@ -41,18 +41,18 @@
 void utc_minfo_move_media_func_01()
 {
 	int err = -1;
-	char *old_file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
-	char *new_file_url = "/opt/media/Images and videos/Wallpapers/Home_default_2.png";
+	char *old_file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
+	char *new_file_url = "/opt/media/Images/Wallpapers/Home_default_2.jpg";
 	int type = 1;
 
-	err = minfo_move_media(old_file_url, new_file_url, type);
+	err = minfo_move_media(handle, old_file_url, new_file_url, type);
 
 	if (err < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to Move a media content from media table. error code->%d", err);
 	}
 
-	err = minfo_move_media(new_file_url, old_file_url, type);
+	err = minfo_move_media(handle, new_file_url, old_file_url, type);
 	if (err < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to Move a media content from media table. error code->%d", err);
@@ -74,10 +74,10 @@ void utc_minfo_move_media_func_01()
 void utc_minfo_move_media_func_02()
 {	
 	int err = -1;
-	char *old_file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_01.png";*/
-	char *new_file_url = "/opt/media/Images/Wallpapers/Home_01_1.png";
+	char *old_file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_01.jpg";*/
+	char *new_file_url = "/opt/media/Images/Wallpapers/Home_01_1.jpg";
 	int type = 1;
 
-	err = minfo_move_media(old_file_url, new_file_url, type);
+	err = minfo_move_media(handle, old_file_url, new_file_url, type);
 	dts_check_lt(API_NAME, err, MB_SVC_ERROR_NONE,"Move a media content from media table should be failed because of the file_url NULL.");
 }

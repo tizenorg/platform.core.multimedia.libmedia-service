@@ -20,9 +20,9 @@
  */
 
 /**
-* @file		uts_mmf_player_common.h
+* @file		uts_audio_svc_common.h
 * @author	
-* @brief	This is the implementaion file for the test case of mmfplayer_common 
+* @brief	This is the implementaion file for the test case of Audio in libmedia-service 
 * @version	Initial Creation Version 0.1
 * @date 	2010-09-13
 */
@@ -31,25 +31,26 @@
 #define __UTS_AUDIO_SVC_COMMON_H_
 
 #include <audio-svc.h>
-#include <audio-svc-error.h>
+#include <media-svc.h>
 #include <string.h>
 #include <tet_api.h>
 #include <unistd.h>
-#include <glib.h>
 #include <stdbool.h>
 
 #define MAX_STRING_LEN 256
 
 #define UTC_MM_LOG(fmt, args...)	tet_printf("[%s(L%d)]:"fmt"\n", __FUNCTION__, __LINE__, ##args)
 
+MediaSvcHandle * db_handle;
+
 #define UTC_AUDIO_SVC_OPEN() \
 do \
 { \
 	int ret = AUDIO_SVC_ERROR_NONE; \
-	ret = audio_svc_open(); \
+	ret = media_svc_connect(&db_handle); \
 	if (ret != AUDIO_SVC_ERROR_NONE) \
 	{ \
-		dts_fail("audio_svc_open", "fail to open music db"); \
+		dts_fail("media_svc_connect", "fail to open music db"); \
 	} \
 } \
 while(0);
@@ -58,16 +59,23 @@ while(0);
 do \
 { \
 	int ret = AUDIO_SVC_ERROR_NONE; \
-	ret = audio_svc_close(); \
+	ret = media_svc_disconnect(db_handle); \
 	if (ret != AUDIO_SVC_ERROR_NONE) \
 	{ \
-		dts_fail("audio_svc_close", "fail to close music db"); \
+		dts_fail("media_svc_disconnect", "fail to close music db"); \
 	} \
 } \
 while(0);
 
-#define	DEFAULT_FILE		"/opt/media/Sounds and music/Music/Over the horizon.mp3"
-#define	TEST_FILE			"/opt/media/Sounds and music/test.mp3"
+#define	DEFAULT_FILE		"/opt/media/Music/Over the horizon.mp3"
+#define	TEST_FILE			"/opt/media/Music/test.mp3"
+
+#ifndef FALSE
+#define FALSE  0
+#endif
+#ifndef TRUE
+#define TRUE   1
+#endif
 
 bool get_item_audio_id(char * audio_id_val);
 bool get_playlist_id(int * playlist_id);

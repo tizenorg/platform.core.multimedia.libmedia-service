@@ -8,7 +8,7 @@ SET(MEDIASERVICE-HASH-LIB "media-svc-hash")
 SET(SRCS 
 	src/visual/media-svc-db.c
 	src/visual/media-svc-db-util.c
-	src/visual/media-svc-util.c
+	src/visual/visual-svc-util.c
 	src/visual/media-svc-api.c
 	src/visual/media-svc-thumb.c   
     
@@ -43,9 +43,9 @@ SET(SRCS
 	uuid/unparse.c
 	uuid/uuid_time.c
 
-	src/common/media-info.c
-	src/common/media-info-util.c
-	src/common/media-info-debug.c   
+	src/common/media-svc.c
+	src/common/media-svc-util.c
+	src/common/media-svc-debug.c
 	)
 
 SET(HASH_SRCS
@@ -134,16 +134,15 @@ INSTALL(TARGETS ${MEDIASERVICE-HASH-LIB} LIBRARY DESTINATION lib)
 #TARGET_LINK_LIBRARIES(audio_test ${pkgs_LDFLAGS} ${MEDIASERVICE-LIB} )
 #INSTALL(TARGETS audio_test DESTINATION ${BINDIR})
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc.h DESTINATION include/media-service)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc-error.h DESTINATION include/media-service)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/minfo-api.h DESTINATION include/media-service/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/minfo-types.h DESTINATION include/media-service/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/visual-svc-error.h DESTINATION include/media-service)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/visual-svc.h DESTINATION include/media-service/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/visual-svc-types.h DESTINATION include/media-service/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/audio-svc-error.h DESTINATION include/media-service)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/audio-svc.h DESTINATION include/media-service/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/audio-svc-types.h DESTINATION include/media-service/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-info.h DESTINATION include/media-service/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-info-error.h DESTINATION include/media-service/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-info-types.h DESTINATION include/media-service/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc.h DESTINATION include/media-service/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc-error.h DESTINATION include/media-service/)
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc-types.h DESTINATION include/media-service/)
 
 #INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/image/thumb_default.png DESTINATION /opt/data/gallery-beat)
 

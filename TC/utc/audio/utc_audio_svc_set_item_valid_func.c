@@ -53,7 +53,7 @@ void utc_audio_svc_set_item_valid_func_01()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int valid = 1;
 
-	ret = audio_svc_set_item_valid(DEFAULT_FILE, valid);
+	ret = audio_svc_set_item_valid(db_handle, DEFAULT_FILE, valid);
 	dts_check_eq("audio_svc_set_item_valid", ret, AUDIO_SVC_ERROR_NONE, "failed to set item valid.");
 
 }
@@ -71,7 +71,7 @@ void utc_audio_svc_set_item_valid_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int valid = 1;
 
-	ret = audio_svc_set_item_valid(NULL, valid);
+	ret = audio_svc_set_item_valid(db_handle, NULL, valid);
 	if (ret !=  AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_set_item_valid","abnormal condition test for invalid path parameter.");

@@ -63,7 +63,7 @@ void utc_audio_svc_item_get_val_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 	
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_list_item","unable to get count.");
@@ -81,7 +81,7 @@ void utc_audio_svc_item_get_val_func_01()
 	}
 
 	//get all tracks from db.
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,
@@ -112,7 +112,7 @@ void utc_audio_svc_item_get_val_func_01()
 		dts_fail("audio_svc_list_item_get_val","unable to get count.");
 	}
 	
-	ret = audio_svc_get_item_by_audio_id(audio_id, item);
+	ret = audio_svc_get_item_by_audio_id(db_handle, audio_id, item);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_list_item_free(tracks);

@@ -58,7 +58,7 @@ void utc_audio_svc_get_unique_playlist_name_func_01()
 	const char orig_name[AUDIO_SVC_PLAYLIST_NAME_SIZE] = "plst_test";
 	char unique_name[AUDIO_SVC_PLAYLIST_NAME_SIZE] = {0};
 
-	ret = audio_svc_get_unique_playlist_name(orig_name, unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE);
+	ret = audio_svc_get_unique_playlist_name(db_handle, orig_name, unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE);
 	dts_check_eq("audio_svc_get_unique_playlist_name", ret, AUDIO_SVC_ERROR_NONE, "failed to get playlist name.");
 
 }
@@ -77,7 +77,7 @@ void utc_audio_svc_get_unique_playlist_name_func_02()
 	char *orig_name = NULL;
 	char unique_name[AUDIO_SVC_PLAYLIST_NAME_SIZE] = {0};
 
-	ret = audio_svc_get_unique_playlist_name(orig_name, unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE);
+	ret = audio_svc_get_unique_playlist_name(db_handle, orig_name, unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_get_unique_playlist_name","abnormal condition test for invalid NULL parameter.");

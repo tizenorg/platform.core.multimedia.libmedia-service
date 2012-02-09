@@ -37,8 +37,9 @@
 #ifndef _MINFO_TAG_H_
 #define _MINFO_TAG_H_
 
-#include "minfo-types.h"
+#include "visual-svc-types.h"
 #include "media-svc-structures.h"
+#include "media-svc-types.h"
 
 #define MINFO_TYPE_MTAG		(0x55555)
 #define MINFO_MTAG(obj)		((Mtag*)(obj))
@@ -59,7 +60,7 @@
 */
 
 Mtag*
-minfo_media_tag_new	(int id, mb_svc_tag_record_s *p_tag_record);
+minfo_media_tag_new	(MediaSvcHandle *mb_svc_handle, int id, mb_svc_tag_record_s *p_tag_record);
 
 
 /**

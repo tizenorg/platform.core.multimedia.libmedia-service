@@ -42,10 +42,10 @@ void utc_minfo_add_bookmark_func_01()
 	int ret = -1;
 	 
 	int position = 2346;
-	const char *media_id = "2f08863e-52fd-eaf8-269c-3d0798e7aa0e";
+	const char *media_id = "77b876ed-5db9-4114-82c0-d08e814b5051";
 	char *thumb_path = "tmp1";
 
-	ret = minfo_add_bookmark(media_id, position, thumb_path);
+	ret = minfo_add_bookmark(handle, media_id, position, thumb_path);
 	
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to add a bookmark to a media file. error code->%d", ret);
 }
@@ -60,13 +60,13 @@ void utc_minfo_add_bookmark_func_01()
 */
 void utc_minfo_add_bookmark_func_02()
 {	
-	 int ret = -1;
+	int ret = -1;
 	 
-	 int position = 2346;
-	 const char *media_id = "2f08863e-52fd-eaf8-269c-3d0798e7aa0e";
-	 char *thumb_path = NULL;
+	int position = 2346;
+	const char *media_id = "77b876ed-5db9-4114-82c0-d08e814b5051";
+	char *thumb_path = NULL;
 
-	 ret = minfo_add_bookmark(media_id,position,thumb_path);
+	ret = minfo_add_bookmark(handle, media_id,position,thumb_path);
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "add a bookmark to a media file should be failed because of the media_id parameter -1.");
 }
@@ -83,7 +83,7 @@ void utc_minfo_delete_bookmark_func_01()
 	int ret = -1;
 	 
 	int bookmark_id = 1;
-	ret = minfo_delete_bookmark(bookmark_id);
+	ret = minfo_delete_bookmark(handle, bookmark_id);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to delete a bookmark to a media file. error code->%d", ret);
 }
@@ -101,7 +101,7 @@ void utc_minfo_delete_bookmark_func_02()
 	int ret = -1;
 	 
 	int bookmark_id = -1;
-	ret = minfo_delete_bookmark(bookmark_id);
+	ret = minfo_delete_bookmark(handle, bookmark_id);
 	
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "delete a bookmark to a media file should be failed because of the bookmark_id parameter -1.");

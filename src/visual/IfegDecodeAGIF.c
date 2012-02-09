@@ -19,7 +19,7 @@
  *
  */
 
-#include "media-svc-debug.h"
+#include "visual-svc-debug.h"
 #include "media-img-codec-common.h"
 #include "IfegDecodeAGIF.h"
 

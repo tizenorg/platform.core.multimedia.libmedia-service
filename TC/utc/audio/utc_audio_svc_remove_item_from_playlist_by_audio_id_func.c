@@ -65,7 +65,7 @@ void utc_audio_svc_remove_item_from_playlist_func_01()
 		dts_fail("check_playlist_has_item","fail to check_playlist_has_item.");
 	}
 	
-	ret = audio_svc_remove_item_from_playlist_by_audio_id(playlist_id, audio_id);
+	ret = audio_svc_remove_item_from_playlist_by_audio_id(db_handle, playlist_id, audio_id);
 	dts_check_eq("audio_svc_remove_item_from_playlist", ret, AUDIO_SVC_ERROR_NONE, "failed to  remove item.");
 
 }
@@ -84,7 +84,7 @@ void utc_audio_svc_remove_item_from_playlist_func_02()
 	char * audio_id = "550e8400-e29b-41d4-a716-446655440000";
 	int playlist_id = -1;
 
-	ret = audio_svc_remove_item_from_playlist_by_audio_id(playlist_id, audio_id);
+	ret = audio_svc_remove_item_from_playlist_by_audio_id(db_handle, playlist_id, audio_id);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_remove_item_from_playlist","abnormal condition test for invalid playlist index parameter.");

@@ -21,20 +21,20 @@
 
 #include "minfo-bookmark.h"
 #include "media-svc-api.h"
-#include "media-svc-debug.h"
-#include "media-svc-error.h"
+#include "visual-svc-debug.h"
+#include "visual-svc-error.h"
 #include <string.h>
 
 static void _minfo_mbookmark_init(Mbookmark *mbookmark);
 
-int minfo_mbookmark_load(Mbookmark *mbookmark)
+int minfo_mbookmark_load(MediaSvcHandle *mb_svc_handle, Mbookmark *mbookmark)
 {
 	mb_svc_bookmark_record_s bookmark_record = { 0 };
 	int ret = 0;
 	int length = 0;
 
 	ret =
-	    mb_svc_get_bookmark_record_by_id(mbookmark->_id, &bookmark_record);
+	    mb_svc_get_bookmark_record_by_id(mb_svc_handle, mbookmark->_id, &bookmark_record);
 	if (ret < 0) {
 		mb_svc_debug("mb_svc_get_bookmark_record_by_id failed");
 		return ret;
@@ -63,7 +63,7 @@ int minfo_mbookmark_load(Mbookmark *mbookmark)
 	return 0;
 }
 
-Mbookmark *minfo_mbookmark_new(int id)
+Mbookmark *minfo_mbookmark_new(MediaSvcHandle *mb_svc_handle, int id)
 {
 	Mbookmark *bookmark = NULL;
 	int ret = 0;
@@ -76,7 +76,7 @@ Mbookmark *minfo_mbookmark_new(int id)
 	_minfo_mbookmark_init(bookmark);
 	if (id != -1) {
 		bookmark->_id = id;
-		ret = minfo_mbookmark_load(bookmark);
+		ret = minfo_mbookmark_load(mb_svc_handle, bookmark);
 		if (ret < 0) {
 			free(bookmark);
 			return NULL;

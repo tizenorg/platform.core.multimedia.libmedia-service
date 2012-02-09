@@ -61,7 +61,7 @@ void utc_audio_svc_playlist_set_val_func_01()
 		dts_fail("check_default_playlist_exist","fail to check default playlist.");
 	}
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_playlist","unable to get playlist.");
@@ -74,7 +74,7 @@ void utc_audio_svc_playlist_set_val_func_01()
 	}
 
 	//get all the playlists.
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle, 
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,

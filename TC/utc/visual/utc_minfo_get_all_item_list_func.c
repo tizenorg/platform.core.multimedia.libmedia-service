@@ -53,7 +53,7 @@ void utc_minfo_get_all_item_list_func_01()
 	minfo_folder_type cluster_type = MINFO_CLUSTER_TYPE_LOCAL_ALL;
 	minfo_item_filter item_filter = {MINFO_ITEM_ALL,MINFO_MEDIA_SORT_BY_DATE_ASC,0,5,true,MINFO_MEDIA_FAV_ALL};
 
-	ret = minfo_get_all_item_list(cluster_type, item_filter, _ite_fn, &p_list);
+	ret = minfo_get_all_item_list(handle, cluster_type, item_filter, _ite_fn, &p_list);
 
 	if (ret == MB_SVC_ERROR_DB_NO_RECORD) {
 		dts_pass(API_NAME, "No record. This is normal operation");
@@ -78,7 +78,7 @@ void utc_minfo_get_all_item_list_func_02()
 	minfo_folder_type cluster_type = MINFO_CLUSTER_TYPE_LOCAL_ALL;
 	minfo_item_filter item_filter = {MINFO_ITEM_ALL,MINFO_MEDIA_SORT_BY_DATE_ASC,0,5,true,MINFO_MEDIA_FAV_ALL};
 
-	ret = minfo_get_all_item_list(cluster_type, item_filter, NULL, &p_list);
+	ret = minfo_get_all_item_list(handle, cluster_type, item_filter, NULL, &p_list);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting media records should be failed because of the item_filter parameter.");
 }
 

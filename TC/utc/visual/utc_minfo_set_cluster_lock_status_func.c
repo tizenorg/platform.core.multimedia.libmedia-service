@@ -41,17 +41,17 @@
 void utc_minfo_set_cluster_lock_status_func_01()
 {
 	int ret = -1;
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 	int status = 1;
 
-    ret = minfo_set_cluster_lock_status(cluster_uuid, status);
+    ret = minfo_set_cluster_lock_status(handle, cluster_uuid, status);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to set status to lock the album.  error code->%d", ret);
 	}
 
-    ret = minfo_set_cluster_lock_status(cluster_uuid, 0);
+    ret = minfo_set_cluster_lock_status(handle, cluster_uuid, 0);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -77,7 +77,7 @@ void utc_minfo_set_cluster_lock_status_func_02()
 	const char *cluster_uuid = NULL;
 	int status = 2;
 
-    ret = minfo_set_cluster_lock_status(cluster_uuid, status);
+    ret = minfo_set_cluster_lock_status(handle, cluster_uuid, status);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "Setting lock status to the album should be failed because of the status is invalid.");
 }
 

@@ -59,7 +59,7 @@ void utc_audio_svc_refresh_metadata_func_01()
 		dts_fail("get_item_audio_id","fail to get audio_id.");
 	}
 	
-	ret = audio_svc_refresh_metadata(audio_id);
+	ret = audio_svc_refresh_metadata(db_handle, audio_id);
 	dts_check_eq("audio_svc_refresh_metadata", ret, AUDIO_SVC_ERROR_NONE, "failed to refresh metadata.");
 
 }
@@ -76,7 +76,7 @@ void utc_audio_svc_refresh_metadata_func_02()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_refresh_metadata(NULL);
+	ret = audio_svc_refresh_metadata(db_handle, NULL);
 	if (ret !=  AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_playlist_set_val","abnormal condition test for invalid audio_id parameter.");

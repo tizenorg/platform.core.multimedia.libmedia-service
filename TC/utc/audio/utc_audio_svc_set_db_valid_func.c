@@ -54,7 +54,7 @@ void utc_audio_svc_set_db_valid_func_01()
 	int storage = AUDIO_SVC_STORAGE_PHONE;
 	int valid = 1;
 
-	ret = audio_svc_set_db_valid(storage, valid);
+	ret = audio_svc_set_db_valid(db_handle, storage, valid);
 	dts_check_eq("audio_svc_set_db_valid", ret, AUDIO_SVC_ERROR_NONE, "failed to set db valid.");
 
 }
@@ -72,7 +72,7 @@ void utc_audio_svc_set_db_valid_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int valid = 1;
 
-	ret = audio_svc_set_db_valid(100, valid);
+	ret = audio_svc_set_db_valid(db_handle, 100, valid);
 
 
 	if (ret !=  AUDIO_SVC_ERROR_NONE)

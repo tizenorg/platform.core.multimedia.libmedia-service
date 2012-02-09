@@ -19,19 +19,19 @@
  *
  */
 
-#include "media-info-env.h"
-#include "media-info-util.h"
-#include "media-svc-db.h"
-#include "media-svc-debug.h"
-#include "media-svc-db-util.h"
-#include "media-svc-util.h"
-#include "media-svc-api.h"
-#include "media-svc-error.h"
-#include "minfo-types.h"
-#include "media-svc-structures.h"
+#include <string.h>
 #include <util-func.h>
 #include <sys/stat.h>
-
+#include "media-svc-env.h"
+#include "media-svc-util.h"
+#include "media-svc-db.h"
+#include "visual-svc-debug.h"
+#include "media-svc-db-util.h"
+#include "visual-svc-util.h"
+#include "media-svc-api.h"
+#include "media-svc-structures.h"
+#include "visual-svc-types.h"
+#include "visual-svc-error.h"
 
 /**
  * Enumerations for table name.
@@ -108,6 +108,7 @@ typedef enum {
 	MB_SVC_MEDIA_MODIFIED_DATE,
 	MB_SVC_MEDIA_THUMBNAIL_PATH,
 	MB_SVC_MEDIA_HTTP_URL,
+	MB_SVC_MEDIA_SIZE,
 	MB_SVC_MEDIA_VALID,
 	MB_SVC_MEDIA_NUM,
 } mb_svc_media_field_e;
@@ -122,6 +123,7 @@ typedef enum {
 	MB_SVC_VIDEO_META_ALBUM,
 	MB_SVC_VIDEO_META_ARTIST,
 	MB_SVC_VIDEO_META_TITLE,
+	MB_SVC_VIDEO_META_GENRE,
 	MB_SVC_VIDEO_META_DESCRIPTION,
 	MB_SVC_VIDEO_META_YOUTUBE_CATEGORY,
 	MB_SVC_VIDEO_META_BOOKMARK_LAST_PLAYED,
@@ -198,7 +200,7 @@ typedef struct {
 mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 	{"video_bookmark", {
 			    {"_id", "INTEGER"} ,	/* PK */
-			    {"media_uuid", "VARCHAR(256)"} ,
+			    {"visual_uuid", "VARCHAR(256)"} ,
 			    {"marked_time", "INT"}
 			    ,
 			    {"thumbnail_path", "VARCHAR(256)"}
@@ -210,7 +212,7 @@ mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 	,
 
 	{"visual_folder", {
-			   {"uuid", "VARCHAR(256)"} ,	/* PK */
+			   {"folder_uuid", "VARCHAR(256)"} ,	/* PK */
 			   {"path", "VARCHAR(256)"} ,	/* full path */
 			   {"folder_name", "VARCHAR(256)"}
 			   ,
@@ -254,7 +256,7 @@ mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 	,
 
 	{"visual_media", {
-			  {"uuid", "VARCHAR(256)"}
+			  {"visual_uuid", "VARCHAR(256)"}
 			  ,
 			  {"path", "VARCHAR(256)"}
 			  ,
@@ -272,6 +274,8 @@ mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 			  ,
 			  {"http_url", "VARCHAR(256)"}
 			  ,
+			  {"size", "INT"}
+			  ,
 			  {"valid", "INT"}
 			  ,
 			  {0}
@@ -283,13 +287,15 @@ mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 	{"video_meta", {
 			{"_id", "INTEGER"}
 			,
-			{"media_uuid", "VARCHAR(256)"}
+			{"visual_uuid", "VARCHAR(256)"}
 			,
 			{"album", "VARCHAR(256)"}
 			,
 			{"artist", "VARCHAR(256)"}
 			,
 			{"title", "VARCHAR(256)"}
+			,
+			{"genre", "VARCHAR(256)"}
 			,
 			{"description", "VARCHAR(256)"}
 			,
@@ -318,7 +324,7 @@ mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 	{"image_meta", {
 			{"_id", "INTEGER"}
 			,
-			{"media_uuid", "VARCHAR(256)"}
+			{"visual_uuid", "VARCHAR(256)"}
 			,
 			{"longitude", "DOUBLE"}
 			,
@@ -343,7 +349,7 @@ mb_svc_tbl_s mb_svc_tbl[MB_SVC_TABLE_CNT_MAX] = {
 	{"visual_tag_map", {
 			    {"_id", "INTEGER"} /* PK */
 			    ,
-				{"media_uuid", "VARCHAR(256)"}
+				{"visual_uuid", "VARCHAR(256)"}
 			    ,
 			    {"tag_id", "INT"}
 			    ,
@@ -381,9 +387,9 @@ static __thread char g_last_updated_folder_uuid[MB_SVC_UUID_LEN_MAX + 1] = {0,};
 static int __mb_svc_create_tbl(bool external);
 static int __mb_svc_drop_tbl(void);
 #endif
-static int __mb_svc_delete_record(int id, mb_svc_tbl_name_e tbl_name);
-static int __mb_svc_delete_record_by_uuid(const char *id, mb_svc_tbl_name_e tbl_name);
-static int __mb_svc_db_get_next_id(int table_id);
+static int __mb_svc_delete_record(MediaSvcHandle *mb_svc_handle, int id, mb_svc_tbl_name_e tbl_name);
+static int __mb_svc_delete_record_by_uuid(MediaSvcHandle *mb_svc_handle, const char *id, mb_svc_tbl_name_e tbl_name);
+static int __mb_svc_db_get_next_id(MediaSvcHandle *mb_svc_handle, int table_id);
 
 #if 0
 static int __mb_svc_create_tbl(bool external)
@@ -486,8 +492,8 @@ int mb_svc_set_folder_as_valid_sql_add(const char *folder_id, int valid)
 	snprintf(table_name, MB_SVC_TABLE_NAME_MAX_LEN, "%s",
 		 mb_svc_tbl[field_seq].table_name);
 
-	sql = sqlite3_mprintf(MB_SVC_UPDATE_VALID_BY_UUID, 
-										table_name, 
+	sql = sqlite3_mprintf(MB_SVC_UPDATE_FOLDER_VALID_BY_UUID,
+										table_name,
 										valid,
 										folder_id);
 
@@ -496,7 +502,7 @@ int mb_svc_set_folder_as_valid_sql_add(const char *folder_id, int valid)
 	return 0;
 }
 
-int mb_svc_set_item_as_valid_sql_add(const char *full_path, int valid)
+int mb_svc_set_item_as_valid_sql_add(MediaSvcHandle *mb_svc_handle, const char *full_path, int valid)
 {
 	mb_svc_debug("full path: %s, valid:%d", full_path, valid);
 
@@ -508,7 +514,7 @@ int mb_svc_set_item_as_valid_sql_add(const char *full_path, int valid)
 		return MB_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	ret = mb_svc_get_media_record_by_full_path(full_path, &media_record);
+	ret = mb_svc_get_media_record_by_full_path(mb_svc_handle, full_path, &media_record);
 	if (ret < 0) {
 		mb_svc_debug(" mb_svc_get_media_record_by_full_path fails (%d)", ret);
 		return ret;
@@ -525,7 +531,7 @@ int mb_svc_set_item_as_valid_sql_add(const char *full_path, int valid)
 		 mb_svc_tbl[field_seq].table_name);
 
 	char *sql =
-	    sqlite3_mprintf(MB_SVC_UPDATE_VALID_BY_UUID, table_name, valid,
+	    sqlite3_mprintf(MB_SVC_UPDATE_MEDIA_VALID_BY_UUID, table_name, valid,
 			    media_record.media_uuid);
 
 	mb_svc_sql_list_add(&g_sql_list, &sql);
@@ -545,7 +551,7 @@ int mb_svc_set_item_as_valid_sql_add(const char *full_path, int valid)
 	return 0;
 }
 
-int mb_svc_set_item_as_valid()
+int mb_svc_set_item_as_valid(MediaSvcHandle *mb_svc_handle)
 {
 	mb_svc_debug("");
 	int i = 0;
@@ -553,7 +559,7 @@ int mb_svc_set_item_as_valid()
 
 	for (i = 0; i < length; i++) {
 		char *sql = (char*)g_list_nth_data(g_sql_list, i);
-		mb_svc_query_sql(sql);
+		mb_svc_query_sql(mb_svc_handle, sql);
 	}
 
 	mb_svc_sql_list_release(&g_sql_list);
@@ -561,6 +567,7 @@ int mb_svc_set_item_as_valid()
 	return 0;
 }
 
+#if 0
 static int mb_svc_busy_handler(void *pData, int count)
 {
 	usleep(50000);
@@ -624,7 +631,7 @@ int mb_svc_disconnect_db(sqlite3 *handle)
 	mb_svc_debug("Disconnected successfully\n");
 	return 0;
 }
-
+#endif
 mb_svc_tbl_s *mb_svc_search_matched_svc_tbl(mb_svc_tbl_name_e tbl_name)
 {
 	int i;
@@ -652,7 +659,7 @@ mb_svc_tbl_s *mb_svc_search_matched_svc_tbl(mb_svc_tbl_name_e tbl_name)
 	return NULL;
 }
 
-int _mb_svc_table_exist(char *table_name)
+int _mb_svc_table_exist(MediaSvcHandle *mb_svc_handle, char *table_name)
 {
 	char szQuery[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
 	int ret = -1;;
@@ -660,7 +667,7 @@ int _mb_svc_table_exist(char *table_name)
 	char *pszTempName = NULL;
 	sqlite3_stmt *pstStmt_pb = NULL;
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -702,7 +709,7 @@ int _mb_svc_table_exist(char *table_name)
 	return ret;
 }
 
-int _mb_svc_truncate_tbl()
+int _mb_svc_truncate_tbl(MediaSvcHandle *mb_svc_handle)
 {
 	char query_string[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
 	int i, err;
@@ -715,11 +722,11 @@ int _mb_svc_truncate_tbl()
 			mb_svc_debug("table_name is null\n");
 			return MB_SVC_ERROR_INVALID_PARAMETER;
 		}
-		err = _mb_svc_table_exist(table_name);
+		err = _mb_svc_table_exist(mb_svc_handle, table_name);
 		if (err > 0) {
 			snprintf(query_string, sizeof(query_string),
 				 MB_SVC_TABLE_DELETE_QUERY_STRING, table_name);
-			err = mb_svc_query_sql(query_string);
+			err = mb_svc_query_sql(mb_svc_handle, query_string);
 			if (err < 0) {
 				mb_svc_debug("truncate table failed\n");
 				mb_svc_debug("query string is %s\n",
@@ -732,13 +739,13 @@ int _mb_svc_truncate_tbl()
 	return 0;
 }
 
-static int __mb_svc_db_get_next_id(int table_id)
+static int __mb_svc_db_get_next_id(MediaSvcHandle *mb_svc_handle, int table_id)
 {
 	int ret = 0;
 	sqlite3_stmt *stmt = NULL;
 	char query_string[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -776,7 +783,7 @@ static int __mb_svc_db_get_next_id(int table_id)
 	return ret + 1;
 }
 
-static int __mb_svc_delete_record(int id, mb_svc_tbl_name_e tbl_name)
+static int __mb_svc_delete_record(MediaSvcHandle *mb_svc_handle, int id, mb_svc_tbl_name_e tbl_name)
 {
 	int err = -1;
 	mb_svc_tbl_s *matched_tbl = NULL;
@@ -803,7 +810,7 @@ static int __mb_svc_delete_record(int id, mb_svc_tbl_name_e tbl_name)
 
 		mb_svc_debug("Query: %s", query_string);
 
-		err = mb_svc_query_sql(query_string);
+		err = mb_svc_query_sql(mb_svc_handle, query_string);
 		if (err < 0) {
 			mb_svc_debug("failed to delete record\n");
 			mb_svc_debug("query string is %s\n", query_string);
@@ -820,7 +827,7 @@ static int __mb_svc_delete_record(int id, mb_svc_tbl_name_e tbl_name)
 	return 0;
 }
 
-static int __mb_svc_delete_record_by_uuid(const char *id, mb_svc_tbl_name_e tbl_name)
+static int __mb_svc_delete_record_by_uuid(MediaSvcHandle *mb_svc_handle, const char *id, mb_svc_tbl_name_e tbl_name)
 {
 	int err = -1;
 	mb_svc_tbl_s *matched_tbl = NULL;
@@ -842,12 +849,17 @@ static int __mb_svc_delete_record_by_uuid(const char *id, mb_svc_tbl_name_e tbl_
 	if (matched_tbl != NULL) {
 		snprintf(table_name, sizeof(table_name), "%s",
 			 mb_svc_tbl[tbl_name].table_name);
-		snprintf(query_string, sizeof(query_string),
-			 MB_SVC_RECORD_DELETE_BY_UUID, table_name, id);
 
+		if (tbl_name == MB_SVC_TABLE_FOLDER) {
+			snprintf(query_string, sizeof(query_string),
+				MB_SVC_RECORD_FOLDER_DELETE_BY_UUID, table_name, id);
+		} else {
+			snprintf(query_string, sizeof(query_string),
+				MB_SVC_RECORD_MEDIA_DELETE_BY_UUID, table_name, id);
+		}
 		mb_svc_debug("Query: %s", query_string);
 
-		err = mb_svc_query_sql(query_string);
+		err = mb_svc_query_sql(mb_svc_handle, query_string);
 		if (err < 0) {
 			mb_svc_debug("failed to delete record\n");
 			mb_svc_debug("query string is %s\n", query_string);
@@ -864,37 +876,37 @@ static int __mb_svc_delete_record_by_uuid(const char *id, mb_svc_tbl_name_e tbl_
 	return 0;
 }
 
-int mb_svc_delete_record_bookmark_by_id(int id)
+int mb_svc_delete_record_bookmark_by_id(MediaSvcHandle *mb_svc_handle, int id)
 {
-	return __mb_svc_delete_record(id, MB_SVC_TABLE_BOOKMARK);
+	return __mb_svc_delete_record(mb_svc_handle, id, MB_SVC_TABLE_BOOKMARK);
 }
 
-int mb_svc_delete_record_folder_by_id(const char *id)
+int mb_svc_delete_record_folder_by_id(MediaSvcHandle *mb_svc_handle, const char *id)
 {
-	return __mb_svc_delete_record_by_uuid(id, MB_SVC_TABLE_FOLDER);
+	return __mb_svc_delete_record_by_uuid(mb_svc_handle, id, MB_SVC_TABLE_FOLDER);
 }
 
-int mb_svc_delete_record_web_streaming_by_id(int id)
+int mb_svc_delete_record_web_streaming_by_id(MediaSvcHandle *mb_svc_handle, int id)
 {
-	return __mb_svc_delete_record(id, MB_SVC_TABLE_WEB_STREAMING);
+	return __mb_svc_delete_record(mb_svc_handle, id, MB_SVC_TABLE_WEB_STREAMING);
 }
 
-int mb_svc_delete_record_media_by_id(const char *id)
+int mb_svc_delete_record_media_by_id(MediaSvcHandle *mb_svc_handle, const char *id)
 {
-	return __mb_svc_delete_record_by_uuid(id, MB_SVC_TABLE_MEDIA);
+	return __mb_svc_delete_record_by_uuid(mb_svc_handle, id, MB_SVC_TABLE_MEDIA);
 }
 
-int mb_svc_delete_record_video_meta_by_id(int id)
+int mb_svc_delete_record_video_meta_by_id(MediaSvcHandle *mb_svc_handle, int id)
 {
-	return __mb_svc_delete_record(id, MB_SVC_TABLE_VIDEO_META);
+	return __mb_svc_delete_record(mb_svc_handle, id, MB_SVC_TABLE_VIDEO_META);
 }
 
-int mb_svc_delete_record_image_meta_by_id(int id)
+int mb_svc_delete_record_image_meta_by_id(MediaSvcHandle *mb_svc_handle, int id)
 {
-	return __mb_svc_delete_record(id, MB_SVC_TABLE_IMAGE_META);
+	return __mb_svc_delete_record(mb_svc_handle, id, MB_SVC_TABLE_IMAGE_META);
 }
 
-int mb_svc_insert_record_bookmark(mb_svc_bookmark_record_s *record)
+int mb_svc_insert_record_bookmark(MediaSvcHandle *mb_svc_handle, mb_svc_bookmark_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -928,7 +940,7 @@ int mb_svc_insert_record_bookmark(mb_svc_bookmark_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -940,7 +952,7 @@ int mb_svc_insert_record_bookmark(mb_svc_bookmark_record_s *record)
 	return err;
 }
 
-int mb_svc_insert_record_folder(mb_svc_folder_record_s *record)
+int mb_svc_insert_record_folder(MediaSvcHandle *mb_svc_handle, mb_svc_folder_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -980,7 +992,7 @@ int mb_svc_insert_record_folder(mb_svc_folder_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1035,7 +1047,7 @@ int mb_svc_insert_record_folder_sql(mb_svc_folder_record_s *record, char **sql)
 	return err;
 }
 
-int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record)
+int mb_svc_insert_record_web_streaming(MediaSvcHandle *mb_svc_handle, mb_svc_web_streaming_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -1050,7 +1062,7 @@ int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record)
 	mb_svc_tbl_name_e field_seq = MB_SVC_TABLE_WEB_STREAMING;
 	mb_svc_field = mb_svc_tbl[field_seq].mb_svc_field;
 
-	record->_id = __mb_svc_db_get_next_id(MB_SVC_TABLE_WEB_STREAMING);
+	record->_id = __mb_svc_db_get_next_id(mb_svc_handle, MB_SVC_TABLE_WEB_STREAMING);
 
 	if (record->_id < 0) {
 		mb_svc_debug("__mb_svc_db_get_next_id failed");
@@ -1074,7 +1086,7 @@ int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1089,7 +1101,7 @@ int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record)
 /**
  *	insert record into table--media 
  */
-int mb_svc_insert_record_media(mb_svc_media_record_s *record,
+int mb_svc_insert_record_media(MediaSvcHandle *mb_svc_handle, mb_svc_media_record_s *record,
 			       minfo_store_type storage_type)
 {
 	mb_svc_debug("");
@@ -1117,18 +1129,18 @@ int mb_svc_insert_record_media(mb_svc_media_record_s *record,
 			    mb_svc_field[MB_SVC_MEDIA_CONTENT_TYPE].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_RATING].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_MODIFIED_DATE].field_name,
-			    mb_svc_field[MB_SVC_MEDIA_THUMBNAIL_PATH].
-			    field_name,
+			    mb_svc_field[MB_SVC_MEDIA_THUMBNAIL_PATH].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_HTTP_URL].field_name,
+			    mb_svc_field[MB_SVC_MEDIA_SIZE].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_VALID].field_name,
 			    record->media_uuid, record->path,
 			    record->folder_uuid, record->display_name, record->content_type,
 			    record->rate, record->modified_date,
-			    record->thumbnail_path, record->http_url, 1);
+			    record->thumbnail_path, record->http_url, record->size, 1);
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1169,15 +1181,15 @@ int mb_svc_insert_record_media_sql(mb_svc_media_record_s *record,
 			    mb_svc_field[MB_SVC_MEDIA_CONTENT_TYPE].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_RATING].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_MODIFIED_DATE].field_name,
-			    mb_svc_field[MB_SVC_MEDIA_THUMBNAIL_PATH].
-			    field_name,
+			    mb_svc_field[MB_SVC_MEDIA_THUMBNAIL_PATH].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_HTTP_URL].field_name,
+			    mb_svc_field[MB_SVC_MEDIA_SIZE].field_name,
 			    mb_svc_field[MB_SVC_MEDIA_VALID].field_name,
 			    record->media_uuid, record->path,
 				record->folder_uuid,
 			    record->display_name, record->content_type,
 			    record->rate, record->modified_date,
-			    record->thumbnail_path, record->http_url, 1);
+			    record->thumbnail_path, record->http_url, record->size, 1);
 
 	mb_svc_debug("Query : %s", *sql);
 
@@ -1185,7 +1197,7 @@ int mb_svc_insert_record_media_sql(mb_svc_media_record_s *record,
 }
 
 int
-mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record,
+mb_svc_insert_record_video_meta(MediaSvcHandle *mb_svc_handle, mb_svc_video_meta_record_s *record,
 				minfo_store_type storage_type)
 {
 	mb_svc_debug("");
@@ -1216,6 +1228,7 @@ mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record,
 			    mb_svc_field[MB_SVC_VIDEO_META_ALBUM].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_ARTIST].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_TITLE].field_name,
+			    mb_svc_field[MB_SVC_VIDEO_META_GENRE].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_DESCRIPTION].
 			    field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_YOUTUBE_CATEGORY].
@@ -1230,7 +1243,7 @@ mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record,
 			    mb_svc_field[MB_SVC_VIDEO_META_HEIGHT].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_DATETAKEN].
 			    field_name, /* record->_id, */record->media_uuid,
-			    record->album, record->artist, record->title,
+			    record->album, record->artist, record->title, record->genre,
 			    record->description, record->youtube_category,
 			    record->last_played_time, record->duration,
 			    record->longitude, record->latitude, record->width,
@@ -1238,7 +1251,7 @@ mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record,
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1282,6 +1295,7 @@ mb_svc_insert_record_video_meta_sql(mb_svc_video_meta_record_s *record,
 			    mb_svc_field[MB_SVC_VIDEO_META_ALBUM].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_ARTIST].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_TITLE].field_name,
+			    mb_svc_field[MB_SVC_VIDEO_META_GENRE].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_DESCRIPTION].
 			    field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_YOUTUBE_CATEGORY].
@@ -1296,7 +1310,7 @@ mb_svc_insert_record_video_meta_sql(mb_svc_video_meta_record_s *record,
 			    mb_svc_field[MB_SVC_VIDEO_META_HEIGHT].field_name,
 			    mb_svc_field[MB_SVC_VIDEO_META_DATETAKEN].
 			    field_name, /* record->_id, */record->media_uuid,
-			    record->album, record->artist, record->title,
+			    record->album, record->artist, record->title, record->genre,
 			    record->description, record->youtube_category,
 			    record->last_played_time, record->duration,
 			    record->longitude, record->latitude, record->width,
@@ -1308,7 +1322,8 @@ mb_svc_insert_record_video_meta_sql(mb_svc_video_meta_record_s *record,
 }
 
 int
-mb_svc_insert_record_image_meta(mb_svc_image_meta_record_s *record,
+mb_svc_insert_record_image_meta(MediaSvcHandle *mb_svc_handle,
+				mb_svc_image_meta_record_s *record,
 				minfo_store_type storage_type)
 {
 	mb_svc_debug("");
@@ -1353,7 +1368,7 @@ mb_svc_insert_record_image_meta(mb_svc_image_meta_record_s *record,
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1414,7 +1429,7 @@ mb_svc_insert_record_image_meta_sql(mb_svc_image_meta_record_s *record,
 	return err;
 }
 
-int mb_svc_update_record_folder(mb_svc_folder_record_s *record)
+int mb_svc_update_record_folder(MediaSvcHandle *mb_svc_handle, mb_svc_folder_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -1449,7 +1464,7 @@ int mb_svc_update_record_folder(mb_svc_folder_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1498,7 +1513,7 @@ int mb_svc_update_record_folder_sql(mb_svc_folder_record_s *record, char **sql)
 	return err;
 }
 
-int mb_svc_update_record_folder_path(char *old_path, char *new_path)
+int mb_svc_update_record_folder_path(MediaSvcHandle *mb_svc_handle, char *old_path, char *new_path)
 {
 	mb_svc_debug("");
 
@@ -1520,7 +1535,7 @@ int mb_svc_update_record_folder_path(char *old_path, char *new_path)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1532,7 +1547,7 @@ int mb_svc_update_record_folder_path(char *old_path, char *new_path)
 	return err;
 }
 
-int mb_svc_update_folder_modified_date(char *path, int date)
+int mb_svc_update_folder_modified_date(MediaSvcHandle *mb_svc_handle, char *path, int date)
 {
 	mb_svc_debug("");
 
@@ -1556,7 +1571,7 @@ int mb_svc_update_folder_modified_date(char *path, int date)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1568,7 +1583,7 @@ int mb_svc_update_folder_modified_date(char *path, int date)
 	return err;
 }
 
-int mb_svc_update_record_media(mb_svc_media_record_s *record)
+int mb_svc_update_record_media(MediaSvcHandle *mb_svc_handle, mb_svc_media_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -1601,11 +1616,14 @@ int mb_svc_update_record_media(mb_svc_media_record_s *record)
 			    mb_svc_field[MB_SVC_MEDIA_THUMBNAIL_PATH].
 			    field_name, record->thumbnail_path,
 			    mb_svc_field[MB_SVC_MEDIA_HTTP_URL].field_name,
-			    record->http_url, record->media_uuid);
+			    record->http_url,
+			    mb_svc_field[MB_SVC_MEDIA_SIZE].field_name,
+			    record->size,
+				record->media_uuid);
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1649,14 +1667,17 @@ int mb_svc_update_record_media_sql(mb_svc_media_record_s *record, char **sql)
 			    mb_svc_field[MB_SVC_MEDIA_THUMBNAIL_PATH].
 			    field_name, record->thumbnail_path,
 			    mb_svc_field[MB_SVC_MEDIA_HTTP_URL].field_name,
-			    record->http_url, record->media_uuid);
+			    record->http_url,
+			    mb_svc_field[MB_SVC_MEDIA_SIZE].field_name,
+			    record->size,
+				record->media_uuid);
 
 	mb_svc_debug("Query : %s", *sql);
 
 	return err;
 }
 
-int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record)
+int mb_svc_update_record_video_meta(MediaSvcHandle *mb_svc_handle, mb_svc_video_meta_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -1682,6 +1703,8 @@ int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record)
 			    record->artist,
 			    mb_svc_field[MB_SVC_VIDEO_META_TITLE].field_name,
 			    record->title,
+			    mb_svc_field[MB_SVC_VIDEO_META_GENRE].field_name,
+			    record->genre,
 			    mb_svc_field[MB_SVC_VIDEO_META_DESCRIPTION].
 			    field_name, record->description,
 			    mb_svc_field[MB_SVC_VIDEO_META_YOUTUBE_CATEGORY].
@@ -1704,7 +1727,7 @@ int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1716,7 +1739,7 @@ int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record)
 	return err;
 }
 
-int mb_svc_update_record_image_meta(mb_svc_image_meta_record_s *record)
+int mb_svc_update_record_image_meta(MediaSvcHandle *mb_svc_handle, mb_svc_image_meta_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -1753,7 +1776,7 @@ int mb_svc_update_record_image_meta(mb_svc_image_meta_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -1761,110 +1784,6 @@ int mb_svc_update_record_image_meta(mb_svc_image_meta_record_s *record)
 		mb_svc_debug("query string is %s\n", query_string);
 		return MB_SVC_ERROR_DB_INTERNAL;
 	}
-
-	return err;
-}
-
-int
-mb_svc_update_width_and_height(const char *media_id, minfo_file_type content_type,
-			       int width, int height)
-{
-	mb_svc_debug("");
-
-	if (content_type <= MINFO_ITEM_NONE || content_type >= MINFO_ITEM_ALL) {
-		mb_svc_debug
-		    ("content_type <= MINFO_ITEM_NONE || content_type >= MINFO_ITEM_ALL");
-		return MB_SVC_ERROR_INVALID_PARAMETER;
-	}
-
-	int err = -1;
-	mb_svc_tbl_field_s *mb_svc_field;
-	char *query_string = NULL;
-	mb_svc_tbl_name_e field_seq;
-
-	if (content_type == MINFO_ITEM_IMAGE)
-		field_seq = MB_SVC_TABLE_IMAGE_META;
-	else if (content_type == MINFO_ITEM_VIDEO)
-		field_seq = MB_SVC_TABLE_VIDEO_META;
-	else
-		return MB_SVC_ERROR_INVALID_PARAMETER;
-
-	mb_svc_field = mb_svc_tbl[field_seq].mb_svc_field;
-
-	if (content_type == MINFO_ITEM_IMAGE)
-		query_string =
-		    sqlite3_mprintf(MB_SVC_UPDATE_META_WIDTH_HEIGHT,
-				    mb_svc_tbl[field_seq].table_name,
-				    mb_svc_field[MB_SVC_IMAGE_META_WIDTH].
-				    field_name, width,
-				    mb_svc_field[MB_SVC_IMAGE_META_HEIGHT].
-				    field_name, height, media_id);
-	else if (content_type == MINFO_ITEM_VIDEO)
-		query_string =
-		    sqlite3_mprintf(MB_SVC_UPDATE_META_WIDTH_HEIGHT,
-				    mb_svc_tbl[field_seq].table_name,
-				    mb_svc_field[MB_SVC_VIDEO_META_WIDTH].
-				    field_name, width,
-				    mb_svc_field[MB_SVC_VIDEO_META_HEIGHT].
-				    field_name, height, media_id);
-
-	mb_svc_debug("Query : %s", query_string);
-
-	err = mb_svc_query_sql(query_string);
-	sqlite3_free(query_string);
-
-	if (err < 0) {
-		mb_svc_debug("Updating image meta width and height failed\n");
-		mb_svc_debug("query string is %s\n", query_string);
-		return MB_SVC_ERROR_DB_INTERNAL;
-	}
-
-	return err;
-}
-
-int
-mb_svc_update_width_and_height_sql(const char *media_id, minfo_file_type content_type,
-			       int width, int height, char **sql)
-{
-	mb_svc_debug("");
-
-	if (content_type <= MINFO_ITEM_NONE || content_type >= MINFO_ITEM_ALL) {
-		mb_svc_debug
-		    ("content_type <= MINFO_ITEM_NONE || content_type >= MINFO_ITEM_ALL");
-		return MB_SVC_ERROR_INVALID_PARAMETER;
-	}
-
-	int err = 0;
-	mb_svc_tbl_field_s *mb_svc_field;
-	mb_svc_tbl_name_e field_seq;
-
-	if (content_type == MINFO_ITEM_IMAGE)
-		field_seq = MB_SVC_TABLE_IMAGE_META;
-	else if (content_type == MINFO_ITEM_VIDEO)
-		field_seq = MB_SVC_TABLE_VIDEO_META;
-	else
-		return MB_SVC_ERROR_INVALID_PARAMETER;
-
-	mb_svc_field = mb_svc_tbl[field_seq].mb_svc_field;
-
-	if (content_type == MINFO_ITEM_IMAGE)
-		*sql =
-		    sqlite3_mprintf(MB_SVC_UPDATE_META_WIDTH_HEIGHT,
-				    mb_svc_tbl[field_seq].table_name,
-				    mb_svc_field[MB_SVC_IMAGE_META_WIDTH].
-				    field_name, width,
-				    mb_svc_field[MB_SVC_IMAGE_META_HEIGHT].
-				    field_name, height, media_id);
-	else if (content_type == MINFO_ITEM_VIDEO)
-		*sql =
-		    sqlite3_mprintf(MB_SVC_UPDATE_META_WIDTH_HEIGHT,
-				    mb_svc_tbl[field_seq].table_name,
-				    mb_svc_field[MB_SVC_VIDEO_META_WIDTH].
-				    field_name, width,
-				    mb_svc_field[MB_SVC_VIDEO_META_HEIGHT].
-				    field_name, height, media_id);
-
-	mb_svc_debug("Query : %s", *sql);
 
 	return err;
 }
@@ -2011,6 +1930,8 @@ mb_svc_load_record_media(sqlite3_stmt *stmt, mb_svc_media_record_s *record)
 		(const char *)sqlite3_column_text(stmt, MB_SVC_MEDIA_HTTP_URL),
 		MB_SVC_DIR_PATH_LEN_MAX + 1);
 
+	record->size = sqlite3_column_int(stmt, MB_SVC_MEDIA_SIZE);
+
 	return 0;
 }
 
@@ -2038,6 +1959,10 @@ mb_svc_load_record_video_meta(sqlite3_stmt *stmt,
 	strncpy(record->title,
 		(const char *)sqlite3_column_text(stmt,
 						  MB_SVC_VIDEO_META_TITLE),
+		MB_SVC_FILE_NAME_LEN_MAX + 1);
+	strncpy(record->genre,
+		(const char *)sqlite3_column_text(stmt,
+						  MB_SVC_VIDEO_META_GENRE),
 		MB_SVC_FILE_NAME_LEN_MAX + 1);
 	strncpy(record->description,
 		(const char *)sqlite3_column_text(stmt,
@@ -2093,7 +2018,7 @@ mb_svc_load_record_image_meta(sqlite3_stmt *stmt,
 	return 0;
 }
 
-int mb_svc_delete_record_media(const char *folder_id, char *display_name)
+int mb_svc_delete_record_media(MediaSvcHandle *mb_svc_handle, const char *folder_id, char *display_name)
 {
 	int err = -1;
 	char *query_string = NULL;
@@ -2107,7 +2032,7 @@ int mb_svc_delete_record_media(const char *folder_id, char *display_name)
 	query_string = sqlite3_mprintf(MB_SVC_DELETE_MEDIA_BY_FOLDER_ID_AND_DISPLAY_NAME,
 									table_name, folder_id, display_name);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to delete record\n");
 		mb_svc_debug("query string is %s\n", query_string);
@@ -2120,7 +2045,7 @@ int mb_svc_delete_record_media(const char *folder_id, char *display_name)
 
 int mb_svc_delete_record_folder_sql(const char *folder_id, char **sql)
 {
-	*sql = sqlite3_mprintf(MB_SVC_RECORD_DELETE_BY_UUID,
+	*sql = sqlite3_mprintf(MB_SVC_RECORD_FOLDER_DELETE_BY_UUID,
 							mb_svc_tbl[MB_SVC_TABLE_FOLDER].table_name,
 							folder_id);
 
@@ -2129,7 +2054,7 @@ int mb_svc_delete_record_folder_sql(const char *folder_id, char **sql)
 
 int mb_svc_delete_record_media_sql(const char *media_id, char **sql)
 {
-	*sql = sqlite3_mprintf(MB_SVC_RECORD_DELETE_BY_UUID,
+	*sql = sqlite3_mprintf(MB_SVC_RECORD_MEDIA_DELETE_BY_UUID,
 							mb_svc_tbl[MB_SVC_TABLE_MEDIA].table_name,
 							media_id);
 
@@ -2165,7 +2090,7 @@ mb_svc_delete_tagmap_by_media_id_sql(const char *media_id, char **sql)
 	return 0;
 }
 
-int mb_svc_insert_record_tag(mb_svc_tag_record_s *record)
+int mb_svc_insert_record_tag(MediaSvcHandle *mb_svc_handle, mb_svc_tag_record_s *record)
 {
 	mb_svc_debug("");
 
@@ -2180,7 +2105,7 @@ int mb_svc_insert_record_tag(mb_svc_tag_record_s *record)
 	mb_svc_tbl_name_e field_seq = MB_SVC_TABLE_TAG;
 	mb_svc_field = mb_svc_tbl[field_seq].mb_svc_field;
 
-	record->_id = __mb_svc_db_get_next_id(MB_SVC_TABLE_TAG);
+	record->_id = __mb_svc_db_get_next_id(mb_svc_handle, MB_SVC_TABLE_TAG);
 
 	if (record->_id < 0) {
 		mb_svc_debug("__mb_svc_db_get_next_id failed");
@@ -2196,7 +2121,7 @@ int mb_svc_insert_record_tag(mb_svc_tag_record_s *record)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -2208,7 +2133,7 @@ int mb_svc_insert_record_tag(mb_svc_tag_record_s *record)
 	return err;
 }
 
-int mb_svc_insert_record_tag_map(const char *media_uuid, int tag_id)
+int mb_svc_insert_record_tag_map(MediaSvcHandle *mb_svc_handle, const char *media_uuid, int tag_id)
 {
 	mb_svc_debug("");
 
@@ -2218,7 +2143,7 @@ int mb_svc_insert_record_tag_map(const char *media_uuid, int tag_id)
 	mb_svc_tbl_name_e field_seq = MB_SVC_TABLE_TAG_MAP;
 	mb_svc_field = mb_svc_tbl[field_seq].mb_svc_field;
 
-	int _id = __mb_svc_db_get_next_id(MB_SVC_TABLE_TAG_MAP);
+	int _id = __mb_svc_db_get_next_id(mb_svc_handle, MB_SVC_TABLE_TAG_MAP);
 
 	if (_id < 0) {
 		mb_svc_debug("__mb_svc_db_get_next_id failed");
@@ -2235,7 +2160,7 @@ int mb_svc_insert_record_tag_map(const char *media_uuid, int tag_id)
 
 	mb_svc_debug("Query : %s", query_string);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	sqlite3_free(query_string);
 
 	if (err < 0) {
@@ -2283,7 +2208,7 @@ int mb_svc_load_record_tagmap(sqlite3_stmt *stmt, mb_svc_tag_record_s *record)
 }
 
 int
-mb_svc_delete_bookmark_meta_by_media_id(const char *media_id, minfo_file_type content_type)
+mb_svc_delete_bookmark_meta_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id, minfo_file_type content_type)
 {
 	int err = -1;
 	char query_string[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
@@ -2306,7 +2231,7 @@ mb_svc_delete_bookmark_meta_by_media_id(const char *media_id, minfo_file_type co
 	snprintf(query_string, sizeof(query_string),
 		 MB_SVC_DELETE_MEDIA_RELATED_INFO_BY_MEDIA_UUID, table_name,
 		 media_id);
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to delete record\n");
 		mb_svc_debug("query string is %s\n", query_string);
@@ -2319,7 +2244,7 @@ mb_svc_delete_bookmark_meta_by_media_id(const char *media_id, minfo_file_type co
 		snprintf(query_string, sizeof(query_string),
 			 MB_SVC_DELETE_MEDIA_RELATED_INFO_BY_MEDIA_UUID, tbl_name,
 			 media_id);
-		err = mb_svc_query_sql(query_string);
+		err = mb_svc_query_sql(mb_svc_handle, query_string);
 		if (err < 0) {
 			mb_svc_debug("failed to delete record\n");
 			mb_svc_debug("query string is %s\n", query_string);
@@ -2333,7 +2258,7 @@ mb_svc_delete_bookmark_meta_by_media_id(const char *media_id, minfo_file_type co
 		 MB_SVC_DELETE_MEDIA_RELATED_INFO_BY_MEDIA_UUID, tbl_name,
 		 media_id);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to delete record\n");
 		mb_svc_debug("query string is %s\n", query_string);
@@ -2353,7 +2278,7 @@ mb_svc_delete_bookmark_meta_by_media_id_sql(const char *media_id, char **sql)
 	return 0;
 }
 
-int mb_svc_update_thumb_path_by_id(const char *media_id, const char *thumb_path)
+int mb_svc_update_thumb_path_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, const char *thumb_path)
 {
 	int err = -1;
 	char *query_string = NULL;
@@ -2367,7 +2292,7 @@ int mb_svc_update_thumb_path_by_id(const char *media_id, const char *thumb_path)
 	query_string = sqlite3_mprintf(MB_SVC_UPDATE_MEDIA_THUMB_PATH, 
 										table_name, thumb_path, media_id);
 
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to update record favorite\n");
 		mb_svc_debug("query string is %s\n", query_string);
@@ -2380,7 +2305,7 @@ int mb_svc_update_thumb_path_by_id(const char *media_id, const char *thumb_path)
 	return 0;
 }
 
-int mb_svc_update_favorite_by_id(const char *media_id, int favorite)
+int mb_svc_update_favorite_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int favorite)
 {
 	int err = -1;
 	char query_string[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
@@ -2394,7 +2319,7 @@ int mb_svc_update_favorite_by_id(const char *media_id, int favorite)
 	snprintf(query_string, sizeof(query_string),
 		 MB_SVC_UPDATE_MEDIA_FAVORITE_BY_ID, table_name, favorite,
 		 media_id);
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to update record favorite\n");
 		mb_svc_debug("query string is %s\n", query_string);
@@ -2404,7 +2329,7 @@ int mb_svc_update_favorite_by_id(const char *media_id, int favorite)
 	return 0;
 }
 
-int mb_svc_update_date_by_id(const char *media_id, int date)
+int mb_svc_update_date_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int date)
 {
 	mb_svc_debug("");
 	int err = -1;
@@ -2418,7 +2343,7 @@ int mb_svc_update_date_by_id(const char *media_id, int date)
 
 	snprintf(query_string, sizeof(query_string),
 		 MB_SVC_UPDATE_MEDIA_DATE_BY_ID, table_name, date, media_id);
-	err = mb_svc_query_sql(query_string);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to update record date\n");
 		mb_svc_debug("query string is %s\n", query_string);
@@ -2456,7 +2381,7 @@ int mb_svc_update_thumb_path_sql(const char *media_id, const char *thumb_path, c
 }
 
 int
-mb_svc_update_album_lock_status(const char *folder_id, int lock,
+mb_svc_update_album_lock_status(MediaSvcHandle *mb_svc_handle, const char *folder_id, int lock,
 				minfo_store_type storage_type)
 {
 	int err = 0;
@@ -2468,7 +2393,7 @@ mb_svc_update_album_lock_status(const char *folder_id, int lock,
 		return MB_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -2516,7 +2441,7 @@ mb_svc_update_album_lock_status(const char *folder_id, int lock,
 }
 
 int
-mb_svc_set_media_records_as_valid(const minfo_store_type storage_type,
+mb_svc_set_media_records_as_valid(MediaSvcHandle *mb_svc_handle, const minfo_store_type storage_type,
 				  int valid)
 {
 	mb_svc_debug("storage_type: %d", storage_type);
@@ -2530,7 +2455,7 @@ mb_svc_set_media_records_as_valid(const minfo_store_type storage_type,
 	char table_name[MB_SVC_TABLE_NAME_MAX_LEN] = { 0, };
 	memset(table_name, 0x00, MB_SVC_TABLE_NAME_MAX_LEN);
 
-	sqlite3 *handle = _media_info_get_proper_handle();
+	sqlite3 *handle = (sqlite3 *)mb_svc_handle;
 	if (handle == NULL) {
 		mb_svc_debug("handle is NULL");
 		return MB_SVC_ERROR_DB_INTERNAL;
@@ -2543,7 +2468,7 @@ mb_svc_set_media_records_as_valid(const minfo_store_type storage_type,
 	char *sql =
 	    sqlite3_mprintf("update %s set valid = %d where storage_type = %d;",
 			    table_name, valid, storage_type);
-	err = mb_svc_query_sql(sql);
+	err = mb_svc_query_sql(mb_svc_handle, sql);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		mb_svc_debug
@@ -2553,7 +2478,7 @@ mb_svc_set_media_records_as_valid(const minfo_store_type storage_type,
 	}
 	/* 2. get all of related folder id. */
 	sql =
-	    sqlite3_mprintf("select uuid from %s where storage_type = %d;",
+	    sqlite3_mprintf("select folder_uuid from %s where storage_type = %d;",
 			    table_name, storage_type);
 	err = sqlite3_prepare_v2(handle, sql, strlen(sql), &stmt, NULL);
 
@@ -2587,7 +2512,7 @@ mb_svc_set_media_records_as_valid(const minfo_store_type storage_type,
 		    sqlite3_mprintf
 		    ("update %s set valid = %d where folder_uuid = '%s';",
 		     table_name, valid, folder_uuid);
-		err = mb_svc_query_sql(sql);
+		err = mb_svc_query_sql(mb_svc_handle, sql);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			mb_svc_debug

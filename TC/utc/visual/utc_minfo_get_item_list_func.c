@@ -48,12 +48,12 @@ static int _ite_fn( Mitem* item, void* user_data)
 void utc_minfo_get_item_list_func_01()
 {
 	int ret = 0;
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 
 	GList *p_list = NULL;
 	minfo_item_filter item_filter = {MINFO_ITEM_VIDEO,MINFO_MEDIA_SORT_BY_DATE_ASC,0,5,true, MINFO_MEDIA_FAV_ALL};
 
-	ret = minfo_get_item_list(cluster_uuid, item_filter, _ite_fn, &p_list);
+	ret = minfo_get_item_list(handle, cluster_uuid, item_filter, _ite_fn, &p_list);
 
 	if (ret == MB_SVC_ERROR_DB_NO_RECORD) {
 		dts_pass(API_NAME, "No record. This is normal operation");
@@ -78,7 +78,7 @@ void utc_minfo_get_item_list_func_02()
 	GList *p_list = NULL;
 	minfo_item_filter item_filter = {MINFO_ITEM_VIDEO,MINFO_MEDIA_SORT_BY_DATE_ASC,0,5,true,MINFO_MEDIA_FAV_ALL};
 
-	ret = minfo_get_item_list(cluster_uuid, item_filter, NULL, &p_list);
+	ret = minfo_get_item_list(handle, cluster_uuid, item_filter, NULL, &p_list);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting media records should be failed because of the item_filter parameter.");
 }
 

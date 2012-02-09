@@ -79,7 +79,7 @@ void utc_audio_svc_check_duplicate_insertion_in_playlist_func_01()
 		dts_fail("get_item_audio_id","fail to get audio_id.");
 	}
 	
-	ret = audio_svc_check_duplicate_insertion_in_playlist(playlist_id, audio_id, &count);
+	ret = audio_svc_check_duplicate_insertion_in_playlist(db_handle, playlist_id, audio_id, &count);
 	dts_check_eq("audio_svc_check_duplicate_insertion_in_playlist", ret, AUDIO_SVC_ERROR_NONE, "unable to check duplicate insertion.");
 
 }
@@ -98,7 +98,7 @@ void utc_audio_svc_check_duplicate_insertion_in_playlist_func_02()
 	int playlist_id = 1;
 	char * audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
-	ret = audio_svc_check_duplicate_insertion_in_playlist(playlist_id, audio_id, NULL);
+	ret = audio_svc_check_duplicate_insertion_in_playlist(db_handle, playlist_id, audio_id, NULL);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_check_duplicate_insertion_in_playlist","abnormal condition test for invalid parameter.");

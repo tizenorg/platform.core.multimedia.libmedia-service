@@ -49,7 +49,7 @@ void utc_minfo_get_geo_item_list_func_01()
 {
 	int ret = -1;
 
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 	int min_longitude = 120.0;
 	int max_longitude = 123.0;
 	int min_latitude = 19.0;
@@ -59,7 +59,8 @@ void utc_minfo_get_geo_item_list_func_01()
 	//minfo_store_type store_type = MINFO_CLUSTER_TYPE_LOCAL_ALL;
 	minfo_store_type store_type = MINFO_CLUSTER_TYPE_ALL;
 
-	ret = minfo_get_geo_item_list(cluster_uuid, 
+	ret = minfo_get_geo_item_list(handle,
+						cluster_uuid, 
 						store_type,
 			            filter, 
 			            min_longitude, 
@@ -97,7 +98,8 @@ void utc_minfo_get_geo_item_list_func_02()
 	minfo_item_filter filter = {MINFO_ITEM_ALL,MINFO_MEDIA_SORT_BY_NONE,-1,-1,true,MINFO_MEDIA_FAV_ALL};
 	minfo_store_type store_type = MINFO_CLUSTER_TYPE_ALL;
 
-	ret = minfo_get_geo_item_list(cluster_uuid, 
+	ret = minfo_get_geo_item_list(handle,
+						cluster_uuid, 
 						store_type,
 			            filter, 
 			            min_longitude, 

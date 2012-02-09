@@ -65,7 +65,7 @@ void utc_audio_svc_delete_playlist_func_01()
 		dts_fail("get_playlist_id","fail to get playlist id.");
 	}
 	
-	ret = audio_svc_delete_playlist(playlist_id);
+	ret = audio_svc_delete_playlist(db_handle, playlist_id);
 	dts_check_eq("audio_svc_delete_playlist", ret, AUDIO_SVC_ERROR_NONE, "failed to delete playlist.");
 	
 }
@@ -83,7 +83,7 @@ void utc_audio_svc_delete_playlist_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int playlist_id = -1;
 	
-	ret = audio_svc_delete_playlist(playlist_id);
+	ret = audio_svc_delete_playlist(db_handle, playlist_id);
 	
 	if (ret  != AUDIO_SVC_ERROR_NONE)
 	{

@@ -72,7 +72,7 @@ void utc_audio_svc_add_item_to_playlist_func_01()
 		dts_fail("get_item_audio_id","fail to get audio_id.");
 	}
 	
-	ret = audio_svc_add_item_to_playlist(playlist_id, audio_id);
+	ret = audio_svc_add_item_to_playlist(db_handle, playlist_id, audio_id);
 	dts_check_eq("audio_svc_add_item_to_playlist", ret, AUDIO_SVC_ERROR_NONE, "unable to add item to playlist.");
 
 }
@@ -91,7 +91,7 @@ void utc_audio_svc_add_item_to_playlist_func_02()
 	int plst_index = -1;
 	char * audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
-	ret = audio_svc_add_item_to_playlist(plst_index, audio_id);
+	ret = audio_svc_add_item_to_playlist(db_handle, plst_index, audio_id);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_add_item_to_playlist","abnormal condition test for invalid parameter.");

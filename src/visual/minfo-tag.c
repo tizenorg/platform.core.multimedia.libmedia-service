@@ -22,20 +22,18 @@
 #include "minfo-tag.h"
 #include "minfo-meta.h"
 #include "media-svc-api.h"
-#include "media-svc-util.h"
-#include "media-svc-debug.h"
-#include "media-svc-error.h"
+#include "visual-svc-util.h"
+#include "visual-svc-debug.h"
+#include "visual-svc-error.h"
 #include <string.h>
 
-static bool _minfo_mtag_load(Mtag *mtag, mb_svc_tag_record_s *p_tag_record);
-
-static bool _minfo_mtag_load(Mtag *mtag, mb_svc_tag_record_s *p_tag_record)
+static bool _minfo_mtag_load(MediaSvcHandle *mb_svc_handle, Mtag *mtag, mb_svc_tag_record_s *p_tag_record)
 {
 	mb_svc_tag_record_s mtag_record = { 0 };
 	int ret = 0;
 
 	if (p_tag_record == NULL) {
-		ret = mb_svc_get_media_tag_by_id(mtag->_id, &mtag_record);
+		ret = mb_svc_get_media_tag_by_id(mb_svc_handle, mtag->_id, &mtag_record);
 	} else {
 		mtag_record = *p_tag_record;
 	}
@@ -53,7 +51,7 @@ static bool _minfo_mtag_load(Mtag *mtag, mb_svc_tag_record_s *p_tag_record)
 	return 0;
 }
 
-Mtag *minfo_media_tag_new(int id, mb_svc_tag_record_s * p_tag_record)
+Mtag *minfo_media_tag_new(MediaSvcHandle *mb_svc_handle, int id, mb_svc_tag_record_s * p_tag_record)
 {
 	Mtag *mtag = NULL;
 	int ret = 0;
@@ -69,10 +67,10 @@ Mtag *minfo_media_tag_new(int id, mb_svc_tag_record_s * p_tag_record)
 	if (p_tag_record) {
 		//mtag->media_id = p_tag_record->media_id;
 		mtag->_id = p_tag_record->_id;
-		ret = _minfo_mtag_load(mtag, p_tag_record);
+		ret = _minfo_mtag_load(mb_svc_handle, mtag, p_tag_record);
 	} else if (id != -1) {
 		mtag->_id = id;
-		ret = _minfo_mtag_load(mtag, NULL);
+		ret = _minfo_mtag_load(mb_svc_handle, mtag, NULL);
 		if (ret < 0) {
 			minfo_media_tag_destroy(mtag);
 			return NULL;

@@ -62,7 +62,7 @@ void utc_audio_svc_move_item_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 
-	ret = audio_svc_move_item(storage, DEFAULT_FILE, storage, TEST_FILE);
+	ret = audio_svc_move_item(db_handle, storage, DEFAULT_FILE, storage, TEST_FILE);
 	dts_check_eq("audio_svc_move_item", ret, AUDIO_SVC_ERROR_NONE, "failed to move item.");
 
 }
@@ -81,7 +81,7 @@ void utc_audio_svc_move_item_func_02()
 	audio_svc_storage_type_e storage = AUDIO_SVC_STORAGE_PHONE;
 	const char *src_path = NULL;
 
-	ret = audio_svc_move_item(storage, src_path, storage, TEST_FILE);
+	ret = audio_svc_move_item(db_handle, storage, src_path, storage, TEST_FILE);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

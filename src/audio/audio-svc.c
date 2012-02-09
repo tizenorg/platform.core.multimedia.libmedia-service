@@ -23,8 +23,8 @@
 #include <stdarg.h>
 #include <db-util.h>
 
-#include "media-info-env.h"
-#include "media-info-util.h"
+#include "media-svc-env.h"
+#include "media-svc-util.h"
 #include "audio-svc.h"
 #include "audio-svc-error.h"
 #include "audio-svc-debug.h"
@@ -45,6 +45,77 @@ static __thread int g_audio_svc_move_item_cur_data_cnt = 0;
 static __thread int g_audio_svc_insert_item_data_cnt = 1;
 static __thread int g_audio_svc_insert_item_cur_data_cnt = 0;
 
+#if 0
+/**
+ *	audio_svc_open:\n
+ *	Open audio service library. This is the function that an user who wants to use music-service calls first.
+ * 	This function connects with the music database and initialize efreet mime libary.
+ *
+ *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
+ *				Please refer 'audio-svc-types.h' to know the exact meaning of the error.
+ *	@see		audio_svc_close
+ *	@pre		None.
+ *	@post		call audio_svc_close() to close music database
+ *	@remark	The database name is "/opt/dbspace/.music.db".
+ * 	@par example
+ * 	@code
+
+#include <audio-svc.h>
+
+void open_music_db()
+{
+	int ret = AUDIO_SVC_ERROR_NONE;
+	// open music database
+	ret = audio_svc_open();
+	// open failed
+	if (ret < 0)
+	{
+		printf( "Cannot open music db. error code->%d", ret);
+		return;
+	}
+
+	return;
+}
+
+ * 	@endcode
+ */
+int audio_svc_open(void);
+
+
+/**
+ *    audio_svc_close:\n
+ *	Close audio service library. This is the function need to call before close the application.
+ *	This function disconnects with the music database and shutdown the efreet mime libary.
+ *
+ *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
+ *				Please refer 'audio-svc-types.h' to know the exact meaning of the error.
+ *	@see		audio_svc_open
+ *	@pre		music database already is opened.
+ *	@post 		None
+ *	@remark	memory free before you call this function to close database.
+ * 	@par example
+ * 	@code
+
+#include <audio-svc.h>
+
+void close_music_db()
+{
+	int ret = AUDIO_SVC_ERROR_NONE;
+	// close music database
+	ret = audio_svc_close();
+	// close failed
+	if (ret < 0)
+	{
+		printf( "unable to close music db. error code->%d", ret);
+		return;
+	}
+
+	return;
+}
+
+ * 	@endcode
+ */
+int audio_svc_close(void);
 
 int audio_svc_open(void)
 {
@@ -151,27 +222,39 @@ int audio_svc_close(void)
 	audio_svc_debug("audio_svc_close succeed");
 	return ret;
 }
-
-int audio_svc_create_table(void)
+#endif
+int audio_svc_create_table(MediaSvcHandle *handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
 
-	ret = _audio_svc_create_music_table();
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	ret = _audio_svc_create_music_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	ret = _audio_svc_create_playlist_table();
+	ret = _audio_svc_create_playlist_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	ret = _audio_svc_create_folder_table();
+	ret = _audio_svc_create_folder_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_delete_all(audio_svc_storage_type_e storage_type)
+int audio_svc_delete_all(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type)
 {
 	char * dirpath = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (storage_type != AUDIO_SVC_STORAGE_PHONE
 	    && storage_type != AUDIO_SVC_STORAGE_MMC) {
@@ -179,7 +262,7 @@ int audio_svc_delete_all(audio_svc_storage_type_e storage_type)
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	ret = _audio_svc_truncate_music_table(storage_type);
+	ret = _audio_svc_truncate_music_table(db_handle, storage_type);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	/* 20111110, make each thumbnail */
@@ -192,7 +275,7 @@ int audio_svc_delete_all(audio_svc_storage_type_e storage_type)
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	/* update folder table */
-	ret = _audio_svc_delete_folder(storage_type, NULL);
+	ret = _audio_svc_delete_folder(db_handle, storage_type, NULL);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 #if 0
@@ -203,9 +286,14 @@ int audio_svc_delete_all(audio_svc_storage_type_e storage_type)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_insert_item_start(int data_cnt)
+int audio_svc_insert_item_start(MediaSvcHandle *handle, int data_cnt)
 {
-	audio_svc_debug("Transaction data count : [%d]", data_cnt);
+	audio_svc_debug("Transaction data count : [%d]", data_cnt);	
+
+	if(handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if(data_cnt < 1) {
 		audio_svc_error("data_cnt shuld be bigger than 1. data_cnt : [%d]", data_cnt);
@@ -218,15 +306,21 @@ int audio_svc_insert_item_start(int data_cnt)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_insert_item_end(void)
+int audio_svc_insert_item_end(MediaSvcHandle *handle)
 {
 	audio_svc_debug_func();
 
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (g_audio_svc_insert_item_cur_data_cnt  > 0) {
 		
-		ret = _audio_svc_list_query_do(AUDIO_SVC_QUERY_INSERT_ITEM);
+		ret = _audio_svc_list_query_do(db_handle, AUDIO_SVC_QUERY_INSERT_ITEM);
 	}
 
 	g_audio_svc_insert_item_data_cnt  = 1;
@@ -235,10 +329,16 @@ int audio_svc_insert_item_end(void)
 	return ret;
 }
 
-int audio_svc_insert_item(audio_svc_storage_type_e storage_type,
+int audio_svc_insert_item(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type,
 			  const char *path, audio_svc_category_type_e category)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (storage_type != AUDIO_SVC_STORAGE_PHONE
 	    && storage_type != AUDIO_SVC_STORAGE_MMC) {
@@ -270,22 +370,22 @@ int audio_svc_insert_item(audio_svc_storage_type_e storage_type,
 
 	if (g_audio_svc_insert_item_data_cnt == 1) {
 
-		return _audio_svc_insert_item_with_data(&item, FALSE);
+		return _audio_svc_insert_item_with_data(db_handle, &item, FALSE);
 
 	}
 	else if(g_audio_svc_insert_item_cur_data_cnt  < (g_audio_svc_insert_item_data_cnt  - 1)) {
 
-		ret = _audio_svc_insert_item_with_data(&item, TRUE);
+		ret = _audio_svc_insert_item_with_data(db_handle, &item, TRUE);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 		g_audio_svc_insert_item_cur_data_cnt ++;
 
 	}
 	else if (g_audio_svc_insert_item_cur_data_cnt  == (g_audio_svc_insert_item_data_cnt  - 1)) {
 
-		ret = _audio_svc_insert_item_with_data(&item, TRUE);
+		ret = _audio_svc_insert_item_with_data(db_handle, &item, TRUE);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-		ret = _audio_svc_list_query_do(AUDIO_SVC_QUERY_INSERT_ITEM);
+		ret = _audio_svc_list_query_do(db_handle, AUDIO_SVC_QUERY_INSERT_ITEM);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 		
 		g_audio_svc_insert_item_cur_data_cnt = 0;
@@ -299,8 +399,57 @@ int audio_svc_insert_item(audio_svc_storage_type_e storage_type,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_get_item_by_path(const char *path, AudioHandleType * item_handle)
+int audio_svc_insert_item_immediately(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type,
+			  const char *path, audio_svc_category_type_e category)
 {
+	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (storage_type != AUDIO_SVC_STORAGE_PHONE
+	    && storage_type != AUDIO_SVC_STORAGE_MMC) {
+		audio_svc_error("storage type is incorrect(%d)", storage_type);
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!STRING_VALID(path)) {
+		audio_svc_error("path is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	audio_svc_debug("storage[%d], path[%s], category[%d]", storage_type, path, category);
+
+	if ((category != AUDIO_SVC_CATEGORY_MUSIC)
+	    && (category != AUDIO_SVC_CATEGORY_SOUND)) {
+		audio_svc_error("invalid category condition");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	audio_svc_audio_item_s item;
+	memset(&item, 0, sizeof(audio_svc_audio_item_s));
+
+	item.category = category;
+	item.time_added = time(NULL);
+
+	ret = _audio_svc_extract_metadata_audio(storage_type, path, &item);
+	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
+
+	return _audio_svc_insert_item_with_data(db_handle, &item, FALSE);
+}
+
+int audio_svc_get_item_by_path(MediaSvcHandle *handle, const char *path, AudioHandleType * item_handle)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(path)) {
 		audio_svc_error("file path is null");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -313,11 +462,18 @@ int audio_svc_get_item_by_path(const char *path, AudioHandleType * item_handle)
 
 	memset(item, 0, sizeof(audio_svc_audio_item_s));
 
-	return _audio_svc_select_music_record_by_path(path, item);
+	return _audio_svc_select_music_record_by_path(db_handle, path, item);
 }
 
-int audio_svc_get_item_by_audio_id(const char *audio_id, AudioHandleType *item_handle)
+int audio_svc_get_item_by_audio_id(MediaSvcHandle *handle, const char *audio_id, AudioHandleType *item_handle)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(audio_id)) {
 		audio_svc_error("invalid audio_id");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -332,12 +488,18 @@ int audio_svc_get_item_by_audio_id(const char *audio_id, AudioHandleType *item_h
 
 	memset(item, 0, sizeof(audio_svc_audio_item_s));
 
-	return _audio_svc_select_music_record_by_audio_id(audio_id, item);
+	return _audio_svc_select_music_record_by_audio_id(db_handle, audio_id, item);
 }
 
-int audio_svc_delete_item_by_path(const char *path)
+int audio_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!STRING_VALID(path)) {
 		audio_svc_error("file path is null");
@@ -347,16 +509,16 @@ int audio_svc_delete_item_by_path(const char *path)
 	audio_svc_audio_item_s item;
 	memset(&item, 0, sizeof(audio_svc_audio_item_s));
 
-	ret = _audio_svc_select_music_record_by_path(path, &item);
+	ret = _audio_svc_select_music_record_by_path(db_handle, path, &item);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	ret = _audio_svc_delete_music_record_by_audio_id(item.audio_id);
+	ret = _audio_svc_delete_music_record_by_audio_id(db_handle, item.audio_uuid);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	ret = _audio_svc_delete_playlist_item_records_by_audio_id(item.audio_id);
+	ret = _audio_svc_delete_playlist_item_records_by_audio_id(db_handle, item.audio_uuid);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	ret = _audio_svc_check_and_update_folder_table(path);
+	ret = _audio_svc_check_and_update_folder_table(db_handle, path);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 #if 0
@@ -378,9 +540,14 @@ int audio_svc_delete_item_by_path(const char *path)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_move_item_start(int data_cnt)
+int audio_svc_move_item_start(MediaSvcHandle *handle, int data_cnt)
 {
 	audio_svc_debug("Transaction data count : [%d]", data_cnt);
+
+	if(handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if(data_cnt < 1) {
 		audio_svc_error("data_cnt shuld be bigger than 1. data_cnt : [%d]", data_cnt);
@@ -393,9 +560,16 @@ int audio_svc_move_item_start(int data_cnt)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_move_item_end(void)
+int audio_svc_move_item_end(MediaSvcHandle *handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	audio_svc_debug_func();
 
 	if (g_audio_svc_move_item_cur_data_cnt  > 0) {
@@ -403,14 +577,14 @@ int audio_svc_move_item_end(void)
 		g_audio_svc_move_item_data_cnt  = 1;
 		g_audio_svc_move_item_cur_data_cnt  = 0;
 
-		ret = _audio_svc_list_query_do(AUDIO_SVC_QUERY_MOVE_ITEM);
+		ret = _audio_svc_list_query_do(db_handle, AUDIO_SVC_QUERY_MOVE_ITEM);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 	}
 
 	g_audio_svc_move_item_data_cnt  = 1;
 	g_audio_svc_move_item_cur_data_cnt  = 0;
 
-	ret = _audio_svc_update_folder_table();
+	ret = _audio_svc_update_folder_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 	
 	return AUDIO_SVC_ERROR_NONE;
@@ -419,13 +593,20 @@ int audio_svc_move_item_end(void)
 //old db was separated into phone and mmc table.
 //so when src_storage and dest_storage is not same, then need to remove old one and insert new one 
 //since audio_id in mmc table is started with over 5000001 . but don't need to do like this anymore.
-int audio_svc_move_item(audio_svc_storage_type_e src_storage,
+int audio_svc_move_item(MediaSvcHandle *handle, audio_svc_storage_type_e src_storage,
 			const char *src_path,
 			audio_svc_storage_type_e dest_storage,
 			const char *dest_path)
 {
 	char folder_id[AUDIO_SVC_UUID_SIZE+1] = {0,};
 	int ret = AUDIO_SVC_ERROR_NONE;
+
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!STRING_VALID(src_path)) {
 		audio_svc_error("src_path is null");
@@ -454,38 +635,38 @@ int audio_svc_move_item(audio_svc_storage_type_e src_storage,
 
 	if (g_audio_svc_move_item_data_cnt == 1) {
 		/* update path and storage type*/
-		ret = _audio_svc_update_path_and_storage_in_music_record(src_path, dest_path, dest_storage);
+		ret = _audio_svc_update_path_and_storage_in_music_record(db_handle, src_path, dest_path, dest_storage);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 		/* get folder_id */
-		ret = _audio_svc_get_and_append_folder_id_by_path(dest_path, dest_storage, folder_id);
+		ret = _audio_svc_get_and_append_folder_id_by_path(db_handle, dest_path, dest_storage, folder_id);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 		/* update folder_id */
-		ret = _audio_svc_update_folder_id_in_music_record(dest_path, folder_id);
+		ret = _audio_svc_update_folder_id_in_music_record(db_handle, dest_path, folder_id);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 		/* remove old folder path */
-		ret = _audio_svc_check_and_update_folder_table(src_path);
+		ret = _audio_svc_check_and_update_folder_table(db_handle, src_path);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 	}
 	else if (g_audio_svc_move_item_cur_data_cnt  < (g_audio_svc_move_item_data_cnt  - 1)) {
 
-		ret = _audio_svc_get_and_append_folder_id_by_path(dest_path, dest_storage, folder_id);
+		ret = _audio_svc_get_and_append_folder_id_by_path(db_handle, dest_path, dest_storage, folder_id);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 		
-		ret = _audio_svc_move_item_query_add(src_path, dest_path, dest_storage, folder_id);
+		ret = _audio_svc_move_item_query_add(db_handle, src_path, dest_path, dest_storage, folder_id);
 
 		g_audio_svc_move_item_cur_data_cnt ++;
 	}
 	else if (g_audio_svc_move_item_cur_data_cnt  == (g_audio_svc_move_item_data_cnt  - 1)) {
 
-		ret = _audio_svc_get_and_append_folder_id_by_path(dest_path, dest_storage, folder_id);
+		ret = _audio_svc_get_and_append_folder_id_by_path(db_handle, dest_path, dest_storage, folder_id);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 		
-		ret = _audio_svc_move_item_query_add(src_path, dest_path, dest_storage, folder_id);
+		ret = _audio_svc_move_item_query_add(db_handle, src_path, dest_path, dest_storage, folder_id);
 
-		ret = _audio_svc_list_query_do(AUDIO_SVC_QUERY_MOVE_ITEM);
+		ret = _audio_svc_list_query_do(db_handle, AUDIO_SVC_QUERY_MOVE_ITEM);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 		g_audio_svc_move_item_cur_data_cnt = 0;
@@ -498,9 +679,15 @@ int audio_svc_move_item(audio_svc_storage_type_e src_storage,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_refresh_metadata(const char *audio_id)
+int audio_svc_refresh_metadata(MediaSvcHandle *handle, const char *audio_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!STRING_VALID(audio_id)) {
 		audio_svc_error("invalid audio_id");
@@ -510,7 +697,7 @@ int audio_svc_refresh_metadata(const char *audio_id)
 	audio_svc_audio_item_s item;
 	memset(&item, 0, sizeof(audio_svc_audio_item_s));
 
-	ret = _audio_svc_select_music_record_by_audio_id(audio_id, &item);
+	ret = _audio_svc_select_music_record_by_audio_id(db_handle, audio_id, &item);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	if (item.audio.duration > 0) {
@@ -521,15 +708,22 @@ int audio_svc_refresh_metadata(const char *audio_id)
 	ret = _audio_svc_extract_metadata_audio(item.storage_type, item.pathname, &item);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	return _audio_svc_update_metadata_in_music_record(audio_id, &item);
+	return _audio_svc_update_metadata_in_music_record(db_handle, audio_id, &item);
 }
 
-int audio_svc_count_group_item(audio_svc_group_type_e group_type,
+int audio_svc_count_group_item(MediaSvcHandle *handle, audio_svc_group_type_e group_type,
 			       const char *limit_string1,
 			       const char *limit_string2,
 			       const char *filter_string,
 			       const char *filter_string2, int *count)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (group_type < AUDIO_SVC_GROUP_BY_ALBUM
 	    || group_type > AUDIO_SVC_GROUP_BY_COMPOSER) {
 		audio_svc_error("group type is wrong : %d", group_type);
@@ -557,19 +751,26 @@ int audio_svc_count_group_item(audio_svc_group_type_e group_type,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_count_music_group_records(group_type, limit_string1,
+	return _audio_svc_count_music_group_records(db_handle, group_type, limit_string1,
 						    limit_string2,
 						    filter_string,
 						    filter_string2, count);
 }
 
-int audio_svc_get_group_item(audio_svc_group_type_e group_type,
+int audio_svc_get_group_item(MediaSvcHandle *handle, audio_svc_group_type_e group_type,
 			     const char *limit_string1,
 			     const char *limit_string2,
 			     const char *filter_string,
 			     const char *filter_string2, int offset, int rows,
 			     AudioHandleType *result_records)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	audio_svc_group_item_s *result_groups =
 	    (audio_svc_group_item_s *) result_records;
 
@@ -608,18 +809,25 @@ int audio_svc_get_group_item(audio_svc_group_type_e group_type,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_get_music_group_records(group_type, limit_string1,
+	return _audio_svc_get_music_group_records(db_handle, group_type, limit_string1,
 						  limit_string2, filter_string,
 						  filter_string2, offset, rows,
 						  result_groups);
 
 }
 
-int audio_svc_count_list_item(audio_svc_track_type_e item_type,
+int audio_svc_count_list_item(MediaSvcHandle *handle, audio_svc_track_type_e item_type,
 			      const char *type_string, const char *type_string2,
 			      const char *filter_string,
 			      const char *filter_string2, int *count)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (item_type < AUDIO_SVC_TRACK_ALL
 	    || item_type > AUDIO_SVC_TRACK_BY_PLAYLIST) {
 		audio_svc_error("item type is wrong : %d", item_type);
@@ -644,18 +852,24 @@ int audio_svc_count_list_item(audio_svc_track_type_e item_type,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_count_music_track_records(item_type, type_string,
+	return _audio_svc_count_music_track_records(db_handle, item_type, type_string,
 						    type_string2, filter_string,
 						    filter_string2, count);
 }
 
-int audio_svc_get_list_item(audio_svc_track_type_e item_type,
+int audio_svc_get_list_item(MediaSvcHandle *handle, audio_svc_track_type_e item_type,
 			    const char *type_string, const char *type_string2,
 			    const char *filter_string,
 			    const char *filter_string2, int offset, int rows,
 			    AudioHandleType *track)
 {
 	audio_svc_list_item_s *result_track = (audio_svc_list_item_s *) track;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (item_type < AUDIO_SVC_TRACK_ALL
 	    || item_type > AUDIO_SVC_TRACK_BY_PLAYLIST) {
@@ -690,15 +904,22 @@ int audio_svc_get_list_item(audio_svc_track_type_e item_type,
 
 	memset(result_track, 0, sizeof(audio_svc_list_item_s) * rows);
 
-	return _audio_svc_get_music_track_records(item_type, type_string,
+	return _audio_svc_get_music_track_records(db_handle, item_type, type_string,
 						  type_string2, filter_string,
 						  filter_string2, offset, rows,
 						  result_track);
 
 }
 
-int audio_svc_get_audio_id_by_path(const char *path, char *audio_id, size_t max_audio_id_length)
+int audio_svc_get_audio_id_by_path(MediaSvcHandle *handle, const char *path, char *audio_id, size_t max_audio_id_length)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(path)) {
 		audio_svc_error("file path is null");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -709,22 +930,36 @@ int audio_svc_get_audio_id_by_path(const char *path, char *audio_id, size_t max_
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_search_audio_id_by_path(path, audio_id);
+	return _audio_svc_search_audio_id_by_path(db_handle, path, audio_id);
 }
 
-int audio_svc_get_thumbnail_path_by_path(const char *path, char *thumb_path,
+int audio_svc_get_thumbnail_path_by_path(MediaSvcHandle *handle, const char *path, char *thumb_path,
 					 size_t max_thumb_path_length)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(path)) {
 		audio_svc_error("file path is null");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_get_thumbnail_path_by_path(path, thumb_path);
+	return _audio_svc_get_thumbnail_path_by_path(db_handle, path, thumb_path);
 }
 
-int audio_svc_add_playlist(const char *playlist_name, int *playlist_id)
+int audio_svc_add_playlist(MediaSvcHandle *handle, const char *playlist_name, int *playlist_id)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(playlist_name)) {
 		audio_svc_error("invalid playlist_name");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -735,22 +970,36 @@ int audio_svc_add_playlist(const char *playlist_name, int *playlist_id)
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_insert_playlist_record(playlist_name, playlist_id);
+	return _audio_svc_insert_playlist_record(db_handle, playlist_name, playlist_id);
 }
 
-int audio_svc_delete_playlist(int playlist_id)
+int audio_svc_delete_playlist(MediaSvcHandle *handle, int playlist_id)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist_id");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_delete_playlist_record(playlist_id);
+	return _audio_svc_delete_playlist_record(db_handle, playlist_id);
 }
 
-int audio_svc_update_playlist_name(int playlist_id,
+int audio_svc_update_playlist_name(MediaSvcHandle *handle, int playlist_id,
 				   const char *new_playlist_name)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist_id");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -761,28 +1010,41 @@ int audio_svc_update_playlist_name(int playlist_id,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_update_playlist_record_by_name(playlist_id,
+	return _audio_svc_update_playlist_record_by_name(db_handle, playlist_id,
 							 new_playlist_name);
 }
 
-int audio_svc_count_playlist(const char *filter_string,
+int audio_svc_count_playlist(MediaSvcHandle *handle, const char *filter_string,
 			     const char *filter_string2, int *count)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (count == NULL) {
 		audio_svc_error("invalid count condition");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_count_playlist_records(filter_string, filter_string2,
+	return _audio_svc_count_playlist_records(db_handle, filter_string, filter_string2,
 						 count);
 }
 
-int audio_svc_get_playlist(const char *filter_string,
+int audio_svc_get_playlist(MediaSvcHandle *handle, const char *filter_string,
 			   const char *filter_string2, int offset, int rows,
 			   AudioHandleType *playlists)
 {
-	audio_svc_playlist_s *ret_playlists =
-	    (audio_svc_playlist_s *) playlists;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	audio_svc_playlist_s *ret_playlists = (audio_svc_playlist_s *) playlists;
 	if (offset < 0 || rows <= 0) {
 		audio_svc_error("offset(%d) or row value(%d) is wrong", offset,
 				rows);
@@ -795,13 +1057,20 @@ int audio_svc_get_playlist(const char *filter_string,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_get_playlist_records(offset, rows, filter_string,
+	return _audio_svc_get_playlist_records(db_handle, offset, rows, filter_string,
 					       filter_string2, ret_playlists);
 }
 
-int audio_svc_count_playlist_item(int playlist_id, const char *filter_string,
+int audio_svc_count_playlist_item(MediaSvcHandle *handle, int playlist_id, const char *filter_string,
 				  const char *filter_string2, int *count)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist_id");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -812,17 +1081,23 @@ int audio_svc_count_playlist_item(int playlist_id, const char *filter_string,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_count_playlist_item_records(playlist_id,
+	return _audio_svc_count_playlist_item_records(db_handle, playlist_id,
 						      filter_string,
 						      filter_string2, count);
 }
 
-int audio_svc_get_playlist_item(int playlist_id, const char *filter_string,
+int audio_svc_get_playlist_item(MediaSvcHandle *handle, int playlist_id, const char *filter_string,
 				const char *filter_string2, int offset,
 				int rows, AudioHandleType *playlist_item)
 {
-	audio_svc_playlist_item_s *ret_playlist_item =
-	    (audio_svc_playlist_item_s *) playlist_item;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	audio_svc_playlist_item_s *ret_playlist_item = (audio_svc_playlist_item_s *) playlist_item;
 
 	if (offset < 0 || rows <= 0) {
 		audio_svc_error("offset(%d) or row value(%d) is wrong", offset,
@@ -838,14 +1113,21 @@ int audio_svc_get_playlist_item(int playlist_id, const char *filter_string,
 
 	memset(ret_playlist_item, 0, sizeof(audio_svc_playlist_item_s) * rows);
 
-	return _audio_svc_get_playlist_item_records(playlist_id, filter_string,
+	return _audio_svc_get_playlist_item_records(db_handle, playlist_id, filter_string,
 						    filter_string2, offset,
 						    rows, ret_playlist_item);
 }
 
-int audio_svc_get_playlist_id_by_playlist_name(const char *playlist_name,
+int audio_svc_get_playlist_id_by_playlist_name(MediaSvcHandle *handle, const char *playlist_name,
 					       int *playlist_id)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(playlist_name)) {
 		audio_svc_error("invalid playlist_name");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -856,24 +1138,38 @@ int audio_svc_get_playlist_id_by_playlist_name(const char *playlist_name,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_get_playlist_id_by_name(playlist_name, playlist_id);
+	return _audio_svc_get_playlist_id_by_name(db_handle, playlist_name, playlist_id);
 }
 
-int audio_svc_get_playlist_name_by_playlist_id(int playlist_id,
+int audio_svc_get_playlist_name_by_playlist_id(MediaSvcHandle *handle, int playlist_id,
 					       char *playlist_name,
 					       size_t max_playlist_name_length)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist_id");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_get_playlist_name_by_playlist_id(playlist_id,
+	return _audio_svc_get_playlist_name_by_playlist_id(db_handle, playlist_id,
 							   playlist_name);
 }
 
-int audio_svc_count_playlist_by_name(const char *playlist_name, int *count)
+int audio_svc_count_playlist_by_name(MediaSvcHandle *handle, const char *playlist_name, int *count)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(playlist_name)) {
 		audio_svc_error("invalid playlist_name");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -884,16 +1180,22 @@ int audio_svc_count_playlist_by_name(const char *playlist_name, int *count)
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_count_playlist_records_by_name(playlist_name, count);
+	return _audio_svc_count_playlist_records_by_name(db_handle, playlist_name, count);
 }
 
-int audio_svc_get_unique_playlist_name(const char *orig_name, char *unique_name,
+int audio_svc_get_unique_playlist_name(MediaSvcHandle *handle, const char *orig_name, char *unique_name,
 				       size_t max_unique_name_length)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 
 	char playlist_name[AUDIO_SVC_PLAYLIST_NAME_SIZE] = { 0 };
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!STRING_VALID(orig_name)) {
 		audio_svc_error("orig_name is NULL");
@@ -901,7 +1203,7 @@ int audio_svc_get_unique_playlist_name(const char *orig_name, char *unique_name,
 	}
 
 	snprintf(playlist_name, sizeof(playlist_name), "%s_001", orig_name);
-	ret = audio_svc_count_playlist_by_name(playlist_name, &count);
+	ret = audio_svc_count_playlist_by_name(db_handle, playlist_name, &count);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	if (count > 0) {
@@ -910,9 +1212,7 @@ int audio_svc_get_unique_playlist_name(const char *orig_name, char *unique_name,
 			count = -1;
 			snprintf(unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE,
 				 "%s_%.3d", orig_name, i + 1);
-			ret =
-			    audio_svc_count_playlist_by_name(unique_name,
-							     &count);
+			ret = audio_svc_count_playlist_by_name(db_handle, unique_name, &count);
 			audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 			if (count == 0) {
@@ -925,17 +1225,23 @@ int audio_svc_get_unique_playlist_name(const char *orig_name, char *unique_name,
 		return AUDIO_SVC_ERROR_MAKE_PLAYLIST_NAME_FAILED;
 
 	} else {
-		snprintf(unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE, "%s_%.3d", orig_name, 1);	/* hjkim, 101006, return My playlist_001 */
+		snprintf(unique_name, AUDIO_SVC_PLAYLIST_NAME_SIZE, "%s_%.3d", orig_name, 1);
 		return AUDIO_SVC_ERROR_NONE;
 	}
 
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_add_item_to_playlist(int playlist_id, const char *audio_id)
+int audio_svc_add_item_to_playlist(MediaSvcHandle *handle, int playlist_id, const char *audio_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist idx");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -946,20 +1252,27 @@ int audio_svc_add_item_to_playlist(int playlist_id, const char *audio_id)
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 	
-	ret = _audio_svc_insert_playlist_item_record(playlist_id, audio_id);
+	ret = _audio_svc_insert_playlist_item_record(db_handle, playlist_id, audio_id);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 	
 	if (playlist_id == AUDIO_SVC_FAVORITE_LIST_ID) {
-		ret = _audio_svc_update_favourite_in_music_record(audio_id, 1);
+		ret = _audio_svc_update_favourite_in_music_record(db_handle, audio_id, 1);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);		
 	}
 
 	return ret;
 }
 
-int audio_svc_check_duplicate_insertion_in_playlist(int playlist_id,
+int audio_svc_check_duplicate_insertion_in_playlist(MediaSvcHandle *handle, int playlist_id,
 						    const char *audio_id, int *count)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist idx");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -975,12 +1288,19 @@ int audio_svc_check_duplicate_insertion_in_playlist(int playlist_id,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_check_duplication_records_in_playlist(playlist_id, audio_id, count);
+	return _audio_svc_check_duplication_records_in_playlist(db_handle, playlist_id, audio_id, count);
 }
 
-int audio_svc_update_playlist_item_play_order(int playlist_id, int uid,
+int audio_svc_update_playlist_item_play_order(MediaSvcHandle *handle, int playlist_id, int uid,
 					      int new_play_order)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist id");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -995,15 +1315,20 @@ int audio_svc_update_playlist_item_play_order(int playlist_id, int uid,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_update_item_play_order(playlist_id, uid,
-						 new_play_order);
+	return _audio_svc_update_item_play_order(db_handle, playlist_id, uid, new_play_order);
 }
 
-int audio_svc_remove_item_from_playlist_by_uid(int playlist_id, int uid)
+int audio_svc_remove_item_from_playlist_by_uid(MediaSvcHandle *handle, int playlist_id, int uid)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	char audio_id[AUDIO_SVC_UUID_SIZE + 1] = {0, };
-	
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist idx");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -1016,24 +1341,30 @@ int audio_svc_remove_item_from_playlist_by_uid(int playlist_id, int uid)
 
 	if (playlist_id == AUDIO_SVC_FAVORITE_LIST_ID) {
 
-		ret = _audio_svc_get_audio_id_by_uid(uid, audio_id);
+		ret = _audio_svc_get_audio_id_by_uid(db_handle, uid, audio_id);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-		ret = _audio_svc_update_favourite_in_music_record(audio_id, 0);
+		ret = _audio_svc_update_favourite_in_music_record(db_handle, audio_id, 0);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 	}
 
-	ret = _audio_svc_delete_playlist_item_record_from_playlist_by_uid(playlist_id, uid);
+	ret = _audio_svc_delete_playlist_item_record_from_playlist_by_uid(db_handle, playlist_id, uid);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	return ret;
 }
 
-int audio_svc_remove_item_from_playlist_by_audio_id(int playlist_id,
+int audio_svc_remove_item_from_playlist_by_audio_id(MediaSvcHandle *handle, int playlist_id,
 						    const char *audio_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (playlist_id < 0) {
 		audio_svc_error("invalid playlist idx");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -1044,32 +1375,45 @@ int audio_svc_remove_item_from_playlist_by_audio_id(int playlist_id,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	ret = _audio_svc_delete_playlist_item_record_from_playlist_by_audio_id(playlist_id, audio_id);
+	ret = _audio_svc_delete_playlist_item_record_from_playlist_by_audio_id(db_handle, playlist_id, audio_id);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	if (playlist_id == AUDIO_SVC_FAVORITE_LIST_ID) {
-		ret = _audio_svc_update_favourite_in_music_record(audio_id, 0);
+		ret = _audio_svc_update_favourite_in_music_record(db_handle, audio_id, 0);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 	}
 
 	return ret;
 }
 
-int audio_svc_set_db_valid(audio_svc_storage_type_e storage_type, int valid)
+int audio_svc_set_db_valid(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type, int valid)
 {
 	audio_svc_debug("storage:%d", storage_type);
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (storage_type != AUDIO_SVC_STORAGE_PHONE
 	    && storage_type != AUDIO_SVC_STORAGE_MMC) {
 		audio_svc_debug("storage type should be phone or mmc");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	return _audio_svc_update_valid_of_music_records(storage_type, valid);
+	return _audio_svc_update_valid_of_music_records(db_handle, storage_type, valid);
 }
 
-int audio_svc_delete_invalid_items(audio_svc_storage_type_e storage_type)
+int audio_svc_delete_invalid_items(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (storage_type != AUDIO_SVC_STORAGE_PHONE 
 		&& storage_type != AUDIO_SVC_STORAGE_MMC) {
@@ -1077,10 +1421,10 @@ int audio_svc_delete_invalid_items(audio_svc_storage_type_e storage_type)
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 	
-	ret = _audio_svc_delete_invalid_music_records(storage_type);
+	ret = _audio_svc_delete_invalid_music_records(db_handle, storage_type);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-	ret = _audio_svc_update_folder_table();
+	ret = _audio_svc_update_folder_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 #if 0
@@ -1091,9 +1435,14 @@ int audio_svc_delete_invalid_items(audio_svc_storage_type_e storage_type)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_set_item_valid_start(int data_cnt)
+int audio_svc_set_item_valid_start(MediaSvcHandle *handle, int data_cnt)
 {
 	audio_svc_debug("Transaction data count : [%d]", data_cnt);
+
+	if(handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if(data_cnt < 1) {
 		audio_svc_error("data_cnt shuld be bigger than 1. data_cnt : [%d]", data_cnt);
@@ -1106,15 +1455,21 @@ int audio_svc_set_item_valid_start(int data_cnt)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_set_item_valid_end(void)
+int audio_svc_set_item_valid_end(MediaSvcHandle *handle)
 {
 	audio_svc_debug_func();
 
 	int ret = AUDIO_SVC_ERROR_NONE;
-	
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (g_audio_svc_item_valid_cur_data_cnt  > 0) {
 		
-		ret = _audio_svc_list_query_do(AUDIO_SVC_QUERY_SET_ITEM_VALID);
+		ret = _audio_svc_list_query_do(db_handle, AUDIO_SVC_QUERY_SET_ITEM_VALID);
 
 	}
 
@@ -1124,10 +1479,16 @@ int audio_svc_set_item_valid_end(void)
 	return ret;
 }
 
-int audio_svc_set_item_valid(const char *path, int valid)
+int audio_svc_set_item_valid(MediaSvcHandle *handle, const char *path, int valid)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	audio_svc_debug("path=[%s], valid=[%d]", path, valid);
 
 	if (!STRING_VALID(path)) {
@@ -1138,26 +1499,26 @@ int audio_svc_set_item_valid(const char *path, int valid)
 #if 0	//original code
 	return _audio_svc_update_valid_in_music_record(path, valid);
 
-#else	//hjkim, 110909, stack up querys and commit it at once when query counts are same as g_audio_svc_item_valid_data_cnt 
+#else	//stack up querys and commit it at once when query counts are same as g_audio_svc_item_valid_data_cnt
 
 	audio_svc_debug("g_audio_svc_item_valid_data_cnt =[%d], g_audio_svc_item_valid_cur_data_cnt =[%d]", 
 			g_audio_svc_item_valid_data_cnt , g_audio_svc_item_valid_cur_data_cnt );
 
 	if (g_audio_svc_item_valid_data_cnt  == 1) {
 		
-		return _audio_svc_update_valid_in_music_record(path, valid);
+		return _audio_svc_update_valid_in_music_record(db_handle, path, valid);
 		
 	} else if (g_audio_svc_item_valid_cur_data_cnt  < (g_audio_svc_item_valid_data_cnt  - 1)) {
 
-		ret = _audio_svc_update_valid_in_music_record_query_add(path, valid);
+		ret = _audio_svc_update_valid_in_music_record_query_add(db_handle, path, valid);
 
 		g_audio_svc_item_valid_cur_data_cnt ++;	
 		
 	} else if (g_audio_svc_item_valid_cur_data_cnt  == (g_audio_svc_item_valid_data_cnt  - 1)) {
 	
-		ret = _audio_svc_update_valid_in_music_record_query_add(path, valid);
+		ret = _audio_svc_update_valid_in_music_record_query_add(db_handle, path, valid);
 
-		ret = _audio_svc_list_query_do(AUDIO_SVC_QUERY_SET_ITEM_VALID);
+		ret = _audio_svc_list_query_do(db_handle, AUDIO_SVC_QUERY_SET_ITEM_VALID);
 		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 		g_audio_svc_item_valid_cur_data_cnt  = 0;
@@ -1172,10 +1533,16 @@ int audio_svc_set_item_valid(const char *path, int valid)
 #endif
 }
 
-int audio_svc_get_path_by_audio_id(const char *audio_id, char *path,
+int audio_svc_get_path_by_audio_id(MediaSvcHandle *handle, const char *audio_id, char *path,
 				   size_t max_path_length)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!STRING_VALID(audio_id)) {
 		audio_svc_error("invalid audio_id");
@@ -1187,7 +1554,7 @@ int audio_svc_get_path_by_audio_id(const char *audio_id, char *path,
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	ret = _audio_svc_get_path(audio_id, path);
+	ret = _audio_svc_get_path(db_handle, audio_id, path);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
 	return AUDIO_SVC_ERROR_NONE;
@@ -1326,8 +1693,7 @@ int audio_svc_group_item_get_val(AudioHandleType *record, int index,
 	return ret;
 }
 
-int audio_svc_group_item_get(AudioHandleType *record, int index,
-			     AudioHandleType **item)
+int audio_svc_group_item_get(AudioHandleType *record, int index, AudioHandleType **item)
 {
 	audio_svc_group_item_s *item_arr = (audio_svc_group_item_s *) record;
 
@@ -1409,13 +1775,13 @@ int audio_svc_list_item_get_val(AudioHandleType *record, int index,
 			{
 				char **val = va_arg((var_args), char **);
 				int *size = va_arg((var_args), int *);
-				if (strlen(item[index].audio_id) == 0) {
+				if (strlen(item[index].audio_uuid) == 0) {
 					audio_svc_error("audio_id is NULL");
 					*size = 0;
 					ret = AUDIO_SVC_ERROR_DB_NO_RECORD;
 				} else {
-					*val = item[index].audio_id;
-					*size = strlen(item[index].audio_id);				
+					*val = item[index].audio_uuid;
+					*size = strlen(item[index].audio_uuid);
 				}
 				break;
 			}
@@ -1508,8 +1874,7 @@ int audio_svc_list_item_get_val(AudioHandleType *record, int index,
 	return ret;
 }
 
-int audio_svc_list_item_get(AudioHandleType *record, int index,
-			    AudioHandleType **item)
+int audio_svc_list_item_get(AudioHandleType *record, int index, AudioHandleType **item)
 {
 	audio_svc_list_item_s *item_arr = (audio_svc_list_item_s *) record;
 
@@ -1701,8 +2066,7 @@ int audio_svc_playlist_set_val(AudioHandleType *playlists, int index,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_playlist_get_item(AudioHandleType *record, int index,
-				AudioHandleType **plst)
+int audio_svc_playlist_get_item(AudioHandleType *record, int index, AudioHandleType **plst)
 {
 	if (!record) {
 		audio_svc_error("Invalid arguments");
@@ -1791,13 +2155,13 @@ int audio_svc_playlist_item_get_val(AudioHandleType *record, int index,
 			{
 				char **val = va_arg((var_args), char **);
 				int *size = va_arg((var_args), int *);
-				if (strlen(item[index].audio_id) == 0) {
+				if (strlen(item[index].audio_uuid) == 0) {
 					audio_svc_error("audio_id is NULL");
 					*size = 0;
 					ret = AUDIO_SVC_ERROR_DB_NO_RECORD;
 				} else {
-					*val = item[index].audio_id;
-					*size = strlen(item[index].audio_id);				
+					*val = item[index].audio_uuid;
+					*size = strlen(item[index].audio_uuid);
 				}
 				break;
 			}
@@ -1897,11 +2261,9 @@ int audio_svc_playlist_item_get_val(AudioHandleType *record, int index,
 	return ret;
 }
 
-int audio_svc_playlist_item_get(AudioHandleType *record, int index,
-				AudioHandleType **item)
+int audio_svc_playlist_item_get(AudioHandleType *record, int index, AudioHandleType **item)
 {
-	audio_svc_playlist_item_s *item_arr =
-	    (audio_svc_playlist_item_s *) record;
+	audio_svc_playlist_item_s *item_arr = (audio_svc_playlist_item_s *) record;
 
 	if (!item_arr) {
 		audio_svc_error("Invalid arguments");
@@ -1918,9 +2280,7 @@ int audio_svc_item_new(AudioHandleType **record)
 	int count = 1;
 
 	audio_svc_debug("count is [%d]", count);
-	audio_svc_audio_item_s *item =
-	    (audio_svc_audio_item_s *) malloc(count *
-					      sizeof(audio_svc_audio_item_s));
+	audio_svc_audio_item_s *item = (audio_svc_audio_item_s *) malloc(count * sizeof(audio_svc_audio_item_s));
 	if (item == NULL) {
 		return AUDIO_SVC_ERROR_OUT_OF_MEMORY;
 	}
@@ -1952,6 +2312,7 @@ int audio_svc_item_get_val(AudioHandleType *record,
 	va_list var_args;
 	int field_name;
 	audio_svc_audio_item_s *item = (audio_svc_audio_item_s *) record;
+
 	audio_svc_debug_func();
 	if (!item) {
 		audio_svc_error("Invalid arguments");
@@ -1979,13 +2340,13 @@ int audio_svc_item_get_val(AudioHandleType *record,
 			{
 				char **val = va_arg((var_args), char **);
 				int *size = va_arg((var_args), int *);
-				if (strlen(item->audio_id) == 0) {
+				if (strlen(item->audio_uuid) == 0) {
 					audio_svc_error("audio_id is NULL");
 					*size = 0;
 					ret = AUDIO_SVC_ERROR_DB_NO_RECORD;
 				} else {
-					*size = strlen(item->audio_id);
-					*val = item->audio_id;
+					*size = strlen(item->audio_uuid);
+					*val = item->audio_uuid;
 				}
 				break;
 			}
@@ -2214,10 +2575,7 @@ int audio_svc_item_get_val(AudioHandleType *record,
 int audio_svc_search_item_new(AudioHandleType **record, int count)
 {
 	audio_svc_debug("count is [%d]", count);
-
-	audio_svc_audio_item_s *item =
-	    (audio_svc_audio_item_s *) malloc(count *
-					      sizeof(audio_svc_audio_item_s));
+	audio_svc_audio_item_s *item = (audio_svc_audio_item_s *) malloc(count * sizeof(audio_svc_audio_item_s));
 
 	if (item == NULL) {
 		return AUDIO_SVC_ERROR_OUT_OF_MEMORY;
@@ -2230,8 +2588,7 @@ int audio_svc_search_item_new(AudioHandleType **record, int count)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_search_item_get(AudioHandleType *record, int index,
-			    AudioHandleType **item)
+int audio_svc_search_item_get(AudioHandleType *record, int index, AudioHandleType **item)
 {
 	audio_svc_audio_item_s *item_arr = (audio_svc_audio_item_s *) record;
 
@@ -2263,13 +2620,19 @@ int audio_svc_search_item_free(AudioHandleType *record)
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_update_item_metadata(const char *audio_id,
+int audio_svc_update_item_metadata(MediaSvcHandle *handle, const char *audio_id,
 				   audio_svc_track_data_type_e first_field_name,
 				   ...)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	va_list var_args;
 	int field_name = -1;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!STRING_VALID(audio_id)) {
 		audio_svc_error("invalid audio_id");
@@ -2294,7 +2657,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("play count should be positive value");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_playcount_in_music_record(audio_id, val);
+					ret = _audio_svc_update_playcount_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2305,7 +2668,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("play time should be positive value");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_playtime_in_music_record(audio_id, val);
+					ret = _audio_svc_update_playtime_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2316,7 +2679,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("added time should be positive value");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_addtime_in_music_record(audio_id, val);
+					ret = _audio_svc_update_addtime_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2328,7 +2691,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("rating value should be between 0 and 5");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_rating_in_music_record(audio_id, val);
+					ret = _audio_svc_update_rating_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2346,7 +2709,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("text size should be shorter than AUDIO_SVC_METADATA_LEN_MAX");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_title_in_music_record(audio_id, val);
+					ret = _audio_svc_update_title_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2361,7 +2724,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					if (val == NULL) {
 						val = AUDIO_SVC_TAG_UNKNOWN;
 					}
-					ret =_audio_svc_update_artist_in_music_record(audio_id, val);
+					ret =_audio_svc_update_artist_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2376,7 +2739,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					if (val == NULL) {
 						val = AUDIO_SVC_TAG_UNKNOWN;
 					}
-					ret = _audio_svc_update_album_in_music_record(audio_id, val);
+					ret = _audio_svc_update_album_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2391,7 +2754,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					if (val == NULL) {
 						val = AUDIO_SVC_TAG_UNKNOWN;
 					}
-					ret = _audio_svc_update_genre_in_music_record(audio_id, val);
+					ret = _audio_svc_update_genre_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2406,7 +2769,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					if (val == NULL) {
 						val = AUDIO_SVC_TAG_UNKNOWN;
 					}
-					ret = _audio_svc_update_author_in_music_record(audio_id, val);
+					ret = _audio_svc_update_author_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2418,7 +2781,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("text size should be shorter than AUDIO_SVC_METADATA_LEN_MAX");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_description_in_music_record(audio_id, val);
+					ret = _audio_svc_update_description_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2429,7 +2792,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("year should be positive value");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_year_in_music_record(audio_id, val);
+					ret = _audio_svc_update_year_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2440,7 +2803,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("track number should be positive value");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_track_num_in_music_record(audio_id, val);
+					ret = _audio_svc_update_track_num_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2452,7 +2815,7 @@ int audio_svc_update_item_metadata(const char *audio_id,
 					audio_svc_error("rating value should be between 0 and 5");
 					ret = AUDIO_SVC_ERROR_INVALID_PARAMETER;
 				} else {
-					ret = _audio_svc_update_album_rating_in_music_record(audio_id, val);
+					ret = _audio_svc_update_album_rating_in_music_record(db_handle, audio_id, val);
 				}
 				break;
 			}
@@ -2476,14 +2839,21 @@ int audio_svc_update_item_metadata(const char *audio_id,
 	return AUDIO_SVC_ERROR_NONE;
 }
 
-int audio_svc_check_item_exist(const char *path)
+int audio_svc_check_item_exist(MediaSvcHandle *handle, const char *path)
 {
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
+
 	if (!STRING_VALID(path)) {
 		audio_svc_error("path is NULL");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	if (_audio_svc_count_record_with_path(path) > 0) {
+	if (_audio_svc_count_record_with_path(db_handle, path) > 0) {
 		audio_svc_debug("item is exist in database");
 		return AUDIO_SVC_ERROR_NONE;
 	} else {
@@ -2493,7 +2863,7 @@ int audio_svc_check_item_exist(const char *path)
 
 }
 
-int audio_svc_list_by_search(AudioHandleType *handle,
+int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							audio_svc_search_order_e order_field,
 							int offset,
 							int count,
@@ -2508,7 +2878,13 @@ int audio_svc_list_by_search(AudioHandleType *handle,
 	char search_str[AUDIO_SVC_METADATA_LEN_MAX] = { 0 };
 	char *condition_str = NULL;
 	
-	audio_svc_audio_item_s *item = (audio_svc_audio_item_s *)handle;
+	audio_svc_audio_item_s *item = (audio_svc_audio_item_s *)record;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	if(db_handle == NULL) {
+		audio_svc_error("Handle is NULL");
+		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+	}
 
 	if (!item) {
 		audio_svc_error("Invalid arguments");
@@ -2705,6 +3081,6 @@ int audio_svc_list_by_search(AudioHandleType *handle,
 		return AUDIO_SVC_ERROR_INTERNAL;
 	}
 
-	return _audio_svc_list_search((audio_svc_audio_item_s *)handle, query_where, order_field, offset, count);
+	return _audio_svc_list_search(db_handle, item, query_where, order_field, offset, count);
 }
 

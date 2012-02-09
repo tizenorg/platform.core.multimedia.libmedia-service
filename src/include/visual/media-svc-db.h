@@ -40,6 +40,7 @@
 #define _MEDIA_SVC_DB_H_
 
 #include "media-svc-structures.h"
+#include "media-svc-types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,10 +106,11 @@ int mb_svc_disconnect_db(sqlite3* handle);
 int _mb_svc_truncate_tbl();
 
 /**
-* @fn    int  mb_svc_delete_record_bookmark_by_id(int id);
+* @fn    int  mb_svc_delete_record_bookmark_by_id(MediaSvcHandle *mb_svc_handle, int id);
 * This function deletes specified bookmark record by field "_id"
 *
 * @return                        This function returns 0 on success, and negative value on failure.
+* @param[in]                    mb_svc_handle          Handle for media service
 * @param[in]                    id           bookmark record id
 * @exception                    None.
 * @remark                        
@@ -116,13 +118,14 @@ int _mb_svc_truncate_tbl();
 *                                                          
 */
 
-int mb_svc_delete_record_bookmark_by_id(int id);
+int mb_svc_delete_record_bookmark_by_id(MediaSvcHandle *mb_svc_handle, int id);
 
 /**
-* @fn    int  int mb_svc_delete_record_folder_by_id(const char *id);
+* @fn    int  int mb_svc_delete_record_folder_by_id(MediaSvcHandle *mb_svc_handle, const char *id);
 * This function deletes specified folder record by id
 *
 * @return                        This function returns 0 on success, and negative value on failure.
+* @param[in]                    mb_svc_handle          Handle for media service
 * @param[in]                    id           folder record id
 * @exception                    None.
 * @remark                        
@@ -130,13 +133,14 @@ int mb_svc_delete_record_bookmark_by_id(int id);
 *                                                          
 */
 
-int mb_svc_delete_record_folder_by_id(const char *id);
+int mb_svc_delete_record_folder_by_id(MediaSvcHandle *mb_svc_handle, const char *id);
 
 /**
-* @fn    int  mb_svc_delete_record_web_streaming_by_id(int id);
+* @fn    int  mb_svc_delete_record_web_streaming_by_id(MediaSvcHandle *mb_svc_handle, int id);
 * This function deletes specified webstreaming record by id
 *
 * @return                        This function returns 0 on success, and negative value on failure.
+* @param[in]                    mb_svc_handle          Handle for media service
 * @param[in]                    id           webstreaming record id
 * @exception                    None.
 * @remark                        
@@ -144,13 +148,14 @@ int mb_svc_delete_record_folder_by_id(const char *id);
 *                                                          
 */
 
-int mb_svc_delete_record_web_streaming_by_id(int id);
+int mb_svc_delete_record_web_streaming_by_id(MediaSvcHandle *mb_svc_handle, int id);
 
 /**
-* @fn    int mb_svc_delete_record_media_by_id(const char *id);
+* @fn    int mb_svc_delete_record_media_by_id(MediaSvcHandle *mb_svc_handle, const char *id);
 * This function deletes specified media record by id
 *
 * @return                        This function returns 0 on success, and negative value on failure.
+* @param[in]                    mb_svc_handle          Handle for media service
 * @param[in]                    id          media record id
  * @exception                    None.
 * @remark                        
@@ -158,13 +163,14 @@ int mb_svc_delete_record_web_streaming_by_id(int id);
 *                                                          
 */
 
-int mb_svc_delete_record_media_by_id(const char *id);
+int mb_svc_delete_record_media_by_id(MediaSvcHandle *mb_svc_handle, const char *id);
 
 /**
-* @fn    int mb_svc_delete_record_video_meta_by_id(int id);
+* @fn    int mb_svc_delete_record_video_meta_by_id(MediaSvcHandle *mb_svc_handle, int id);
 * This function deletes specified video_meta record
 *
 * @return                        This function returns 0 on success, and negative value on failure.
+* @param[in]                    mb_svc_handle          Handle for media service
 * @param[in]                    id          video_meta record id
  * @exception                    None.
 * @remark                        
@@ -172,13 +178,14 @@ int mb_svc_delete_record_media_by_id(const char *id);
 *                                                          
 */
 
-int mb_svc_delete_record_video_meta_by_id(int id);
+int mb_svc_delete_record_video_meta_by_id(MediaSvcHandle *mb_svc_handle, int id);
 
 /**
-* @fn    int mb_svc_update_record_folder(mb_svc_folder_record_s *record);
+* @fn    int mb_svc_update_record_folder(MediaSvcHandle *mb_svc_handle, mb_svc_folder_record_s *record);
 * This function updates folder record
 *
 * @return                        This function returns 0 on success, and negative value on failure.
+* @param[in]                    mb_svc_handle          Handle for media service
 * @param[in]                    record      pointer to new folder record
 * @exception                    None.
 * @remark                        
@@ -186,10 +193,10 @@ int mb_svc_delete_record_video_meta_by_id(int id);
 *                                                          
 */
 
-int mb_svc_update_record_folder(mb_svc_folder_record_s *record);
+int mb_svc_update_record_folder(MediaSvcHandle *mb_svc_handle, mb_svc_folder_record_s *record);
 
 /**
-* @fn    int  mb_svc_update_record_media(mb_svc_media_record_s *record);
+* @fn    int  mb_svc_update_record_media(MediaSvcHandle *mb_svc_handle, mb_svc_media_record_s *record);
 * This function updates media record
 *
 * @return                        This function returns 0 on success, and negative value on failure.
@@ -200,10 +207,10 @@ int mb_svc_update_record_folder(mb_svc_folder_record_s *record);
 *
 */
 
-int mb_svc_update_record_media(mb_svc_media_record_s *record);
+int mb_svc_update_record_media(MediaSvcHandle *mb_svc_handle, mb_svc_media_record_s *record);
 
 /**
-* @fn    int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record);
+* @fn    int mb_svc_update_record_video_meta(MediaSvcHandle *mb_svc_handle, mb_svc_video_meta_record_s *record);
 * This function updates video_meta record
 *
 * @return                        This function returns 0 on success, and negative value on failure.
@@ -214,10 +221,10 @@ int mb_svc_update_record_media(mb_svc_media_record_s *record);
 *                                                          
 */
 
-int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record);
+int mb_svc_update_record_video_meta(MediaSvcHandle *mb_svc_handle, mb_svc_video_meta_record_s *record);
 
 /**
-* @fn    int mb_svc_update_record_image_meta(mb_svc_image_meta_record_s *record);
+* @fn    int mb_svc_update_record_image_meta(MediaSvcHandle *mb_svc_handle, mb_svc_image_meta_record_s *record);
 * This function updates image_meta record
 *
 * @return                        This function returns 0 on success, and negative value on failure.
@@ -228,10 +235,10 @@ int mb_svc_update_record_video_meta(mb_svc_video_meta_record_s *record);
 *                                                          
 */
 
-int mb_svc_update_record_image_meta(mb_svc_image_meta_record_s *record);
+int mb_svc_update_record_image_meta(MediaSvcHandle *mb_svc_handle, mb_svc_image_meta_record_s *record);
 
 /**
-* @fn    int mb_svc_insert_record_bookmark(mb_svc_bookmark_record_s *record);
+* @fn    int mb_svc_insert_record_bookmark(MediaSvcHandle *mb_svc_handle, mb_svc_bookmark_record_s *record);
 * This function inserts record into bookmark table
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -243,10 +250,10 @@ int mb_svc_update_record_image_meta(mb_svc_image_meta_record_s *record);
 */
 
 
-int mb_svc_insert_record_bookmark(mb_svc_bookmark_record_s *record);
+int mb_svc_insert_record_bookmark(MediaSvcHandle *mb_svc_handle, mb_svc_bookmark_record_s *record);
 
 /**
-* @fn    mb_svc_insert_record_folder(mb_svc_folder_record_s *record);
+* @fn    mb_svc_insert_record_folder(MediaSvcHandle *mb_svc_handle, mb_svc_folder_record_s *record);
 * This function inserts record into folder table
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -257,10 +264,10 @@ int mb_svc_insert_record_bookmark(mb_svc_bookmark_record_s *record);
 *                                                          
 */
 
-int mb_svc_insert_record_folder(mb_svc_folder_record_s *record);
+int mb_svc_insert_record_folder(MediaSvcHandle *mb_svc_handle, mb_svc_folder_record_s *record);
 
 /**
-* @fn    int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record);
+* @fn    int mb_svc_insert_record_web_streaming(MediaSvcHandle *mb_svc_handle, mb_svc_web_streaming_record_s *record);
 * This function inserts record into webstreaming table
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -271,10 +278,10 @@ int mb_svc_insert_record_folder(mb_svc_folder_record_s *record);
 *                                                          
 */
 
-int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record);
+int mb_svc_insert_record_web_streaming(MediaSvcHandle *mb_svc_handle, mb_svc_web_streaming_record_s *record);
 
 /**
-* @fn    int  mb_svc_insert_record_media(mb_svc_media_record_s *record);
+* @fn    int  mb_svc_insert_record_media(MediaSvcHandle *mb_svc_handle, mb_svc_media_record_s *record);
 * This function inserts record into media table
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -285,10 +292,10 @@ int mb_svc_insert_record_web_streaming(mb_svc_web_streaming_record_s *record);
 *
 */
 
-int mb_svc_insert_record_media(mb_svc_media_record_s *record, minfo_store_type storage_type);
+int mb_svc_insert_record_media(MediaSvcHandle *mb_svc_handle, mb_svc_media_record_s *record, minfo_store_type storage_type);
 
 /**
-* @fn    int  mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record, minfo_store_type storage_type);
+* @fn    int  mb_svc_insert_record_video_meta(MediaSvcHandle *mb_svc_handle, mb_svc_video_meta_record_s *record, minfo_store_type storage_type);
 * This function insert record into video_meta table
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -299,10 +306,10 @@ int mb_svc_insert_record_media(mb_svc_media_record_s *record, minfo_store_type s
 *                                                          
 */
 
-int mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record, minfo_store_type storage_type);
+int mb_svc_insert_record_video_meta(MediaSvcHandle *mb_svc_handle, mb_svc_video_meta_record_s *record, minfo_store_type storage_type);
 
 /**
-* @fn    int  mb_svc_insert_record_image_meta(mb_svc_image_meta_record_s *record, minfo_store_type storage_type);
+* @fn    int  mb_svc_insert_record_image_meta(MediaSvcHandle *mb_svc_handle, mb_svc_image_meta_record_s *record, minfo_store_type storage_type);
 * This function inserts record into image_meta table
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -313,7 +320,7 @@ int mb_svc_insert_record_video_meta(mb_svc_video_meta_record_s *record, minfo_st
 *                                                          
 */
 
-int mb_svc_insert_record_image_meta(mb_svc_image_meta_record_s *record, minfo_store_type storage_type);
+int mb_svc_insert_record_image_meta(MediaSvcHandle *mb_svc_handle, mb_svc_image_meta_record_s *record, minfo_store_type storage_type);
 
 /**
 * @fn    int  mb_svc_load_record_bookmark(sqlite3_stmt* stmt, mb_svc_bookmark_record_s * record);
@@ -407,7 +414,7 @@ int mb_svc_load_record_video_meta(sqlite3_stmt* stmt, mb_svc_video_meta_record_s
 int mb_svc_load_record_image_meta(sqlite3_stmt* stmt, mb_svc_image_meta_record_s * record);
 
 /**
-* @fn    int  mb_svc_insert_record_tag(mb_svc_tag_record_s *record);
+* @fn    int  mb_svc_insert_record_tag(MediaSvcHandle *mb_svc_handle, mb_svc_tag_record_s *record);
 * This function inserts tag record which should be filled up the corresponding value
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -419,10 +426,10 @@ int mb_svc_load_record_image_meta(sqlite3_stmt* stmt, mb_svc_image_meta_record_s
 */
 
 int 
-mb_svc_insert_record_tag(mb_svc_tag_record_s *record);
+mb_svc_insert_record_tag(MediaSvcHandle *mb_svc_handle, mb_svc_tag_record_s *record);
 
 /**
-* @fn    int  mb_svc_insert_record_tag_map(const char *media_id, int tag_id);
+* @fn    int  mb_svc_insert_record_tag_map(MediaSvcHandle *mb_svc_handle, const char *media_id, int tag_id);
 * This function inserts tag_map record which should be filled up the corresponding value
 *
 * @return                       This function returns 0 on success, and -1 on failure.
@@ -435,7 +442,7 @@ mb_svc_insert_record_tag(mb_svc_tag_record_s *record);
 */
 
 int 
-mb_svc_insert_record_tag_map(const char *media_id, int tag_id);
+mb_svc_insert_record_tag_map(MediaSvcHandle *mb_svc_handle, const char *media_id, int tag_id);
 
 /**
 * @fn    int  mb_svc_load_record_tag(sqlite3_stmt* stmt, mb_svc_tag_record_s * record);
@@ -469,7 +476,7 @@ int
 mb_svc_load_record_tagmap(sqlite3_stmt* stmt, mb_svc_tag_record_s * record);
 
 /**
-* @fn    int  mb_svc_update_thumb_path_by_id(const char *media_id, const char* thumb_path);
+* @fn    int  mb_svc_update_thumb_path_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, const char* thumb_path);
 * This function updates thumb path for media record
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -482,10 +489,10 @@ mb_svc_load_record_tagmap(sqlite3_stmt* stmt, mb_svc_tag_record_s * record);
 */
 
 
-int mb_svc_update_thumb_path_by_id(const char *media_id, const char* thumb_path);
+int mb_svc_update_thumb_path_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, const char* thumb_path);
 
 /**
-* @fn    int  mb_svc_delete_record_media(const char *folder_id, char* display_name);
+* @fn    int  mb_svc_delete_record_media(MediaSvcHandle *mb_svc_handle, const char *folder_id, char* display_name);
 * This function deletes media record
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -499,11 +506,11 @@ int mb_svc_update_thumb_path_by_id(const char *media_id, const char* thumb_path)
 
 
 int 
-mb_svc_delete_record_media(const char *folder_id, char* display_name);
+mb_svc_delete_record_media(MediaSvcHandle *mb_svc_handle, const char *folder_id, char* display_name);
 
 
 /**
-* @fn    int mb_svc_delete_bookmark_meta_by_media_id(const char *media_id , mb_svc_media_type_t file_type);
+* @fn    int mb_svc_delete_bookmark_meta_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id , mb_svc_media_type_t file_type);
 * This function deletes media related record in other tables
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -516,10 +523,10 @@ mb_svc_delete_record_media(const char *folder_id, char* display_name);
 */
 
 int 
-mb_svc_delete_bookmark_meta_by_media_id(const char *media_id , minfo_file_type content_type);
+mb_svc_delete_bookmark_meta_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id , minfo_file_type content_type);
 
 /**
-* @fn    int  mb_svc_update_favorite_by_id(const char *media_id, int favorite);
+* @fn    int  mb_svc_update_favorite_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int favorite);
 * This function updates favorite field in media record
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -533,10 +540,10 @@ mb_svc_delete_bookmark_meta_by_media_id(const char *media_id , minfo_file_type c
 
 
 int 
-mb_svc_update_favorite_by_id(const char *media_id, int favorite);
+mb_svc_update_favorite_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int favorite);
 
 /**
-* @fn    int mb_svc_delete_record_image_meta_by_id(int id);
+* @fn    int mb_svc_delete_record_image_meta_by_id(MediaSvcHandle *mb_svc_handle, int id);
 * This function gets folder record by path information
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -548,11 +555,11 @@ mb_svc_update_favorite_by_id(const char *media_id, int favorite);
 */
 
 int 
-mb_svc_delete_record_image_meta_by_id(int id);
+mb_svc_delete_record_image_meta_by_id(MediaSvcHandle *mb_svc_handle, int id);
 
 
 /**
-* @fn    int  mb_svc_update_date_by_id(const char *media_id, int date);
+* @fn    int  mb_svc_update_date_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int date);
 * This function updates favorite field in media record
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -565,10 +572,10 @@ mb_svc_delete_record_image_meta_by_id(int id);
 */
 
 int 
-mb_svc_update_date_by_id(const char *media_id, int date );
+mb_svc_update_date_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int date );
 
 /**
-* @fn    int  mb_svc_get_web_streaming_record_by_id(int webstreaming_id, mb_svc_web_streaming_record_s *webstreaming_record);
+* @fn    int  mb_svc_get_web_streaming_record_by_id(MediaSvcHandle *mb_svc_handle, int webstreaming_id, mb_svc_web_streaming_record_s *webstreaming_record);
 * This function gets webstreaming record by id
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -580,34 +587,31 @@ mb_svc_update_date_by_id(const char *media_id, int date );
 *                                                          
 */											 
 int
-mb_svc_get_web_streaming_record_by_id(int webstreaming_id,
+mb_svc_get_web_streaming_record_by_id(MediaSvcHandle *mb_svc_handle, int webstreaming_id,
 										mb_svc_web_streaming_record_s *webstreaming_record);
 int
-mb_svc_set_media_records_as_valid(const minfo_store_type storage_type, int valid);
+mb_svc_set_media_records_as_valid(MediaSvcHandle *mb_svc_handle, const minfo_store_type storage_type, int valid);
 
 int
-mb_svc_update_album_lock_status(const char *folder_id, int lock, minfo_store_type storage_type );
+mb_svc_update_album_lock_status(MediaSvcHandle *mb_svc_handle, const char *folder_id, int lock, minfo_store_type storage_type );
 
 int
 mb_svc_load_record_folder_name(sqlite3_stmt* stmt, char * folder_name, int max_length);
 
 int
-mb_svc_update_record_folder_path(char* old_path, char* new_path);
+mb_svc_update_record_folder_path(MediaSvcHandle *mb_svc_handle, char* old_path, char* new_path);
 
 int
-mb_svc_update_folder_modified_date(char* path, int date);
-
-int 
-mb_svc_update_width_and_height(const char *media_id, minfo_file_type content_type, int width, int height);
+mb_svc_update_folder_modified_date(MediaSvcHandle *mb_svc_handle, char* path, int date);
 
 int
 mb_svc_set_folder_as_valid_sql_add(const char *folder_id, int valid);
 
 int
-mb_svc_set_item_as_valid_sql_add(const char *full_path, int valid);
+mb_svc_set_item_as_valid_sql_add(MediaSvcHandle *mb_svc_handle, const char *full_path, int valid);
 
 int
-mb_svc_set_item_as_valid();
+mb_svc_set_item_as_valid(MediaSvcHandle *mb_svc_handle);
 
 int
 mb_svc_insert_record_folder_sql(mb_svc_folder_record_s *record, char **sql);
@@ -654,9 +658,6 @@ mb_svc_delete_tagmap_by_media_id_sql(const char *media_id, char **sql);
 int
 mb_svc_delete_bookmark_meta_by_media_id_sql(const char *media_id, char **sql);
 
-int
-mb_svc_update_width_and_height_sql(const char *media_id, minfo_file_type content_type,
-			       int width, int height, char **sql);
 
 #ifdef __cplusplus
 }

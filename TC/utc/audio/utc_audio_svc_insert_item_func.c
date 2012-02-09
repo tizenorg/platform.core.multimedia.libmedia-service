@@ -60,13 +60,13 @@ void utc_audio_svc_insert_item_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 
-	ret = audio_svc_delete_item_by_path(DEFAULT_FILE);
+	ret = audio_svc_delete_item_by_path(db_handle, DEFAULT_FILE);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_delete_item_by_path","failed to delete item by path.");
 	}
 	
-	ret = audio_svc_insert_item(AUDIO_SVC_STORAGE_PHONE, DEFAULT_FILE, category);
+	ret = audio_svc_insert_item(db_handle, AUDIO_SVC_STORAGE_PHONE, DEFAULT_FILE, category);
 	dts_check_eq("audio_svc_insert_item", ret, AUDIO_SVC_ERROR_NONE, "failed to insert item.");
 
 }
@@ -85,7 +85,7 @@ void utc_audio_svc_insert_item_func_02()
 	const char *path = NULL; // invalid value
 	int category = AUDIO_SVC_CATEGORY_MUSIC;
 
-	ret = audio_svc_insert_item(AUDIO_SVC_STORAGE_PHONE, path, category);
+	ret = audio_svc_insert_item(db_handle, AUDIO_SVC_STORAGE_PHONE, path, category);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

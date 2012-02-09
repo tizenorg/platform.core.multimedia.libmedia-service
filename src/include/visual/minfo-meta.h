@@ -35,8 +35,9 @@
   * @{
   */
 
-#include "minfo-types.h"
+#include "visual-svc-types.h"
 #include "media-svc-structures.h"
+#include "media-svc-types.h"
 
 #ifndef _MINFO_META_H_
 #define _MINFO_META_H_
@@ -48,7 +49,7 @@
 #define IS_MINFO_MVIDEO(obj)              	(MINFO_TYPE_MVIDEO == MINFO_MVIDEO_GET_TYPE(MINFO_MVIDEO(obj)))
 
 Mvideo* 
-minfo_mvideo_new(const char *id);
+minfo_mvideo_new(MediaSvcHandle *mb_svc_handle, const char *id);
 
 void
 minfo_mvideo_destroy(Mvideo* video);
@@ -61,7 +62,7 @@ minfo_mvideo_destroy(Mvideo* video);
 #define IS_MINFO_MIMAGE(obj)        (MINFO_TYPE_MIMAGE == MINFO_MIMAGE_GET_TYPE(MINFO_MIMAGE(obj)))
 
 Mimage* 
-minfo_mimage_new(const char *id);
+minfo_mimage_new(MediaSvcHandle *mb_svc_handle, const char *id);
 
 void
 minfo_mimage_destroy(Mimage* image);
@@ -90,7 +91,7 @@ minfo_mimage_destroy(Mimage* image);
 */
 
 Mmeta* 
-minfo_mmeta_new(const char *media_uuid, mb_svc_media_record_s *p_md_record);
+minfo_mmeta_new(MediaSvcHandle *mb_svc_handle, const char *media_uuid, mb_svc_media_record_s *p_md_record);
 
 /**
 * @fn    void minfo_mmeta_destroy(Mmeta* item);

@@ -34,7 +34,8 @@
   * @{
   */
 
-#include "minfo-types.h"
+#include "visual-svc-types.h"
+#include "media-svc-types.h"
 
 #ifndef _MINFO_BOOKMARK_H_
 #define _MINFO_BOOKMARK_H_
@@ -57,7 +58,7 @@
 */
 
 Mbookmark* 
-minfo_mbookmark_new(int id);
+minfo_mbookmark_new(MediaSvcHandle *mb_svc_handle, int id);
 
 /**
 * @fn    void minfo_mbookmark_destroy(Mbookmark* bookmark);

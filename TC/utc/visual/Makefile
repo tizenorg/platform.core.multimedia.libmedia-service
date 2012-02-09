@@ -10,7 +10,6 @@ else
     CXX=gcc -Wall
 endif
 
-TS10=utc_minfo_finalize_func
 TS11=utc_minfo_destroy_mtype_item_func
 TS13=utc_minfo_get_bookmark_list_func
 TS14=utc_minfo_get_cluster_cnt_func
@@ -24,7 +23,6 @@ TS21=utc_minfo_get_item_func
 TS22=utc_minfo_get_item_list_func
 TS25=utc_minfo_get_meta_info_func
 TS26=utc_minfo_get_thumb_path_func
-TS27=utc_minfo_init_func
 TS28=utc_minfo_move_media_func
 TS29=utc_minfo_mv_media_func
 TS30=utc_minfo_update_cluster_name_func
@@ -49,13 +47,12 @@ TS48=utc_minfo_delete_invalid_media_records_func
 TS49=utc_minfo_get_cluster_fullpath_by_id_func
 
 
-LIBS = `pkg-config --libs libmedia-info`
-LIBS +=-L/usr/lib/:/usr/lib/pkgconfig
+LIBS = `pkg-config --libs libmedia-service`
 LIBS +=$(TET_ROOT)/lib/tet3/tcm_s.o
 LIBS +=-L$(TET_ROOT)/lib/tet3 -ltcm_s
-LIBS +=-L$(TET_ROOT)/lib/tet3/ -lapi_s
+LIBS +=-lapi_s
 
-INCS = -I. `pkg-config --cflags  libmedia-info`
+INCS = -I. `pkg-config --cflags  libmedia-service`
 INCS += -I$(TET_ROOT)/inc/tet3
 INCS += -I/usr/include
 
@@ -63,7 +60,7 @@ CFLAGS = $(INCS)
 CC += $(CFLAGS)
 LDFLAGS = $(LIBS)
 
-all : $(TS10) $(TS11) $(TS12) $(TS13) $(TS14) $(TS15) $(TS16) $(TS17) $(TS18) $(TS19) $(TS20) $(TS21) $(TS22) $(TS23) $(TS24) $(TS25) $(TS26) $(TS27) $(TS28) $(TS29) $(TS30) $(TS31) $(TS32) $(TS33) $(TS34) $(TS35) $(TS36) $(TS37) $(TS38) $(TS39) $(TS40) $(TS41) $(TS42) $(TS43) $(TS44) $(TS45) $(TS46) $(TS47) $(TS48) $(TS49)
+all : $(TS11) $(TS12) $(TS13) $(TS14) $(TS15) $(TS16) $(TS17) $(TS18) $(TS19) $(TS20) $(TS21) $(TS22) $(TS23) $(TS24) $(TS25) $(TS26) $(TS28) $(TS29) $(TS30) $(TS31) $(TS32) $(TS33) $(TS34) $(TS35) $(TS36) $(TS37) $(TS38) $(TS39) $(TS40) $(TS41) $(TS42) $(TS43) $(TS44) $(TS45) $(TS46) $(TS47) $(TS48) $(TS49)
 
 $(TS1): $(TS1).c
 	$(CC) -o $(TS1) $(TS1).c $(LDFLAGS)
@@ -91,9 +88,6 @@ $(TS8): $(TS8).c
 
 $(TS9): $(TS9).c
 	$(CC) -o $(TS9) $(TS9).c $(LDFLAGS)
-
-$(TS10): $(TS10).c
-	$(CC) -o $(TS10) $(TS10).c $(LDFLAGS)
 
 $(TS11): $(TS11).c
 	$(CC) -o $(TS11) $(TS11).c $(LDFLAGS)
@@ -142,9 +136,6 @@ $(TS25): $(TS25).c
 
 $(TS26): $(TS26).c
 	$(CC) -o $(TS26) $(TS26).c $(LDFLAGS)
-
-$(TS27): $(TS27).c
-	$(CC) -o $(TS27) $(TS27).c $(LDFLAGS)
 
 $(TS28): $(TS28).c
 	$(CC) -o $(TS28) $(TS28).c $(LDFLAGS)
@@ -213,7 +204,6 @@ $(TS49): $(TS49).c
 	$(CC) -o $(TS49) $(TS49).c $(LDFLAGS)
 
 clean:
-	rm -rf *~ *.o $(TS10) $(TS11) $(TS12) $(TS13) $(TS14) $(TS15) $(TS16) $(TS17) $(TS18) $(TS19) $(TS20) $(TS21) $(TS22) $(TS23) $(TS24) $(TS25) $(TS26) $(TS27) $(TS28) $(TS29) $(TS30) $(TS31) $(TS32) $(TS33) $(TS34) $(TS35) $(TS36) $(TS37) $(TS38) $(TS39) $(TS40) $(TS41) $(TS42) $(TS43) $(TS44) $(TS45) $(TS46) $(TS47) $(TS48) $(TS49)
+	rm -rf *~ *.o $(TS10) $(TS11) $(TS12) $(TS13) $(TS14) $(TS15) $(TS16) $(TS17) $(TS18) $(TS19) $(TS20) $(TS21) $(TS22) $(TS23) $(TS24) $(TS25) $(TS26) $(TS28) $(TS29) $(TS30) $(TS31) $(TS32) $(TS33) $(TS34) $(TS35) $(TS36) $(TS37) $(TS38) $(TS39) $(TS40) $(TS41) $(TS42) $(TS43) $(TS44) $(TS45) $(TS46) $(TS47) $(TS48) $(TS49)
 	
-
 

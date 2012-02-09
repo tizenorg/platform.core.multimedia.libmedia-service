@@ -123,7 +123,7 @@ bool get_item_audio_id(char * audio_id_val)
 		return FALSE;
 	}
 	
-	ret = audio_svc_get_item_by_path(DEFAULT_FILE, item);
+	ret = audio_svc_get_item_by_path(db_handle, DEFAULT_FILE, item);
 	if(ret != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_item_free(item);
@@ -146,7 +146,7 @@ bool get_item_audio_id(char * audio_id_val)
 		return FALSE;
 	}
 	
-	_strncpy_safe(audio_id_val, audio_id, AUDIO_SVC_UUID_SIZE+1);
+	strncpy(audio_id_val, audio_id, AUDIO_SVC_UUID_SIZE+1);
 
 	ret = audio_svc_item_free(item);
 	if(ret != AUDIO_SVC_ERROR_NONE)
@@ -174,7 +174,7 @@ bool get_playlist_id(int * playlist_id)
 		return FALSE;
 	}
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_message("audio_svc_count_playlist","unable to get playlist.");
@@ -189,7 +189,7 @@ bool get_playlist_id(int * playlist_id)
 	}
 	
 	//get all the playlists in db.
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle, 
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,
@@ -235,10 +235,10 @@ bool check_default_item_exist()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	audio_svc_storage_type_e storage = AUDIO_SVC_STORAGE_PHONE;
 
-	ret = audio_svc_check_item_exist(DEFAULT_FILE);
+	ret = audio_svc_check_item_exist(db_handle, DEFAULT_FILE);
 	if(ret != AUDIO_SVC_ERROR_NONE)
 	{
-		ret = audio_svc_insert_item(storage, DEFAULT_FILE, AUDIO_SVC_CATEGORY_MUSIC);
+		ret = audio_svc_insert_item(db_handle, storage, DEFAULT_FILE, AUDIO_SVC_CATEGORY_MUSIC);
 		if (ret != AUDIO_SVC_ERROR_NONE)
 		{
 			dts_message("audio_svc_insert_item","fail to insert item.");
@@ -253,14 +253,14 @@ bool check_temp_item_file_exist()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_check_item_exist(TEST_FILE);
+	ret = audio_svc_check_item_exist(db_handle, TEST_FILE);
 	if(ret != AUDIO_SVC_ERROR_NONE)
 	{
 		copy_file(DEFAULT_FILE, TEST_FILE);
 	}
 	else
 	{
-		ret = audio_svc_delete_item_by_path(TEST_FILE);
+		ret = audio_svc_delete_item_by_path(db_handle, TEST_FILE);
 		if (ret != AUDIO_SVC_ERROR_NONE)
 		{
 			dts_message("audio_svc_delete_item_by_path","fail to delete item.");
@@ -276,7 +276,7 @@ bool check_default_playlist_exist()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_message("audio_svc_count_playlist","unable to get playlist.");
@@ -286,14 +286,14 @@ bool check_default_playlist_exist()
 	if(count < 1)
 	{
 		int playlist_id = 0;
-		ret = audio_svc_add_playlist("plst_test", &playlist_id);
+		ret = audio_svc_add_playlist(db_handle, "plst_test", &playlist_id);
 		if (ret != AUDIO_SVC_ERROR_NONE)
 		{
 			dts_message("audio_svc_add_playlist","fail to add playlist");
 			return FALSE;
 		}
 		
-		ret = audio_svc_count_playlist( "", "", &count);
+		ret = audio_svc_count_playlist(db_handle, "", "", &count);
 		if (ret != AUDIO_SVC_ERROR_NONE)
 		{
 			dts_message("audio_svc_count_playlist","unable to get playlist.");
@@ -331,7 +331,7 @@ bool check_playlist_has_item(int * playlist_id, char * audio_id_val)
 		return FALSE;
 	}
 
-	ret = audio_svc_check_duplicate_insertion_in_playlist(playlist_idx, audio_id, &count);
+	ret = audio_svc_check_duplicate_insertion_in_playlist(db_handle, playlist_idx, audio_id, &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_message("audio_svc_count_playlist","unable to get playlist.");
@@ -340,7 +340,7 @@ bool check_playlist_has_item(int * playlist_id, char * audio_id_val)
 
 	if(count < 1)
 	{
-		ret = audio_svc_add_item_to_playlist(playlist_idx, audio_id);
+		ret = audio_svc_add_item_to_playlist(db_handle, playlist_idx, audio_id);
 		if (ret != AUDIO_SVC_ERROR_NONE)
 		{
 			dts_message("audio_svc_add_item_to_playlist","unable to audio_svc_add_item_to_playlist.");
@@ -349,7 +349,7 @@ bool check_playlist_has_item(int * playlist_id, char * audio_id_val)
 	}
 
 	*playlist_id = playlist_idx;
-	_strncpy_safe(audio_id_val, audio_id, AUDIO_SVC_UUID_SIZE+1);
+	strncpy(audio_id_val, audio_id, AUDIO_SVC_UUID_SIZE+1);
 	
 	return TRUE;
 }

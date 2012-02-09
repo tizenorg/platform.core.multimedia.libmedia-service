@@ -32,15 +32,16 @@
 #include <time.h>
 
 #ifdef _PERFORMANCE_CHECK_
-#include "media-info-debug.h"
+#include "media-svc-debug.h"
 #endif
 
 #include "media-svc-thumb.h"
-#include "media-svc-debug.h"
-#include "media-svc-error.h"
-#include "media-svc-util.h"
+#include "visual-svc-debug.h"
+#include "visual-svc-error.h"
+#include "visual-svc-util.h"
 #include "media-img-codec.h"
 #include "media-img-codec-parser.h"
+#include "media-svc-hash.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <mm_file.h>
@@ -2587,7 +2588,8 @@ mb_svc_image_create_thumb_new(const char *file_full_path, char *thumb_hash_path,
 }
 
 int
-mb_svc_get_image_meta(const char *file_full_path,
+mb_svc_get_image_meta(MediaSvcHandle *mb_svc_handle,
+						const char *file_full_path,
 						mb_svc_image_meta_record_s *image_record,
 						bool *thumb_done)
 {
@@ -2756,8 +2758,9 @@ mb_svc_get_image_meta(const char *file_full_path,
 }
 
 int
-mb_svc_get_video_meta(const char *file_full_path,
-		      mb_svc_video_meta_record_s *video_record)
+mb_svc_get_video_meta(MediaSvcHandle *mb_svc_handle,
+				const char *file_full_path,
+				mb_svc_video_meta_record_s *video_record)
 {
 	MMHandleType content = (MMHandleType) NULL;
 	MMHandleType tag = (MMHandleType) NULL;

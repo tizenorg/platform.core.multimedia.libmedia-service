@@ -66,7 +66,7 @@ void utc_audio_svc_get_list_item_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 	
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_list_item","failed to count items.");
@@ -83,7 +83,7 @@ void utc_audio_svc_get_list_item_func_01()
 		dts_fail("audio_svc_list_item_new","unable to make list item.");
 	}
 	
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", 0, count, result_records);
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", 0, count, result_records);
 	if (ret != AUDIO_SVC_ERROR_NONE) {
 		audio_svc_list_item_free(result_records);
 		dts_fail("audio_svc_get_list_item","failed to get items.");
@@ -106,7 +106,7 @@ void utc_audio_svc_get_list_item_func_02()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	AudioHandleType *result_records = NULL;
-	ret = audio_svc_get_list_item(AUDIO_SVC_GROUP_BY_ALBUM, "Breakaway", "", "", "", 0, ret, result_records);
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Breakaway", "", "", "", 0, ret, result_records);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

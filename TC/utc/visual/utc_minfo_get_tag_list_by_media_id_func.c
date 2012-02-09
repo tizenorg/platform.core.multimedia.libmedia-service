@@ -48,9 +48,9 @@ static int _ite_fn( Mtag* item, void* user_data)
 void utc_minfo_get_tag_list_by_media_id_func_01()
 {
 	int ret = 0;
-	const char *media_uuid = "12ca468c-994d-f62c-7229-a361c3a6c2a1";
+	const char *media_uuid = "aa33f347-988b-41f4-8a53-9df24ea86bc4";
 	GList *p_list = NULL;
-	ret = minfo_get_tag_list_by_media_id( media_uuid, _ite_fn, &p_list);
+	ret = minfo_get_tag_list_by_media_id(handle, media_uuid, _ite_fn, &p_list);
 
 	if (ret == MB_SVC_ERROR_DB_NO_RECORD) {
 		dts_pass(API_NAME, "No record. This is normal operation");
@@ -72,7 +72,7 @@ void utc_minfo_get_tag_list_by_media_id_func_02()
 	int ret = 0;
 	const char *media_uuid = NULL;
 	GList *p_list = NULL;
-	ret = minfo_get_tag_list_by_media_id( media_uuid, NULL, &p_list);
+	ret = minfo_get_tag_list_by_media_id(handle, media_uuid, NULL, &p_list);
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting tag list should be failed because of the item_filter parameter.");
 }

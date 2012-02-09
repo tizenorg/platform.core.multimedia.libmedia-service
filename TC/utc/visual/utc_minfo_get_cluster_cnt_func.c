@@ -44,7 +44,7 @@ void utc_minfo_get_cluster_cnt_func_01()
 	int cnt = 0;
 
 	minfo_cluster_filter cluster_filter ={MINFO_CLUSTER_TYPE_ALL,MINFO_CLUSTER_SORT_BY_NONE,-1,10};
-	ret = minfo_get_cluster_cnt(cluster_filter, &cnt);
+	ret = minfo_get_cluster_cnt(handle, cluster_filter, &cnt);
 	
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to get count of media clusters. error code->%d", ret);
 }
@@ -63,7 +63,7 @@ void utc_minfo_get_cluster_cnt_func_02()
 	int *cnt = NULL;
 
 	minfo_cluster_filter cluster_filter ={MINFO_CLUSTER_TYPE_ALL,MINFO_CLUSTER_SORT_BY_NONE,-1,10};
-	ret = minfo_get_cluster_cnt(cluster_filter, cnt);
+	ret = minfo_get_cluster_cnt(handle, cluster_filter, cnt);
 	
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting count of media clusters should be failed because of the item_filter parameter.");
 }

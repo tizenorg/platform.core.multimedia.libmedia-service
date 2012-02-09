@@ -27,14 +27,13 @@
 #include <glib-object.h>
 #include <glib/gstdio.h>
 #include <pthread.h>
-
-#include "media-info.h"
-#include "media-info-util.h"
-#include "media-info-debug.h"
+#include <sqlite3.h>
+#include "media-svc.h"
+#include "media-svc-util.h"
+#include "media-svc-debug.h"
 
 #include "audio-svc.h"
-#include "audio-svc-error.h"
-#include "media-svc.h"
+#include "visual-svc.h"
 
 void test_connect_disconn();
 int test_query(sqlite3* handle);
@@ -93,12 +92,13 @@ int main(int argc, char *argv[])
 
 	if(argc < 2) return -1;
 
-	err = mediainfo_open();
+	MediaSvcHandle *handle = NULL;
+	err = media_svc_connect(&handle);
 	if(err < 0) {
-		mediainfo_dbg("mediainfo_open fails");
+		mediainfo_dbg("media_svc_connect fails");
 	}
 
-	mediainfo_dbg("mediainfo_open succeeds");
+	mediainfo_dbg("media_svc_connect succeeds");
 
 	test_case = atoi(argv[1]);
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 			test_connect_disconn();
 			break;
 		case 1: 
-			audio_svc_create_table();
+			audio_svc_create_table(handle);
 			break;
 		
 		case 2: 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 
 
 			// Test for tag or media list
-			err = minfo_get_media_list_by_tagname("ZZOON", FALSE, _ite_fn, &p_list);
+			err = minfo_get_media_list_by_tagname(handle, "ZZOON", FALSE, _ite_fn, &p_list);
 			if( err < 0 ) {
 				printf("minfo_get_media_list_by_tagname fails : %d\n", err );
 				break;
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 
 			printf("\n-------------------------------------------\n");
 
-			err = minfo_get_tag_list_by_media_id("2ba2cd51-e93f-af54-c1c2-b29a19fd97d0", _ite_tag_fn, &p_list);
+			err = minfo_get_tag_list_by_media_id(handle, "2ba2cd51-e93f-af54-c1c2-b29a19fd97d0", _ite_tag_fn, &p_list);
 			if( err < 0 ) {
 				printf("minfo_get_media_list_by_tagname fails : %d\n", err );
 				break;
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 
 			printf("\n-------------------------------------------\n");
 
-			err = minfo_get_tag_list_by_media_id("1bf63a42-0530-3cb8-94a1-564d603d85e8", _ite_tag_fn, &p_list);
+			err = minfo_get_tag_list_by_media_id(handle, "1bf63a42-0530-3cb8-94a1-564d603d85e8", _ite_tag_fn, &p_list);
 			if( err < 0 ) {
 				printf("minfo_get_media_list_by_tagname fails : %d\n", err );
 				break;
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 			cluster_filter.start_pos = 0;
 			cluster_filter.end_pos = 5;
 
-			err = minfo_get_cluster_list(cluster_filter, _ite_cluster_fn, &p_list);
+			err = minfo_get_cluster_list(handle, cluster_filter, _ite_cluster_fn, &p_list);
 			if( err < 0 ) {
 				printf("minfo_get_cluster_list fail : %d\n", err);
 				break;
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
 			pthread_join(p_thread[0], (void **) &status);
 
-			err = minfo_update_media_name(media_id, "New.JPG");
+			err = minfo_update_media_name(handle, media_id, "New.JPG");
 			if( err < 0)
 			{
 				printf("minfo_update_media_name failed\n");
@@ -226,14 +226,14 @@ int main(int argc, char *argv[])
 
 			item_filter.file_type =  MINFO_ITEM_ALL;
 			item_filter.sort_type = MINFO_MEDIA_SORT_BY_DATE_ASC;
-			item_filter.start_pos = 3;
+			item_filter.start_pos = 0;
 			item_filter.end_pos = 10;
 			item_filter.with_meta = 0;
 			item_filter.favorite = MINFO_MEDIA_FAV_ALL;
-			const char *_id = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+			const char *_id = "fae82467-6e74-475c-8414-40f011130c6d";
 
 			//get a set of items
-			err = minfo_get_item_list(_id, item_filter, _ite_fn, &p_list);
+			err = minfo_get_item_list(handle, _id, item_filter, _ite_fn, &p_list);
 			if( err < 0)
 			{
 				printf("minfo_get_item_list failed\n");
@@ -247,6 +247,7 @@ int main(int argc, char *argv[])
 				printf("media ID[%d]:%s\n", i, item->uuid );
 				printf("path[%d]:%s\n", i, item->file_url );
 				printf("display_name[%d]:%s\n", i, item->display_name );
+				printf("size[%d]:%d\n", i, item->size );
 				printf("thumb url[%d]:%s(length:%d)\n", i, item->thumb_url, strlen(item->thumb_url) );
 			}
 	
@@ -273,7 +274,7 @@ int main(int argc, char *argv[])
 			item_filter.favorite = MINFO_MEDIA_FAV_ALL;
 
 			//get a set of items
-			err = minfo_get_all_item_list(MINFO_CLUSTER_TYPE_ALL, item_filter, _ite_fn, &p_list);
+			err = minfo_get_all_item_list(handle, MINFO_CLUSTER_TYPE_ALL, item_filter, _ite_fn, &p_list);
 			if( err < 0)
 			{
 				printf("minfo_get_all_item_list failed\n");
@@ -287,7 +288,12 @@ int main(int argc, char *argv[])
 				printf("media ID[%d]:%s\n", i, item->uuid );
 				printf("path[%d]:%s\n", i, item->file_url );
 				printf("display_name[%d]:%s\n", i, item->display_name );
+				printf("size[%d]:%d\n", i, item->size );
 				printf("thumb url[%d]:%s(length:%d)\n", i, item->thumb_url, strlen(item->thumb_url) );
+
+				if (item->type == MINFO_ITEM_VIDEO) {
+					printf("genre : %s\n", item->meta_info->video_info->genre);
+				}
 			}
 	
 			/* delete list to avoid memory leak */
@@ -303,7 +309,7 @@ int main(int argc, char *argv[])
 		case 7:
 			printf("Test minfo_delete_media_id\n");
 			
-			err = minfo_delete_media_id("12ca468c-994d-f62c-7229-a361c3a6c2a1");
+			err = minfo_delete_media_id(handle, "12ca468c-994d-f62c-7229-a361c3a6c2a1");
 			if( err < 0)
 			{
 				printf("minfo_delete_media_id failed\n");
@@ -316,7 +322,7 @@ int main(int argc, char *argv[])
 			printf("Test for minfo_get_cluster\n");
 			Mcluster *cluster = NULL;
 
-			err = minfo_get_cluster(NULL, NULL, &cluster);
+			err = minfo_get_cluster(handle, NULL, NULL, &cluster);
 			if( err < 0 ) {
 				printf("minfo_get_cluster_list fail : %d\n", err);
 				break;
@@ -336,7 +342,7 @@ int main(int argc, char *argv[])
 			filter.with_meta = 0;
 		
 			//get a media items' list who are included to the same tag with 'test tag'.
-			err = minfo_get_media_list_by_tagname_with_filter("gd", filter, _ite_fn, &p_list);
+			err = minfo_get_media_list_by_tagname_with_filter(handle, "gd", filter, _ite_fn, &p_list);
 			if (err < 0)
 			{
 				printf( "failed to get a media items' list. error code->%d", err);
@@ -375,7 +381,7 @@ int main(int argc, char *argv[])
 			m_filter.with_meta = 0;
 			m_filter.favorite = MINFO_MEDIA_FAV_ALL;
 
-			err = minfo_get_cluster_cnt(c_filter, &count);
+			err = minfo_get_cluster_cnt(handle, c_filter, &count);
 
 			if (err < 0) {
 				printf( "failed to get a media items' list. error code->%d", err);
@@ -383,7 +389,7 @@ int main(int argc, char *argv[])
 				printf( "Clouster count : %d\n", count);
 			}
 
-			err = minfo_get_item_cnt(cluster_id, m_filter, &count);
+			err = minfo_get_item_cnt(handle, cluster_id, m_filter, &count);
 
 			if (err < 0) {
 				printf( "failed to get a media items' list. error code->%d", err);
@@ -407,7 +413,7 @@ int main(int argc, char *argv[])
 			struct timeval time2;
 			gettimeofday(&time1, NULL);
 
-			err = minfo_add_media(path, type);
+			err = minfo_add_media(handle, path, type);
 			if( err < 0 ) {
 				printf("minfo_add_media fails ( path : %s, type : %d )\n", path, type );
 			} else {
@@ -429,7 +435,7 @@ int main(int argc, char *argv[])
 		printf("Enter media id: ");
 		scanf("%s", inserted_media_uuid);
 
-		err = minfo_delete_media_id(inserted_media_uuid);
+		err = minfo_delete_media_id(handle, inserted_media_uuid);
 		if( err < 0 ) {
 			printf("minfo_delete_media_id fails\n");
 		} else {
@@ -446,7 +452,7 @@ int main(int argc, char *argv[])
 		const char *cluster_id = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
 
 		//add a web media to a web album.
-		err = minfo_add_web_media_with_type(cluster_id, "http://user/specifying/address",  "web_media", MINFO_ITEM_IMAGE, "thumbnail name");
+		err = minfo_add_web_media_with_type(handle, cluster_id, "http://user/specifying/address",  "web_media", MINFO_ITEM_IMAGE, "thumbnail name");
 		if (err < 0)
 		{
 			printf( "failed to add to a web album. error code->%d", err);
@@ -461,7 +467,7 @@ int main(int argc, char *argv[])
 		//int type;
 
 		//add a web media to a web album.
-		err = minfo_update_cluster_name("8ddcdba9-9df4-72b4-4890-8d21d13854ad", "hey");
+		err = minfo_update_cluster_name(handle, "8ddcdba9-9df4-72b4-4890-8d21d13854ad", "hey");
 		if (err < 0)
 		{
 			printf( "failed to add to a web album. error code->%d", err);
@@ -475,7 +481,7 @@ int main(int argc, char *argv[])
 		char cluster_id[256] = {0,};
 
 		//add a web media to a web album.
-		err = minfo_get_cluster_id_by_url("/opt/media/Images and videos/hey", cluster_id, sizeof(cluster_id));
+		err = minfo_get_cluster_id_by_url(handle, "/opt/media/Images and videos/hey", cluster_id, sizeof(cluster_id));
 		if (err < 0)
 		{
 			printf( "failed to minfo_get_cluster_id_by_url. error code->%d", err);
@@ -494,7 +500,7 @@ int main(int argc, char *argv[])
 		item_filter.favorite = MINFO_MEDIA_FAV_ALL;
 		p_list = NULL;
 		//get a set of items
-		err = minfo_get_item_list(cluster_id, item_filter, _ite_fn, &p_list);
+		err = minfo_get_item_list(handle, cluster_id, item_filter, _ite_fn, &p_list);
 		if( err < 0)
 		{
 			printf("minfo_get_item_list failed\n");
@@ -539,7 +545,7 @@ int main(int argc, char *argv[])
 		p_list = NULL;
 
 		//get a set of items
-		err = minfo_get_item_list_search(search_field, search_str, folder_type, item_filter, _ite_fn, &p_list);
+		err = minfo_get_item_list_search(handle, search_field, search_str, folder_type, item_filter, _ite_fn, &p_list);
 		if (err < 0) {
 			printf("minfo_get_item_list_search failed\n");
 			return err;
@@ -576,7 +582,7 @@ int main(int argc, char *argv[])
 		int height = 480;
 
 		//add a web media to a web album.
-		err = minfo_update_image_meta_info_int(media_uuid, MINFO_IMAGE_META_WIDTH, width,
+		err = minfo_update_image_meta_info_int(handle, media_uuid, MINFO_IMAGE_META_WIDTH, width,
 												MINFO_IMAGE_META_HEIGHT, height, -1);
 		if (err < 0) {
 			printf( "minfo_update_image_meta_info_int failed->%d\n", err);
@@ -609,7 +615,7 @@ int main(int argc, char *argv[])
 		}
 
 		//add a web media to a web album.
-		err = minfo_get_bookmark_list(media_uuid, _bm_ite_fn, &_list);
+		err = minfo_get_bookmark_list(handle, media_uuid, _bm_ite_fn, &_list);
 		if (err < 0) {
 			printf( "minfo_get_bookmark_list failed->%d\n", err);
 		} else {
@@ -626,25 +632,41 @@ int main(int argc, char *argv[])
 		}
 
 		break;
-	
 
-	case 35:
-		printf("test minfo_extract_thumbnail \n");
+	case 20:
+		printf("test minfo_get_item\n");
+		Mitem *mitem = NULL;
+		const char *url = "/opt/media/Images and videos/My video clips/Helicopter.mp4";
 
-		if(argv[2] && argv[3]) {
-			char media_id[256] = {0,};
-			strncpy(media_id, argv[2], sizeof(media_id));
-			int type = atoi(argv[3]);
+		err = minfo_get_item(handle, url, &mitem);
 
-			err = minfo_extract_thumbnail(media_id, type );
-
-			if(err < 0 ) {
-				printf("minfo_extract_thumbnail fails(%d)\n", err );
-				return -1;
-			}
+		if (err < 0) {
+			printf("minfo_get_item failed");
+			return -1;
 		}
 
-		printf("minfo_extract_thumbnail success\n" );
+		printf("mitem->path : %s\n", mitem->file_url);
+		printf("mitem->display_name : %s\n", mitem->display_name);
+		break;
+	case 21:
+		printf("test minfo_get_all_item_conut\n");
+		int cnt = 0;
+		minfo_folder_type f_type = MINFO_CLUSTER_TYPE_LOCAL_ALL;
+		//minfo_folder_type f_type = MINFO_CLUSTER_TYPE_LOCAL_PHONE;
+		//minfo_media_favorite_type fav_type = MINFO_MEDIA_FAV_ALL;
+		minfo_media_favorite_type fav_type = MINFO_MEDIA_FAV_ONLY;
+		
+		minfo_file_type file_type = MINFO_ITEM_ALL;
+		//minfo_file_type file_type = MINFO_ITEM_IMAGE;
+
+		err = minfo_get_all_item_count(handle, f_type, file_type, fav_type, &cnt);
+
+		if (err < 0) {
+			printf("minfo_get_all_item_conut failed");
+			return -1;
+		}
+
+		printf("count : %d\n", cnt);
 		break;
 
 	case 36:
@@ -654,9 +676,9 @@ int main(int argc, char *argv[])
 		if(argv[2] && argv[3]) {
 			int type = atoi(argv[3]);
 			if( type == 1 ) {
-				err = minfo_get_thumb_path(argv[2], thumb_path, 255);
+				err = minfo_get_thumb_path(handle, argv[2], thumb_path, 255);
 			} else if( type == 2) {
-				err = minfo_get_thumb_path_for_video(argv[2], thumb_path, 255);
+				err = minfo_get_thumb_path_for_video(handle, argv[2], thumb_path, 255);
 			} else {
 				printf("minfo_get_thumb_path fails( invalid type )\n" );
 				return -1;
@@ -671,10 +693,10 @@ int main(int argc, char *argv[])
 		printf("minfo_get_thumb_path : %s\n", thumb_path);
 		break;
 
-		case 37:
+	case 37:
 		printf("test minfo_delete_invalid_media_records \n");
 		
-		err = minfo_delete_invalid_media_records(1);
+		err = minfo_delete_invalid_media_records(handle, 1);
 
 		if(err < 0)
 		{
@@ -698,7 +720,7 @@ int main(int argc, char *argv[])
 
 			if( strcmp(path, "exit") == 0 ) break;
 
-			err = audio_svc_insert_item(AUDIO_SVC_STORAGE_PHONE, path, AUDIO_SVC_CATEGORY_MUSIC);
+			err = audio_svc_insert_item(handle, AUDIO_SVC_STORAGE_PHONE, path, AUDIO_SVC_CATEGORY_MUSIC);
 			if (err != AUDIO_SVC_ERROR_NONE) {
 				fprintf(stderr,"[errer to insert music] : %s\n", path);
 			}
@@ -717,7 +739,7 @@ int main(int argc, char *argv[])
 
 			if( strcmp(path, "exit") == 0 ) break;
 
-			err = audio_svc_delete_item_by_path(path);
+			err = audio_svc_delete_item_by_path(handle, path);
 			if (err != AUDIO_SVC_ERROR_NONE) {
 				fprintf(stderr,"[errer to delete music] : %s\n", path);
 			}
@@ -730,15 +752,15 @@ int main(int argc, char *argv[])
 		printf("test audio_svc_get_list_item - AUDIO_SVC_TRACK_BY_SEARCH\n");
 		int offset = 0, count = 10, i = 0;
 		const char *str = "Sa";
-		AudioHandleType *handle = NULL;
+		AudioHandleType *a_handle = NULL;
 
-		err = audio_svc_search_item_new(&handle, count);
+		err = audio_svc_search_item_new(&a_handle, count);
 		if (err < 0) {
 			printf("audio_svc_search_item_new failed:%d\n", err);
 			return err;
 		}
 
-		err = audio_svc_list_by_search(handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
+		err = audio_svc_list_by_search(handle, a_handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
 
 		if (err != AUDIO_SVC_ERROR_NONE) {
 			mediainfo_dbg("Fail to get items : %d", err);
@@ -800,9 +822,9 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	err = mediainfo_close();
+	err = media_svc_disconnect(handle);
 	if(err < 0) {
-		mediainfo_dbg("mediainfo_close fails");
+		mediainfo_dbg("media_svc_disconnect fails");
 	}
 
 	printf("End of Test\n");
@@ -812,25 +834,26 @@ int main(int argc, char *argv[])
 void *do_newjob()
 {
 	int err;
-	err = mediainfo_open();
-
+	
+	MediaSvcHandle *handle = NULL;
+	err = media_svc_connect(&handle);
 	if(err < 0) {
-		mediainfo_dbg("mediainfo_open fails");
+		mediainfo_dbg("media_svc_connect fails");
 	}
 
 	const char *media_id = "2b0a4efe-c3cb-cb62-fe12-3f4f7aef4ab9";
 
-	err = minfo_update_media_name(media_id, "New1.JPG");
+	err = minfo_update_media_name(handle, media_id, "New1.JPG");
 	if( err < 0)
 	{
 		printf("minfo_update_media_name failed\n");
 		return NULL;
 	}
 
-	printf("Calling mediainfo_close in do_newjob \n");
-	err = mediainfo_close();
+	printf("Calling media_svc_disconnect in do_newjob \n");
+	err = media_svc_disconnect(handle);
 	if(err < 0) {
-		mediainfo_dbg("mediainfo_close fails");
+		mediainfo_dbg("media_svc_disconnect fails");
 		return NULL;
 	}
 
@@ -844,18 +867,17 @@ void test_connect_disconn()
 {
 	mediainfo_dbg("");
 	int err = -1;
-	sqlite3* my_handle = NULL;
-
-	err = mediainfo_connect_db_with_handle(&my_handle);
+	MediaSvcHandle *handle = NULL;
+	err = media_svc_connect(&handle);
 	if( err < 0 ) {
 		mediainfo_dbg("Error");
 		return;
-	}
-	if(my_handle == NULL) mediainfo_dbg("NULL!!!!!"); 
+	} else { mediainfo_dbg("success"); }
 
-	test_query(my_handle);
+	if(handle == NULL) mediainfo_dbg("NULL!!!!!");
+	test_query((sqlite3 *)handle);
 
-	err = mediainfo_disconnect_db_with_handle(my_handle);
+	err = media_svc_disconnect(handle);
 	if( err < 0 ) {
 		mediainfo_dbg("Error");
 		return;
@@ -875,9 +897,10 @@ int test_query(sqlite3* handle)
 
 	if( handle == NULL ) {
 		mediainfo_dbg( "handle is NULL" );
+		return -1;
 	}
 
-	snprintf(query_string, sizeof(query_string), "select * from folder where _id = 1");
+	snprintf(query_string, sizeof(query_string), "select * from visual_folder where storage_type = 0");
 
 	err = sqlite3_prepare_v2(handle, query_string, strlen(query_string), &stmt, NULL);	
 

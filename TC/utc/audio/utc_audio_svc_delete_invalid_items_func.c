@@ -52,7 +52,7 @@ void utc_audio_svc_delete_invalid_items_func_01()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	audio_svc_storage_type_e storage = AUDIO_SVC_STORAGE_PHONE;
 
-	ret = audio_svc_delete_invalid_items(storage);
+	ret = audio_svc_delete_invalid_items(db_handle, storage);
 	dts_check_eq("audio_svc_delete_invalid_items", ret, AUDIO_SVC_ERROR_NONE, "failed to delete invalid items.");
 }
 
@@ -67,7 +67,7 @@ void utc_audio_svc_delete_invalid_items_func_02()
 	int ret = AUDIO_SVC_ERROR_NONE;
 	audio_svc_storage_type_e storage = 3;
 
-	ret = audio_svc_delete_invalid_items(storage);
+	ret = audio_svc_delete_invalid_items(db_handle, storage);
 	if (ret !=  AUDIO_SVC_ERROR_NONE)
 	{
 		dts_pass("audio_svc_delete_invalid_items","abnormal condition test for invalid storage parameter.");

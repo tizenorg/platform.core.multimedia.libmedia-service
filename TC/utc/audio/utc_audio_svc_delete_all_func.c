@@ -54,7 +54,7 @@ void utc_audio_svc_delete_all_func_01()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	
-	ret = audio_svc_delete_all(AUDIO_SVC_STORAGE_PHONE);
+	ret = audio_svc_delete_all(db_handle, AUDIO_SVC_STORAGE_PHONE);
 	dts_check_eq("audio_svc_delete_all", ret, AUDIO_SVC_ERROR_NONE, "failed to get groups.");
 
 }
@@ -71,7 +71,7 @@ void utc_audio_svc_delete_all_func_02()
 {	
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_delete_all(100);
+	ret = audio_svc_delete_all(db_handle, 100);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

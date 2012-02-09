@@ -54,7 +54,7 @@ void utc_audio_svc_count_list_item_func_01()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	dts_check_eq("audio_svc_count_list_item", ret, AUDIO_SVC_ERROR_NONE, "failed to count items.");
 
 }
@@ -70,7 +70,7 @@ void utc_audio_svc_count_list_item_func_01()
 void utc_audio_svc_count_list_item_func_02()
 {	
 	int ret = AUDIO_SVC_ERROR_NONE;
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", NULL);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", NULL);
 	
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

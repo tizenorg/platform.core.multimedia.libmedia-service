@@ -43,7 +43,7 @@ void utc_minfo_delete_invalid_media_records_func_01()
 	int ret = -1;
 	minfo_store_type storage_type = MINFO_PHONE;
 
-    ret = minfo_delete_invalid_media_records(storage_type );
+    ret = minfo_delete_invalid_media_records(handle, storage_type);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to delete invalid records. error code->%d", ret);
 }
@@ -61,7 +61,7 @@ void utc_minfo_delete_invalid_media_records_func_02()
 	int ret = -1;
 	minfo_store_type storage_type = MINFO_SYSTEM;
 
-    ret = minfo_delete_invalid_media_records(storage_type);
+    ret = minfo_delete_invalid_media_records(handle, storage_type);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "deleting invalid records should be failed because of the status is invalid.");
 }
 

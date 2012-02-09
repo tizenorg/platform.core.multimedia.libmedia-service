@@ -43,7 +43,7 @@ int _get_id_by_url(const char* url, char *id)
 	int ret;
 	Mitem* item = NULL;
 
-	ret = minfo_get_item( url, &item );
+	ret = minfo_get_item(handle, url, &item );
 	if( ret < 0 ) {
 		dts_message(API_NAME, "minfo_get_item fail");
 		return -1;
@@ -65,10 +65,10 @@ int _get_id_by_url(const char* url, char *id)
 void utc_minfo_add_media_func_01()
 {
 	int err = -1;
-	char *file_url = "/opt/media/Images and videos/Wallpapers/Home_01.png";
+	char *file_url = "/opt/media/Images/Wallpapers/Home_01.jpg";
 	int type = 1;
 
-	err = minfo_add_media(file_url, type);
+	err = minfo_add_media(handle, file_url, type);
 
 	dts_check_ge(API_NAME, err, MB_SVC_ERROR_NONE, "unable to Add a media content to media table. error code->%d", err);
 }
@@ -84,10 +84,10 @@ void utc_minfo_add_media_func_01()
 void utc_minfo_add_media_func_02()
 {	
 	int err = -1;
-	char *file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_01.png";*/
+	char *file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_01.jpg";*/
 	int type = 1;
 
-	err = minfo_add_media(file_url, type);	
+	err = minfo_add_media(handle, file_url, type);	
 		
 	dts_check_lt(API_NAME, err, MB_SVC_ERROR_NONE,"Add a media content to media table should be failed because of the file_url NULL.");
 }
@@ -102,11 +102,11 @@ void utc_minfo_add_media_func_02()
 void utc_minfo_copy_media_func_01()
 {
 	int err = -1;
-	char *old_file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
-	char *new_file_url = "/opt/media/Images and videos/Wallpapers/Home_default_1.png";
+	char *old_file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
+	char *new_file_url = "/opt/media/Images/Wallpapers/Home_default_1.jpg";
 	int type = 1;
 
-	err = minfo_copy_media(old_file_url, new_file_url, type);
+	err = minfo_copy_media(handle, old_file_url, new_file_url, type);
 
 	dts_check_ge(API_NAME, err, MB_SVC_ERROR_NONE, "unable to Copy a media content from media table.. error code->%d", err);
 
@@ -123,11 +123,11 @@ void utc_minfo_copy_media_func_01()
 void utc_minfo_copy_media_func_02()
 {	
 	int err = -1;
-	char *old_file_url = NULL; /*= "/opt/media/Images and videos/Wallpapers/Home_default.png";*/
-	char *new_file_url = "/opt/media/Images and videos/Wallpapers/Home_default_1.png";
+	char *old_file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_default.jpg";*/
+	char *new_file_url = "/opt/media/Images/Wallpapers/Home_default_1.jpg";
 	int type = 1;
 
-	err = minfo_copy_media(old_file_url, new_file_url, type);
+	err = minfo_copy_media(handle, old_file_url, new_file_url, type);
 		
 	dts_check_lt(API_NAME, err, MB_SVC_ERROR_NONE, "Copy a media content from media table should be failed because of the file_url NULL.");
 }
@@ -144,14 +144,14 @@ void utc_minfo_cp_media_func_01()
 {
 	int ret = -1;
 	
-	char *file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
+	char *file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
 	char src_media_uuid[256] = {0,};
 	char src_cluster_uuid[256] = {0,};
-	char *dst_cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	char *dst_cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 
 	Mitem* item = NULL;
 
-	ret = minfo_get_item( file_url, &item );
+	ret = minfo_get_item(handle, file_url, &item );
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail( API_NAME, "unable to get a media content from media table. error code->%d", ret);
@@ -163,7 +163,7 @@ void utc_minfo_cp_media_func_01()
 
 	minfo_destroy_mtype_item(item);	
 
-	ret = minfo_cp_media(src_media_uuid, dst_cluster_uuid);
+	ret = minfo_cp_media(handle, src_media_uuid, dst_cluster_uuid);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -175,7 +175,7 @@ void utc_minfo_cp_media_func_01()
 	minfo_item_filter item_filter = {MINFO_ITEM_ALL,MINFO_MEDIA_SORT_BY_NONE,-1,-1,false,false};
 	Mitem* dest_item = NULL;
 
-	ret = minfo_get_item_list(dst_cluster_uuid, item_filter, _ite_fn, &p_list);
+	ret = minfo_get_item_list(handle, dst_cluster_uuid, item_filter, _ite_fn, &p_list);
 	
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -184,7 +184,7 @@ void utc_minfo_cp_media_func_01()
 
 	int len = g_list_length( p_list );
 	dest_item = (Mitem*)g_list_nth_data(p_list, len-1);
-	ret = minfo_delete_media_id( dest_item->uuid );
+	ret = minfo_delete_media_id(handle, dest_item->uuid );
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -212,7 +212,7 @@ void utc_minfo_cp_media_func_02()
 	char *src_media_uuid = NULL;
 	char *dst_cluster_uuid = NULL;
 
-	ret = minfo_cp_media(src_media_uuid, dst_cluster_uuid);
+	ret = minfo_cp_media(handle, src_media_uuid, dst_cluster_uuid);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"copy a record identified by media id to destination folder identified by folder id should be failed because of the src_media_id -1.");
 }
@@ -227,9 +227,9 @@ void utc_minfo_cp_media_func_02()
 void utc_minfo_delete_media_func_01()
 {
 	int err = -1;
-	char *file_url = "/opt/media/Images and videos/Wallpapers/Home_01.png";
+	char *file_url = "/opt/media/Images/Wallpapers/Home_01.jpg";
 
-	err = minfo_delete_media(file_url);
+	err = minfo_delete_media(handle, file_url);
 
 	dts_check_ge(API_NAME, err, MB_SVC_ERROR_NONE, "unable to Add a media content to media table. error code->%d", err);
 }
@@ -245,9 +245,9 @@ void utc_minfo_delete_media_func_01()
 void utc_minfo_delete_media_func_02()
 {	
 	int err = -1;
-	char *file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_01.png";*/
+	char *file_url = NULL; /*= "/opt/media/Images/Wallpapers/Home_01.jpg";*/
 
-	err = minfo_delete_media(file_url);
+	err = minfo_delete_media(handle, file_url);
 	dts_check_lt(API_NAME, err, MB_SVC_ERROR_NONE,"Delete a media content from media table should be failed because of the file_url NULL.");
 }
 
@@ -264,8 +264,8 @@ void utc_minfo_delete_media_id_func_01()
 	int ret = -1;
 	char media_uuid[256] = {0,};
 	
-	_get_id_by_url("/opt/media/Images and videos/Wallpapers/Home_default_1.png", media_uuid);
-	ret = minfo_delete_media_id(media_uuid);
+	_get_id_by_url("/opt/media/Images/Wallpapers/Home_default_1.jpg", media_uuid);
+	ret = minfo_delete_media_id(handle, media_uuid);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to delete a record identified by media id from 'media' table. error code->%d", ret);
 }
@@ -283,7 +283,7 @@ void utc_minfo_delete_media_id_func_02()
 	int ret = -1;
 	
 	char *media_uuid = NULL;
-	ret = minfo_delete_media_id(media_uuid);
+	ret = minfo_delete_media_id(handle, media_uuid);
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "delete a record identified by media id from 'media' table should be failed because of the media_id -1.");
 }

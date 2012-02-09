@@ -52,7 +52,7 @@ void utc_audio_svc_create_table_func_01()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	
-	ret = audio_svc_create_table();
+	ret = audio_svc_create_table(db_handle);
 	dts_check_eq("audio_svc_create_table", ret, AUDIO_SVC_ERROR_NONE, "unable to create music phone table.");
 
 }

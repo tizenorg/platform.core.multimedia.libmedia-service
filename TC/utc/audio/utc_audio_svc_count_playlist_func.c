@@ -54,7 +54,7 @@ void utc_audio_svc_count_playlist_func_01()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	dts_check_eq("audio_svc_count_playlist", ret, AUDIO_SVC_ERROR_NONE, "failed to get playlists count.");
 
 }
@@ -70,7 +70,7 @@ void utc_audio_svc_count_playlist_func_01()
 void utc_audio_svc_count_playlist_func_02()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	ret = audio_svc_count_playlist("", "", NULL);
+	ret = audio_svc_count_playlist(db_handle, "", "", NULL);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

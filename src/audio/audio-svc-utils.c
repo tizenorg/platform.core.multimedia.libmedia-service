@@ -39,22 +39,18 @@
 #include <sys/time.h>
 #include <sys/vfs.h>
 #include <ctype.h>
-
 #include <dirent.h>
-
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <drm-service-types.h>
 #include <drm-service.h>
-
 #include <mm_file.h>
-#include "media-info-util.h"
 #include "audio-svc-debug.h"
 #include "audio-svc-error.h"
 #include "audio-svc-utils.h"
 #include "audio-svc.h"
 #include "audio-svc-types-priv.h"
-#include "md5_hash.h"
+#include "media-svc-hash.h"
 
 #define AUDIO_SVC_PARENTAL_RATING_LEN		20
 #define AUDIO_SVC_FILE_EXT_LEN_MAX				6			/**<  Maximum file ext lenth*/
@@ -558,7 +554,7 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 		}
 
 		/* extract thumbnail image */
-		/*hm2007.kim 100122 - remove thumbnail extract routine while db creating.*/
+		/* remove thumbnail extract routine while db creating.*/
 #if 0
 		album_id = _audio_svc_get_album_id(item->audio.album);
 		if (album_id < 0) {
@@ -645,7 +641,7 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 			return AUDIO_SVC_ERROR_INTERNAL;
 		}
 		
-		/* hjkim, 101112, in case of file size 0, MMFW Can't parsting tag info but add it to Music DB. */
+		/* in case of file size 0, MMFW Can't parsting tag info but add it to Music DB. */
 		_strncpy_safe(item->audio.album, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.album));
 		_strncpy_safe(item->audio.artist, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.artist));
 		_strncpy_safe(item->audio.genre, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.genre));

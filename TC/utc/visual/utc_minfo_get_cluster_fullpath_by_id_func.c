@@ -41,11 +41,11 @@
 void utc_minfo_get_cluster_fullpath_by_id_func_01()
 {
 	int ret = -1;
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 	int size = 256;
 	char fullpath[256] = {'\0'};
 
-    ret = minfo_get_cluster_fullpath_by_id(cluster_uuid, fullpath, size);
+    ret = minfo_get_cluster_fullpath_by_id(handle, cluster_uuid, fullpath, size);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to get cluster fullpath by id. error code->%d", ret);
 }
@@ -65,7 +65,7 @@ void utc_minfo_get_cluster_fullpath_by_id_func_02()
 	int size = 256;
 	char fullpath[256] = {'\0'};
 
-    ret = minfo_get_cluster_fullpath_by_id(cluster_uuid, fullpath, size);
+    ret = minfo_get_cluster_fullpath_by_id(handle, cluster_uuid, fullpath, size);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"Getting cluster fullpath by id should be failed because the passed status is NULL.");
 }
 

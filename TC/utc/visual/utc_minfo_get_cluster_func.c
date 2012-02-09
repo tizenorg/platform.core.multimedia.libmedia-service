@@ -43,9 +43,9 @@ void utc_minfo_get_cluster_func_01()
 	int ret = -1;
 
     Mcluster *mc = NULL;
-    char *cluster_url = "/opt/media/Images and videos/Wallpapers";
+    char *cluster_url = "/opt/media/Images/Wallpapers";
 
-    ret = minfo_get_cluster(cluster_url, 0, &mc);
+    ret = minfo_get_cluster(handle, cluster_url, 0, &mc);
 
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "failed to get a cluster/folder record from folder table with Mcluster type. error code->%d", ret);
 }
@@ -65,6 +65,6 @@ void utc_minfo_get_cluster_func_02()
     Mcluster *mc = NULL;
     char *cluster_url = NULL; /*= "/opt/media/Images/Wallpapers";*/
 
-    ret = minfo_get_cluster(cluster_url, 0, &mc);
+    ret = minfo_get_cluster(NULL, cluster_url, 0, &mc);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE, "get a cluster/folder record from folder table with Mcluster type should be failed because of mc NULL.");
 }

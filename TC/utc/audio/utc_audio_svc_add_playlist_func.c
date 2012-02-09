@@ -59,7 +59,7 @@ void utc_audio_svc_insert_playlist_func_01()
 	const char *playlist_name = "plst_test_00";
 	int playlist_id = 0;
 	
-	ret = audio_svc_add_playlist(playlist_name, &playlist_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 	dts_check_eq("audio_svc_add_playlist", ret, AUDIO_SVC_ERROR_NONE, "unable to insert playlist.");
 
 }
@@ -76,7 +76,7 @@ void utc_audio_svc_insert_playlist_func_02()
 {	
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_add_playlist(NULL, NULL);
+	ret = audio_svc_add_playlist(db_handle, NULL, NULL);
 	
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

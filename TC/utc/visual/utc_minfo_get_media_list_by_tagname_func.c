@@ -50,7 +50,7 @@ void utc_minfo_get_media_list_by_tagname_func_01()
 	int ret = 0;
 	const char* tag = "Family";
 	GList *p_list = NULL;
-	ret = minfo_get_media_list_by_tagname(tag, FALSE, _ite_fn, &p_list);
+	ret = minfo_get_media_list_by_tagname(handle, tag, FALSE, _ite_fn, &p_list);
 
 	if (ret == MB_SVC_ERROR_DB_NO_RECORD) {
 		dts_pass(API_NAME, "No record. This is normal operation");
@@ -72,7 +72,7 @@ void utc_minfo_get_media_list_by_tagname_func_02()
 	int ret = 0;
 	const char* tag = "Family";
 	GList *p_list = NULL;
-	ret = minfo_get_media_list_by_tagname(tag, FALSE, NULL, &p_list);
+	ret = minfo_get_media_list_by_tagname(handle, tag, FALSE, NULL, &p_list);
 
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting media records should be failed because of the item_filter parameter.");
 }

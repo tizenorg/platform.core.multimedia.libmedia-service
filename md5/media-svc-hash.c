@@ -25,10 +25,11 @@
  * File name is changed to media-svc-hash.c
  */
 
-#include "media-svc-error.h"
 #include "md5.h"
 #include <string.h>
 #include <alloca.h>
+#include "media-svc-hash.h"
+#include "visual-svc-error.h"
 
 
 static const char ACCEPTABLE_URI_CHARS[96] = {

@@ -42,25 +42,25 @@ void utc_minfo_update_cluster_name_func_01()
 {
 	int ret = -1;
 	
-	const char *cluster_uuid = "8ddcdba9-9df4-72b4-4890-8d21d13854ad";
+	const char *cluster_uuid = "8ac1df34-efa8-4143-a47e-5b6f4bac8c96";
 	char *new_name = "newfolder";
 	char origin_name[256];
 	memset( origin_name, 0x00, 256 );
 
-	ret = minfo_get_cluster_name_by_id(cluster_uuid, origin_name, 256); 
+	ret = minfo_get_cluster_name_by_id(handle, cluster_uuid, origin_name, 256); 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to get a cluster name. error code->%d", ret);
 	}
 
-	ret = minfo_update_cluster_name(cluster_uuid,new_name);
+	ret = minfo_update_cluster_name(handle, cluster_uuid,new_name);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to get a cluster name. error code->%d", ret);
 	}
 	
-	ret = minfo_update_cluster_name(cluster_uuid, origin_name);
+	ret = minfo_update_cluster_name(handle, cluster_uuid, origin_name);
 
 	if (ret < MB_SVC_ERROR_NONE)
 	{
@@ -85,7 +85,7 @@ void utc_minfo_update_cluster_name_func_02()
 	const char *cluster_uuid = NULL;
 	char *new_name = NULL; /*= "newfolder";*/
 
-	ret = minfo_update_cluster_name(cluster_uuid, new_name);
+	ret = minfo_update_cluster_name(handle, cluster_uuid, new_name);
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"Update a cluster name should be failed because of the new_name parameter NULL.");
 	
 }

@@ -41,14 +41,14 @@
 void utc_minfo_update_media_name_func_01()
 {
 	int ret = -1;
-	char *file_url = "/opt/media/Images and videos/Wallpapers/Home_default.png";
+	char *file_url = "/opt/media/Images/Wallpapers/Home_default.jpg";
 	char origin_name[256];
-	char *new_name = "Home_01.png";
+	char *new_name = "Home_01.jpg";
 	Mitem* item = NULL;
 	memset( origin_name, 0x00, 256 );
 
 
-	ret = minfo_get_item( file_url, &item );
+	ret = minfo_get_item(handle, file_url, &item );
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to get a media content from media table. error code->%d", ret);
@@ -56,14 +56,14 @@ void utc_minfo_update_media_name_func_01()
 
 	if( item ) {
 		strncpy( origin_name, item->display_name, sizeof( origin_name ) );
-    	ret = minfo_update_media_name(item->uuid, new_name);
+    	ret = minfo_update_media_name(handle, item->uuid, new_name);
 
 		if (ret < MB_SVC_ERROR_NONE)
 		{
 			dts_fail(API_NAME, "unable to Rename a media content from media table. error code->%d", ret);
 		}
 
-    	ret = minfo_update_media_name(item->uuid, origin_name);
+    	ret = minfo_update_media_name(handle, item->uuid, origin_name);
 
 		if (ret < MB_SVC_ERROR_NONE)
 		{
@@ -86,9 +86,9 @@ void utc_minfo_update_media_name_func_02()
 {
 	int ret = -1;
 	const char *media_uuid = NULL;
-	char *new_name = NULL;/*= "Home_01.png";*/
+	char *new_name = NULL;/*= "Home_01.jpg";*/
 
-    ret = minfo_update_media_name(media_uuid, new_name);
+    ret = minfo_update_media_name(handle, media_uuid, new_name);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"Rename a media content from media table should be failed because of the new_name NULL.");
 }

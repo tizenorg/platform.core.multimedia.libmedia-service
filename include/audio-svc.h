@@ -25,7 +25,9 @@
 #define _AUDIO_SVC_H_
 
 #include <stddef.h>
+#include "media-svc-types.h"
 #include "audio-svc-types.h"
+#include "audio-svc-error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,78 +52,6 @@ extern "C" {
 
 
 /**
- *	audio_svc_open:\n
- *	Open audio service library. This is the function that an user who wants to use music-service calls first.
- * 	This function connects with the music database and initialize efreet mime libary.
- *
- *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
- *				Please refer 'audio-svc-types.h' to know the exact meaning of the error.
- *	@see		audio_svc_close
- *	@pre		None.
- *	@post		call audio_svc_close() to close music database
- *	@remark	The database name is "/opt/dbspace/.music.db".
- * 	@par example
- * 	@code
-
-#include <audio-svc.h>
-
-void open_music_db()
-{
-	int ret = AUDIO_SVC_ERROR_NONE;
-	// open music database
-	ret = audio_svc_open();
-	// open failed
-	if (ret < 0)
-	{
-		printf( "Cannot open music db. error code->%d", ret);
-		return;
-	}
-
-	return;
-}
-
- * 	@endcode
- */
-int audio_svc_open(void);
-
-
-/**
- *    audio_svc_close:\n
- *	Close audio service library. This is the function need to call before close the application.
- *	This function disconnects with the music database and shutdown the efreet mime libary.
- *
- *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
- *				Please refer 'audio-svc-types.h' to know the exact meaning of the error.
- *	@see		audio_svc_open
- *	@pre		music database already is opened.
- *	@post 		None
- *	@remark	memory free before you call this function to close database.
- * 	@par example
- * 	@code
-
-#include <audio-svc.h>
-
-void close_music_db()
-{
-	int ret = AUDIO_SVC_ERROR_NONE;
-	// close music database
-	ret = audio_svc_close();
-	// close failed
-	if (ret < 0)
-	{
-		printf( "unable to close music db. error code->%d", ret);
-		return;
-	}
-
-	return;
-}
-
- * 	@endcode
- */
-int audio_svc_close(void);
-
-
-/**
  *    audio_svc_create_table:\n
  *	Create the tables in music database. File manager service need to call this function before it register media data into
  *	music database. In all music database consists of 5 tables, music table for Phone tracks, music table for MMC tracks,
@@ -138,12 +68,12 @@ int audio_svc_close(void);
 
 #include <audio-svc.h>
 
-void create_music_table()
+void create_music_table(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
 	// create muisc tables of phone type
-	ret = audio_svc_create_table();
+	ret = audio_svc_create_table(db_handle);
 	if (ret < 0)
 	{
 		printf( "unable to create table. error code->%d", ret);
@@ -155,7 +85,7 @@ void create_music_table()
 
  * 	@endcode
  */
-int	audio_svc_create_table(void);
+int	audio_svc_create_table(MediaSvcHandle *handle);
 
 /**
  * 	audio_svc_set_db_valid:\n
@@ -177,12 +107,12 @@ int	audio_svc_create_table(void);
 
 #include <audio-svc.h>
 
-void set_db_valid(bool valid)
+void set_db_valid(MediaSvcHandle *db_handle, bool valid)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
 	//set the validation of tracks in MMC storage in db.
-	ret = audio_svc_set_db_valid(AUDIO_SVC_STORAGE_MMC, valid);
+	ret = audio_svc_set_db_valid(db_handle, AUDIO_SVC_STORAGE_MMC, valid);
 	if (ret < 0)
 	{
 		printf( "failed to set db invalid. error code->%d", ret);
@@ -194,7 +124,7 @@ void set_db_valid(bool valid)
 
  * 	@endcode
  */
-int audio_svc_set_db_valid(audio_svc_storage_type_e storage_type, int valid);
+int audio_svc_set_db_valid(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type, int valid);
 
 /**
  *	audio_svc_delete_all:\n
@@ -213,11 +143,11 @@ int audio_svc_set_db_valid(audio_svc_storage_type_e storage_type, int valid);
 
  #include <audio-svc.h>
 
-void delete_all()
+void delete_all(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	// delete all the tracks in phone storage.
-	ret = audio_svc_delete_all(AUDIO_SVC_STORAGE_PHONE);
+	ret = audio_svc_delete_all(db_handle, AUDIO_SVC_STORAGE_PHONE);
 	if (ret < 0)
 	{
 		printf( "failed to delete phone storage. error code->%d", ret);
@@ -228,7 +158,7 @@ void delete_all()
 
  * 	@endcode
  */
-int audio_svc_delete_all(audio_svc_storage_type_e storage_type);
+int audio_svc_delete_all(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type);
 
 
 /** @} */
@@ -271,13 +201,13 @@ int audio_svc_delete_all(audio_svc_storage_type_e storage_type);
 
  #include <audio-svc.h>
 
- void get_group_count()
+ void get_group_count(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 
 	// count the groups by artist
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ARTIST, "", "", "", "", &count);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ARTIST, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get groups. error code->%d", ret);
@@ -291,7 +221,7 @@ int audio_svc_delete_all(audio_svc_storage_type_e storage_type);
  * 	@endcode
  */
 
-int audio_svc_count_group_item(audio_svc_group_type_e group_type, const char *limit_string1, const char *limit_string2, const char *filter_string, const char *filter_string2, int *count);
+int audio_svc_count_group_item(MediaSvcHandle *handle, audio_svc_group_type_e group_type, const char *limit_string1, const char *limit_string2, const char *filter_string, const char *filter_string2, int *count);
 
 
 /**
@@ -322,14 +252,14 @@ int audio_svc_count_group_item(audio_svc_group_type_e group_type, const char *li
 
  #include <audio-svc.h>
 
-void get_groups()
+void get_groups(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
 	//count the albms with name "Unplugged"
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", &count);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of groups. error code->%d", ret);
@@ -339,19 +269,19 @@ void get_groups()
 	if(count > 0)
 	{
 		// allocate the result records with count
-		ret = audio_svc_group_item_new(&handle, count);
+		ret = audio_svc_group_item_new(&audio_handle, count);
 		if (ret < 0)
 		{
 			printf( "failed to allocate handle. error code->%d", ret);
 			return;
 		}
 
-		ret = audio_svc_get_group_item(AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", 0, ret, handle);
+		ret = audio_svc_get_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", 0, ret, audio_handle);
 		if (ret < 0)
 		{
 			printf( "failed to get groups. error code->%d", ret);
 		}
-		audio_svc_group_item_free(handle);
+		audio_svc_group_item_free(audio_handle);
 	}
 	else
 	{
@@ -364,7 +294,7 @@ void get_groups()
  * 	@endcode
  */
 
-int audio_svc_get_group_item(audio_svc_group_type_e group_type, const char *limit_string1, const char *limit_string2, const char *filter_string, const char *filter_string2,int offset, int rows, AudioHandleType *result_records);
+int audio_svc_get_group_item(MediaSvcHandle *handle, audio_svc_group_type_e group_type, const char *limit_string1, const char *limit_string2, const char *filter_string, const char *filter_string2,int offset, int rows, AudioHandleType *result_records);
 
 
 /**
@@ -389,11 +319,11 @@ int audio_svc_get_group_item(audio_svc_group_type_e group_type, const char *limi
 void group_item_new()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//allocate the memory of type group item with count
-	ret = audio_svc_group_item_new(&handle, count);
+	ret = audio_svc_group_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -430,11 +360,11 @@ int audio_svc_group_item_new(AudioHandleType **record, int count);
 void group_item_free()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//allocate the memory of type group item with count
-	ret = audio_svc_group_item_new(&handle, count);
+	ret = audio_svc_group_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -442,7 +372,7 @@ void group_item_free()
 	}
 
 	//free the list item memory.
-	ret = audio_svc_group_item_free(handle);
+	ret = audio_svc_group_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -479,13 +409,13 @@ int audio_svc_group_item_free(AudioHandleType *record);
 
  #include <audio-svc.h>
 
-void get_group_item_get_value()
+void get_group_item_get_value(MediaSvcHandle *db_handle)
 {
 	int count = 0;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", &count);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of groups. error code->%d", ret);
@@ -495,18 +425,18 @@ void get_group_item_get_value()
 	if(count > 0)
 	{
 		// allocate the result records with count
-		ret = audio_svc_group_item_new(&handle, count);
+		ret = audio_svc_group_item_new(&audio_handle, count);
 		if (ret < 0)
 		{
 			printf( "failed to allocate handle. error code->%d", ret);
 			return;
 		}
 
-		ret = audio_svc_get_group_item(AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", 0, count, handle);
+		ret = audio_svc_get_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", 0, count, audio_handle);
 		if (ret < 0)
 		{
 			printf( "failed to get groups. error code->%d", ret);
-			audio_svc_group_item_free(handle);
+			audio_svc_group_item_free(audio_handle);
 			return;
 		}
 	}
@@ -534,12 +464,12 @@ void get_group_item_get_value()
 		if (ret < 0)
 		{
 			printf( "failed to get group items. error code->%d", ret);
-			audio_svc_group_item_free(handle);
+			audio_svc_group_item_free(audio_handle);
 			return;
 		}
 	}
 
-	ret = audio_svc_group_item_free(handle);
+	ret = audio_svc_group_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -572,14 +502,14 @@ int audio_svc_group_item_get_val(AudioHandleType *record, int index, audio_svc_g
 
  #include <audio-svc.h>
 
-void get_group_item()
+void get_group_item(MediaSvcHandle *db_handle)
 {
 	int count = 0;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	AudioHandleType *item = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_count_group_item(AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", &count);
+	ret = audio_svc_count_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of groups. error code->%d", ret);
@@ -589,9 +519,9 @@ void get_group_item()
 	if(count > 0)
 	{
 		// allocate the result records with count
-		ret = audio_svc_group_item_new(&handle, count);
+		ret = audio_svc_group_item_new(&audio_handle, count);
 
-		ret = audio_svc_get_group_item(AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", 0, count, handle);
+		ret = audio_svc_get_group_item(db_handle, AUDIO_SVC_GROUP_BY_ALBUM, "Unplugged", "", "", "", 0, count, audio_handle);
 		if (ret < 0)
 		{
 			printf( "failed to allocate handle. error code->%d", ret);
@@ -601,7 +531,7 @@ void get_group_item()
 		if (ret < 0)
 		{
 			printf( "failed to get groups. error code->%d", ret);
-			audio_svc_group_item_free(handle);
+			audio_svc_group_item_free(audio_handle);
 			return;
 		}
 	}
@@ -611,14 +541,14 @@ void get_group_item()
 		return;
 	}
 
-	ret = audio_svc_group_item_get(handle,0, &item);
+	ret = audio_svc_group_item_get(audio_handle,0, &item);
 	if (ret < 0)
 	{
 		printf( "failed to get group item. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_group_item_free(handle);
+	ret = audio_svc_group_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -660,12 +590,12 @@ int audio_svc_group_item_get(AudioHandleType *record, int index, AudioHandleType
 
  #include <audio-svc.h>
 
-void get_item_count()
+void get_item_count(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 	// get the count of all tracks in db.
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
@@ -680,7 +610,7 @@ void get_item_count()
  * 	@endcode
  */
 
-int audio_svc_count_list_item(audio_svc_track_type_e item_type, const char *type_string, const char *type_string2, const char *filter_string, const char *filter_string2, int *count);
+int audio_svc_count_list_item(MediaSvcHandle *handle, audio_svc_track_type_e item_type, const char *type_string, const char *type_string2, const char *filter_string, const char *filter_string2, int *count);
 
 
 /**
@@ -711,14 +641,14 @@ int audio_svc_count_list_item(audio_svc_track_type_e item_type, const char *type
 
  #include <audio-svc.h>
 
-void get_track_item()
+void get_track_item(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = -1;
 
 	// get the count of all tracks
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
@@ -728,7 +658,7 @@ void get_track_item()
 	if(count > 0)
 	{
 		// allocate result records
-		ret = audio_svc_list_item_new(&handle, count);
+		ret = audio_svc_list_item_new(&audio_handle, count);
 		if (ret < 0)
 		{
 			printf( "failed to allocate handle. error code->%d", ret);
@@ -736,15 +666,15 @@ void get_track_item()
 		}
 
 		// get items
-		ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", 0, ret, handle);
+		ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", 0, ret, audio_handle);
 
 		if (ret < 0)
 		{
 			printf( "failed to  get items. error code->%d", ret);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
-		audio_svc_list_item_free(handle);
+		audio_svc_list_item_free(audio_handle);
 	}
 	else
 	{
@@ -757,7 +687,7 @@ void get_track_item()
  * 	@endcode
  */
 
-int audio_svc_get_list_item(audio_svc_track_type_e item_type, const char *type_string, const char *type_string2, const char *filter_string, const char *filter_string2, int offset, int rows, AudioHandleType *track);
+int audio_svc_get_list_item(MediaSvcHandle *handle, audio_svc_track_type_e item_type, const char *type_string, const char *type_string2, const char *filter_string, const char *filter_string2, int offset, int rows, AudioHandleType *track);
 
 
 /**
@@ -782,11 +712,11 @@ int audio_svc_get_list_item(audio_svc_track_type_e item_type, const char *type_s
 void list_item_new()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//allocate the memory of type list item with count
-	ret = audio_svc_list_item_new(&handle, count);
+	ret = audio_svc_list_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -822,11 +752,11 @@ int audio_svc_list_item_new(AudioHandleType **record, int count);
 void list_item_free()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//allocate the memory of type list item with count
-	ret = audio_svc_list_item_new(&handle, count);
+	ret = audio_svc_list_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -834,7 +764,7 @@ void list_item_free()
 	}
 
 	//free the list item memory.
-	ret = audio_svc_list_item_free(handle);
+	ret = audio_svc_list_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -870,20 +800,20 @@ int audio_svc_list_item_free(AudioHandleType *record);
 
  #include <audio-svc.h>
 
-void get_list_item_get_value()
+void get_list_item_get_value(MediaSvcHandle *db_handle)
 {
 	int count = 0;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_list_item_new(&handle, count);
+	ret = audio_svc_list_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -891,19 +821,19 @@ void get_list_item_get_value()
 	}
 
 	//get the all track items.
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //rows,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
-		audio_svc_list_item_free(handle);
+		audio_svc_list_item_free(audio_handle);
 		return;
 	}
 
@@ -914,7 +844,7 @@ void get_list_item_get_value()
 		int duration = 0;
 		int size = 0;
 
-		ret = audio_svc_list_item_get_val(handle, i ,
+		ret = audio_svc_list_item_get_val(audio_handle, i ,
 			AUDIO_SVC_LIST_ITEM_AUDIO_ID, &audio_id, &size,
 			AUDIO_SVC_LIST_ITEM_THUMBNAIL_PATH, &thumbname, &size,
 			AUDIO_SVC_LIST_ITEM_TITLE, &title, &size,
@@ -927,12 +857,12 @@ void get_list_item_get_value()
 		if (ret < 0)
 		{
 			printf( "failed to get list items. error code->%d", ret);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 	}
 
-	ret = audio_svc_list_item_free(handle);
+	ret = audio_svc_list_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -966,22 +896,22 @@ int audio_svc_list_item_get_val(AudioHandleType *record, int index, audio_svc_li
 
  #include <audio-svc.h>
 
-void get_svc_item()
+void get_svc_item(MediaSvcHandle *db_handle)
 {
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	AudioHandleType *item = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = 0;
 	int i = 0
 
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_list_item_new(&handle, count);
+	ret = audio_svc_list_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -989,20 +919,20 @@ void get_svc_item()
 	}
 
 	//get the all tracks item.
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //rows,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
 		printf( "failed to get items. error code->%d", ret);
-		audio_svc_list_item_free(handle);
+		audio_svc_list_item_free(audio_handle);
 		return;
 	}
 
@@ -1011,11 +941,11 @@ void get_svc_item()
 		char *audio_id = NULL;
 		int size = 0;
 		//get the list item with index "i"
-		ret = audio_svc_list_item_get(handle, i, &item);
+		ret = audio_svc_list_item_get(audio_handle, i, &item);
 		if (ret < 0)
 		{
 			printf( "failed to get list items. error code->%d", ret);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 
@@ -1023,7 +953,7 @@ void get_svc_item()
 		if (ret < 0)
 		{
 			printf( "failed to get list items value. error code->%d", ret);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 	}
@@ -1068,10 +998,10 @@ int audio_svc_list_item_get(AudioHandleType *record, int index, AudioHandleType 
 void new_svc_item()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
 	//create the svc item object.
-	ret = audio_svc_item_new(&handle);
+	ret = audio_svc_item_new(&audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1106,10 +1036,10 @@ int audio_svc_item_new(AudioHandleType **record);
 void free_svc_item()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
 	//create svc item object, object number is count.
-	ret = audio_svc_item_new(&handle);
+	ret = audio_svc_item_new(&audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1117,7 +1047,7 @@ void free_svc_item()
 	}
 
 	//free the svc item object.
-	ret = audio_svc_item_free(handle);
+	ret = audio_svc_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -1153,19 +1083,19 @@ int audio_svc_item_free(AudioHandleType *record);
 
 #include <audio-svc.h>
 
-void get_svc_item_value()
+void get_svc_item_value(MediaSvcHandle *db_handle)
 {
 	int count = 0;
-	AudioHandleType*handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_list_item_new(&handle, count);
+	ret = audio_svc_list_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1173,20 +1103,20 @@ void get_svc_item_value()
 	}
 
 	//get all tracks from db.
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //count,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
 		printf( "failed to get items. error code->%d", ret);
-		audio_svc_list_item_free(handle);
+		audio_svc_list_item_free(audio_handle);
 		return;
 	}
 
@@ -1202,21 +1132,21 @@ void get_svc_item_value()
 		int size = 0;
 		char *audio_id = NULL, *title = NULL, *album = NULL, *artist = NULL, *thumbname = NULL;
 		//get the track audio_id with index "i" in handle array.
-		ret = audio_svc_list_item_get_val(handle, i, AUDIO_SVC_LIST_ITEM_AUDIO_ID, &audio_id, &size, -1);
+		ret = audio_svc_list_item_get_val(audio_handle, i, AUDIO_SVC_LIST_ITEM_AUDIO_ID, &audio_id, &size, -1);
 		if (ret < 0)
 		{
 			printf( "failed to get list items. error code->%d", ret);
 			audio_svc_item_free(item);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 
-		ret = audio_svc_get_item_by_audio_id(audio_id, item);
+		ret = audio_svc_get_item_by_audio_id(db_handle, audio_id, item);
 		if (ret < 0)
 		{
 			printf( "failed to get items. error code->%d", ret);
 			audio_svc_item_free(item);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 
@@ -1232,7 +1162,7 @@ void get_svc_item_value()
 		{
 			printf( "failed to get item value. error code->%d", ret);
 			audio_svc_item_free(item);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 	}
@@ -1243,7 +1173,7 @@ void get_svc_item_value()
 		return;
 	}
 
-	ret = audio_svc_list_item_free(handle);
+	ret = audio_svc_list_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -1280,10 +1210,10 @@ int audio_svc_item_get_val(AudioHandleType *record, audio_svc_track_data_type_e 
 void new_search_item()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
 	//create the search item object.
-	ret = audio_svc_search_item_new(&handle, 10);
+	ret = audio_svc_search_item_new(&audio_handle, 10);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1313,19 +1243,19 @@ int audio_svc_search_item_new(AudioHandleType **record, int count);
  * 	@code
 #include <audio-svc.h>
 
-void test_audio_svc_list_by_search()
+void test_audio_svc_list_by_search(MediaSvcHandle *db_handle)
 {
 		int offset = 0, count = 10, i = 0;
 		const char *str = "Sa";
-		AudioHandleType *handle = NULL;
+		AudioHandleType *audio_handle = NULL;
 
-		err = audio_svc_search_item_new(&handle, count);
+		err = audio_svc_search_item_new(&audio_handle, count);
 		if (err < 0) {
 			printf("audio_svc_search_item_new failed:%d\n", err);
 			return err;
 		}
 
-		err = audio_svc_list_by_search(handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
+		err = audio_svc_list_by_search(db_handle, audio_handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
 
 		if (err != AUDIO_SVC_ERROR_NONE) {
 			mediainfo_dbg("Fail to get items : %d", err);
@@ -1334,7 +1264,7 @@ void test_audio_svc_list_by_search()
 		
 		for (i = 0; i < count; i++) {
 			AudioHandleType *item = NULL;
-			err = audio_svc_search_item_get(handle, i, &item);
+			err = audio_svc_search_item_get(audio_handle, i, &item);
 			char *audio_id = NULL, *title = NULL, *artist = NULL, *pathname = NULL, *album = NULL;
 			int size = 0;
 			if (err < 0) {
@@ -1358,7 +1288,7 @@ void test_audio_svc_list_by_search()
 			}
 		}
 
-		audio_svc_search_item_free(handle);
+		audio_svc_search_item_free(audio_handle);
 }
 
 
@@ -1389,10 +1319,10 @@ int audio_svc_search_item_get(AudioHandleType *record, int index, AudioHandleTyp
 void free_search_item()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
 	//create search item object, object number is count.
-	ret = audio_svc_search_item_new(&handle, 10);
+	ret = audio_svc_search_item_new(&audio_handle, 10);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1400,7 +1330,7 @@ void free_search_item()
 	}
 
 	//free the search item object.
-	ret = audio_svc_search_item_free(handle);
+	ret = audio_svc_search_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -1415,21 +1345,23 @@ void free_search_item()
 
 int audio_svc_search_item_free(AudioHandleType *record);
 
-int audio_svc_insert_item_start(int data_cnt);
-int audio_svc_insert_item_end(void);
+int audio_svc_insert_item_start(MediaSvcHandle *handle, int data_cnt);
+int audio_svc_insert_item_end(MediaSvcHandle *handle);
 
 /**
  *    audio_svc_insert_item:\n
  * 	Register music track into DB. The "Category" property is defined by file manager service, and Only
  *  	"MUSIC" type tracks can be listed in music app.
  * 	This function extract the metadata of track then insert it into the database.
+ *   You can use this API with audio_svc_insert_item_start and audio_svc_insert_item_end 
+ *   when you try to insert lots of items to DB to enhance performance.
  *
  *	@param[in]		storage_type	Information for storage type
  *	@param[in]		path         		Information for file path
  *	@param[in]		category			Information for file category, defined by file manager.
  *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
  *				Please refer 'audio-svc-error.h' to know the exact meaning of the error.
- *	@see		None
+ *	@see		audio_svc_insert_item_start, audio_svc_insert_item_end, audio_svc_insert_item_immediately
  *	@remark	None
  *	@pre   		music table is already created
  *	@post 		None
@@ -1438,13 +1370,13 @@ int audio_svc_insert_item_end(void);
 
  #include <audio-svc.h>
 
-void insert_item_to_db()
+void insert_item_to_db(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char *path = "/opt/media/Sounds/Music/Layla.mp3";
 	int category = AUDIO_SVC_CATEGORY_MUSIC;
 	// insert a track into music db
-	ret = audio_svc_insert_item(AUDIO_SVC_STORAGE_PHONE, path, category);
+	ret = audio_svc_insert_item(db_handle, AUDIO_SVC_STORAGE_PHONE, path, category);
 
 	if (ret < 0)
 	{
@@ -1457,10 +1389,55 @@ void insert_item_to_db()
 
  * 	@endcode
  */
-int audio_svc_insert_item(audio_svc_storage_type_e storage_type, const char *path, audio_svc_category_type_e category);
+int audio_svc_insert_item(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type, const char *path, audio_svc_category_type_e category);
 
-int audio_svc_move_item_start(int data_cnt);
-int audio_svc_move_item_end(void);
+
+/**
+ *    audio_svc_insert_item_immediately:\n
+ * 	Register music track into DB. The "Category" property is defined by file manager service, and Only
+ *  	"MUSIC" type tracks can be listed in music app.
+ * 	This function extract the metadata of track then insert it into the database.
+ *   You can use this API when just insert one item to db or have to insert item to db immediately.
+ *   If you shold insert lots of items to db, it's better to use audio_svc_insert_item_start, audio_svc_insert_item, audio_svc_insert_item_end
+ *
+ *	@param[in]		storage_type	Information for storage type
+ *	@param[in]		path         		Information for file path
+ *	@param[in]		category			Information for file category, defined by file manager.
+ *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
+ *				Please refer 'audio-svc-error.h' to know the exact meaning of the error.
+ *	@see		audio_svc_insert_item
+ *	@remark	None
+ *	@pre   		music table is already created
+ *	@post 		None
+ * 	@par example
+ * 	@code
+
+ #include <audio-svc.h>
+
+void insert_item_to_db(MediaSvcHandle *db_handle)
+{
+	int ret = AUDIO_SVC_ERROR_NONE;
+	const char *path = "/opt/media/Sounds/Music/Layla.mp3";
+	int category = AUDIO_SVC_CATEGORY_MUSIC;
+	// insert a track into music db
+	ret = audio_svc_insert_item(db_handle, AUDIO_SVC_STORAGE_PHONE, path, category);
+
+	if (ret < 0)
+	{
+		printf( "unable to insert item, error code->%d", ret);
+		return;
+	}
+
+	return;
+}
+
+ * 	@endcode
+ */
+
+int audio_svc_insert_item_immediately(MediaSvcHandle *handle, audio_svc_storage_type_e storage_type, const char *path, audio_svc_category_type_e category);
+
+int audio_svc_move_item_start(MediaSvcHandle *handle, int data_cnt);
+int audio_svc_move_item_end(MediaSvcHandle *handle);
 
 
 /**
@@ -1484,14 +1461,14 @@ int audio_svc_move_item_end(void);
 
  #include <audio-svc.h>
 
- void move_item()
+ void move_item(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	audio_svc_storage_type_e storage = AUDIO_SVC_STORAGE_PHONE;
 	const char *dest_path = "/opt/media/Sounds/BeyondSamsung.mp3";
 	const char *src_path = "/opt/media/Sounds/Music/BeyondSamsung.mp3";
 	// move the track to dest path
-	ret = audio_svc_move_item(storage, src_path, storage, dest_path);
+	ret = audio_svc_move_item(db_handle, storage, src_path, storage, dest_path);
 
 	if (ret < 0)
 	{
@@ -1505,7 +1482,7 @@ int audio_svc_move_item_end(void);
 * 	@endcode
 */
 
-int audio_svc_move_item(audio_svc_storage_type_e src_storage, const char *src_path, audio_svc_storage_type_e dest_storage, const char *dest_path);
+int audio_svc_move_item(MediaSvcHandle *handle, audio_svc_storage_type_e src_storage, const char *src_path, audio_svc_storage_type_e dest_storage, const char *dest_path);
 
 
 /**
@@ -1525,11 +1502,11 @@ int audio_svc_move_item(audio_svc_storage_type_e src_storage, const char *src_pa
 
  #include <audio-svc.h>
 
- void delete_item_by_path()
+ void delete_item_by_path(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	// delete music item by path
-	ret = audio_svc_delete_item_by_path("test.mp3");
+	ret = audio_svc_delete_item_by_path(handle, "test.mp3");
 	if (ret < 0)
 	{
 		printf("failed to delete item by path. error code->%d", ret);
@@ -1540,7 +1517,7 @@ int audio_svc_move_item(audio_svc_storage_type_e src_storage, const char *src_pa
 
  * 	@endcode
  */
-int audio_svc_delete_item_by_path(const char *path);
+int audio_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path);
 
 
 /**
@@ -1559,13 +1536,13 @@ int audio_svc_delete_item_by_path(const char *path);
 
  #include <audio-svc.h>
 
-void delete_all()
+void delete_all(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	audio_svc_storage_type_e storage = AUDIO_SVC_STORAGE_PHONE;
 	
 	// delete all invalid item in phone storage.
-	ret = audio_svc_delete_invalid_items(storage);
+	ret = audio_svc_delete_invalid_items(db_handle, storage);
 	if (ret < 0)
 	{
 		printf( "failed to delete invalid item. error code->%d", ret);
@@ -1577,10 +1554,10 @@ void delete_all()
  * 	@endcode
  */
 
-int audio_svc_delete_invalid_items(audio_svc_storage_type_e storage);
+int audio_svc_delete_invalid_items(MediaSvcHandle *handle, audio_svc_storage_type_e storage);
 
-int audio_svc_set_item_valid_start(int data_cnt);
-int audio_svc_set_item_valid_end(void);
+int audio_svc_set_item_valid_start(MediaSvcHandle *handle, int data_cnt);
+int audio_svc_set_item_valid_end(MediaSvcHandle *handle);
 
 /**
  * 	audio_svc_set_item_valid:\n
@@ -1601,13 +1578,13 @@ int audio_svc_set_item_valid_end(void);
 
  #include <audio-svc.h>
 
-void set_item_valid()
+void set_item_valid(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char * test_path = "/opt/media/Sounds/Music/Layla.mp3";
 
 	//set the track with "audio_id" in MMC storage to be valid.
-	ret = audio_svc_set_item_valid(test_path, true);
+	ret = audio_svc_set_item_valid(db_handle, test_path, true);
 	if (ret < 0)
 	{
 		printf( "failed to set item valid. error code->%d", ret);
@@ -1620,7 +1597,7 @@ void set_item_valid()
  * 	@endcode
  */
 
-int audio_svc_set_item_valid(const char *path, int valid);
+int audio_svc_set_item_valid(MediaSvcHandle *handle, const char *path, int valid);
 
 
 /**
@@ -1641,13 +1618,13 @@ int audio_svc_set_item_valid(const char *path, int valid);
 
  #include <audio-svc.h>
 
- void get_item_by_audio_id()
+ void get_item_by_audio_id(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	char audio_id[AUDIO_SVC_UUID_SIZE+1] = "550e8400-e29b-41d4-a716-446655440000";
 
-	ret = audio_svc_item_new(&handle);
+	ret = audio_svc_item_new(&audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1655,16 +1632,16 @@ int audio_svc_set_item_valid(const char *path, int valid);
 	}
 
 	// retrieve the music item by audio_id.
-	ret = audio_svc_get_item_by_audio_id(audio_id, handle);
+	ret = audio_svc_get_item_by_audio_id(db_handle, audio_id, audio_handle);
 	if (ret < 0)
 	{
 		printf("failed to get item by audio_id. error code->%d", ret);
-		audio_svc_item_free(handle);
+		audio_svc_item_free(audio_handle);
 		return;
 	}
 
 	//free the music item
-	ret = audio_svc_item_free(handle);
+	ret = audio_svc_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -1676,7 +1653,7 @@ int audio_svc_set_item_valid(const char *path, int valid);
 
  * 	@endcode
  */
-int audio_svc_get_item_by_audio_id(const char *audio_id, AudioHandleType *item_handle);
+int audio_svc_get_item_by_audio_id(MediaSvcHandle *handle, const char *audio_id, AudioHandleType *item_handle);
 
 
 /**
@@ -1697,13 +1674,13 @@ int audio_svc_get_item_by_audio_id(const char *audio_id, AudioHandleType *item_h
 
 #include <audio-svc.h>
 
-void get_item_by_path()
+void get_item_by_path(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char *path = "/opt/media/Sounds/Music/Layla.mp3";
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
-	ret = audio_svc_item_new(&handle);
+	ret = audio_svc_item_new(&audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1711,16 +1688,16 @@ void get_item_by_path()
 	}
 
 	// retrieve the music item by file path.
-	ret = audio_svc_get_item_by_path(path, handle);
+	ret = audio_svc_get_item_by_path(db_handle, path, audio_handle);
 	if (ret < 0)
 	{
 		printf("failed to get item by path. error code->%d", ret);
-		audio_svc_item_free(handle);
+		audio_svc_item_free(audio_handle);
 		return;
 	}
 
 	//free the music item
-	ret = audio_svc_item_free(handle);
+	ret = audio_svc_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -1732,7 +1709,7 @@ void get_item_by_path()
 
  * 	@endcode
  */
-int audio_svc_get_item_by_path(const char *path, AudioHandleType *item_handle);
+int audio_svc_get_item_by_path(MediaSvcHandle *handle, const char *path, AudioHandleType *item_handle);
 
 
 /**
@@ -1752,13 +1729,13 @@ int audio_svc_get_item_by_path(const char *path, AudioHandleType *item_handle);
 
   #include <audio-svc.h>
 
-void check_item_Exist()
+void check_item_Exist(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char *path = "/opt/media/Sounds/Music/The Last Laugh.mp3";
 
 	//check item exist
-	ret = audio_svc_check_item_exist(path);
+	ret = audio_svc_check_item_exist(db_handle, path);
 	if (ret < 0)
 	{
 		printf("Item not found");
@@ -1771,7 +1748,7 @@ void check_item_Exist()
  * 	@endcode
  */
 
-int audio_svc_check_item_exist(const char *path);
+int audio_svc_check_item_exist(MediaSvcHandle *handle, const char *path);
 
 
 /**
@@ -1794,14 +1771,14 @@ int audio_svc_check_item_exist(const char *path);
  *
  #include <audio-svc.h>
 
-char * get_path_by_audio_id (const char *audio_id)
+char * get_path_by_audio_id (MediaSvcHandle *db_handle, const char *audio_id)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 	char pathname[AUDIO_SVC_PATHNAME_SIZE] = {0,};
 
 	//retrieve the file path by track audio_id.
-	ret = audio_svc_get_path_by_audio_id(audio_id, pathname, AUDIO_SVC_PATHNAME_SIZE);
+	ret = audio_svc_get_path_by_audio_id(db_handle, audio_id, pathname, AUDIO_SVC_PATHNAME_SIZE);
 	if (ret < 0)
 	{
 		printf( "failed to get path. error code->%d", ret);
@@ -1811,7 +1788,7 @@ char * get_path_by_audio_id (const char *audio_id)
 }
  * 	@endcode
  */
-int audio_svc_get_path_by_audio_id(const char *audio_id, char *path, size_t max_path_length);
+int audio_svc_get_path_by_audio_id(MediaSvcHandle *handle, const char *audio_id, char *path, size_t max_path_length);
 
 
 /**
@@ -1832,14 +1809,14 @@ int audio_svc_get_path_by_audio_id(const char *audio_id, char *path, size_t max_
  *
  #include <audio-svc.h>
 
-int get_audio_id_by_path ()
+int get_audio_id_by_path (MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char * test_path = "/opt/media/Sounds/Music/Layla.mp3";
 	char audio_id[AUDIO_SVC_UUID_SIZE+1] = {0,};
 
 	//retrieve the file path by track audio_id.
-	ret = audio_svc_get_audio_id_by_path(test_path, audio_id, AUDIO_SVC_UUID_SIZE);
+	ret = audio_svc_get_audio_id_by_path(db_handle, test_path, audio_id, AUDIO_SVC_UUID_SIZE);
 	if (ret < 0)
 	{
 		printf( "failed to get audio_id. error code->%d", ret);
@@ -1851,7 +1828,7 @@ int get_audio_id_by_path ()
  * 	@endcode
  */
 
-int audio_svc_get_audio_id_by_path(const char *path, char *audio_id, size_t max_audio_id_length);
+int audio_svc_get_audio_id_by_path(MediaSvcHandle *handle, const char *path, char *audio_id, size_t max_audio_id_length);
 
 /**
  * 	audio_svc_get_thumbnail_path_by_path:\n
@@ -1872,14 +1849,14 @@ int audio_svc_get_audio_id_by_path(const char *path, char *audio_id, size_t max_
  *
  #include <audio-svc.h>
 
-int get_thumbnail_path_by_path ()
+int get_thumbnail_path_by_path (MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	const char * test_path = "/opt/media/Sounds/Music/Layla.mp3";
 	char thumb_path[AUDIO_SVC_PATHNAME_SIZE] = {0};
 
 	//retrieve the thumbnail path by track path.
-	ret = audio_svc_get_thumbnail_path_by_path(test_path, thumb_path, AUDIO_SVC_PATHNAME_SIZE);
+	ret = audio_svc_get_thumbnail_path_by_path(db_handle, test_path, thumb_path, AUDIO_SVC_PATHNAME_SIZE);
 	if (ret < 0)
 	{
 		printf( "failed to get thumbnail_path. error code->%d", ret);
@@ -1891,7 +1868,7 @@ int get_thumbnail_path_by_path ()
  * 	@endcode
  */
 
-int audio_svc_get_thumbnail_path_by_path(const char *path, char *thumb_path, size_t max_thumb_path_length);
+int audio_svc_get_thumbnail_path_by_path(MediaSvcHandle *handle, const char *path, char *thumb_path, size_t max_thumb_path_length);
 
 
 /**
@@ -1914,20 +1891,20 @@ int audio_svc_get_thumbnail_path_by_path(const char *path, char *thumb_path, siz
 
  #include <audio-svc.h>
 
-void update_svc_item()
+void update_svc_item(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 0;
 
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_list_item_new(&handle, count);
+	ret = audio_svc_list_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -1935,20 +1912,20 @@ void update_svc_item()
 	}
 
 	//get all tracks from db.
-	ret = audio_svc_get_list_item(AUDIO_SVC_TRACK_ALL, //item_type,
+	ret = audio_svc_get_list_item(db_handle, AUDIO_SVC_TRACK_ALL, //item_type,
 		NULL, //type_string,
 		NULL, //type_string2,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //count,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
 		printf( "failed to get service list items. error code->%d", ret);
-		audio_svc_list_item_free(handle);
+		audio_svc_list_item_free(audio_handle);
 		return;
 	}
 
@@ -1956,15 +1933,15 @@ void update_svc_item()
 	{
 		char *audio_id = NULL;
 		int size = 0;
-		ret = audio_svc_list_item_get_val(handle, i, AUDIO_SVC_LIST_ITEM_AUDIO_ID, &audio_id, &size, -1);
+		ret = audio_svc_list_item_get_val(audio_handle, i, AUDIO_SVC_LIST_ITEM_AUDIO_ID, &audio_id, &size, -1);
 		if (ret < 0)
 		{
 			printf( "failed to get list items. error code->%d", ret);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 
-		ret = audio_svc_update_item_metadata(audio_id,
+		ret = audio_svc_update_item_metadata(db_handle, audio_id,
 			AUDIO_SVC_TRACK_DATA_PLAYED_COUNT, 5,
 			AUDIO_SVC_TRACK_DATA_PLAYED_TIME, 5,
 			AUDIO_SVC_TRACK_DATA_ADDED_TIME, 5,
@@ -1983,13 +1960,13 @@ void update_svc_item()
 		if (ret < 0)
 		{
 			printf( "failed to update items. error code->%d", ret);
-			audio_svc_list_item_free(handle);
+			audio_svc_list_item_free(audio_handle);
 			return;
 		}
 
 	}
 
-	ret = audio_svc_list_item_free(handle);
+	ret = audio_svc_list_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2002,7 +1979,7 @@ void update_svc_item()
  * 	@endcode
  */
 
-int audio_svc_update_item_metadata(const char *audio_id, audio_svc_track_data_type_e  first_field_name, ...);
+int audio_svc_update_item_metadata(MediaSvcHandle *handle, const char *audio_id, audio_svc_track_data_type_e  first_field_name, ...);
 
 
 /**
@@ -2026,12 +2003,12 @@ int audio_svc_update_item_metadata(const char *audio_id, audio_svc_track_data_ty
 #include <audio-svc.h>
 
 void
-refresh_drm_metadata()
+refresh_drm_metadata(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	char * test_audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
-	ret = audio_svc_refresh_metadata(test_audio_id);
+	ret = audio_svc_refresh_metadata(db_handle, test_audio_id);
 	if (ret < 0)
 	{
 		printf( "failed to refresh metadata. error code->%d", ret);
@@ -2042,7 +2019,7 @@ refresh_drm_metadata()
 
  * 	@endcode
  */
-int audio_svc_refresh_metadata(const char *audio_id);
+int audio_svc_refresh_metadata(MediaSvcHandle *handle, const char *audio_id);
 
 
 /** @} */
@@ -2074,13 +2051,13 @@ int audio_svc_refresh_metadata(const char *audio_id);
 
 #include <audio-svc.h>
 
-void get_playlist_count()
+void get_playlist_count(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 
 	// get the count of all playlist in db.
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlists. error code->%d", ret);
@@ -2095,7 +2072,7 @@ void get_playlist_count()
 * 	@endcode
 */
 
-int audio_svc_count_playlist(const char *filter_string, const char *filter_string2, int *count);
+int audio_svc_count_playlist(MediaSvcHandle *handle, const char *filter_string, const char *filter_string2, int *count);
 
 
 /**
@@ -2119,14 +2096,14 @@ int audio_svc_count_playlist(const char *filter_string, const char *filter_strin
 
  #include <audio-svc.h>
 
-void get_playlists()
+void get_playlists(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 
 	// get the count of all playlist in db.
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlists. error code->%d", ret);
@@ -2139,22 +2116,22 @@ void get_playlists()
 		return;
 	}
 
-	ret = audio_svc_playlist_new(&handle, count);
+	ret = audio_svc_playlist_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_get_playlist("", "", 0, count, handle);
+	ret = audio_svc_get_playlist(db_handle, "", "", 0, count, audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to get playlists. error code->%d", ret);
-		audio_svc_playlist_free(handle);
+		audio_svc_playlist_free(audio_handle);
 		return;
 	}
 
-	ret = audio_svc_playlist_free(handle);
+	ret = audio_svc_playlist_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2167,7 +2144,7 @@ void get_playlists()
  * 	@endcode
  */
 
-int audio_svc_get_playlist(const char *filter_string, const char *filter_string2, int offset, int rows, AudioHandleType *playlists);
+int audio_svc_get_playlist(MediaSvcHandle *handle, const char *filter_string, const char *filter_string2, int offset, int rows, AudioHandleType *playlists);
 
 
 /**
@@ -2192,11 +2169,11 @@ int audio_svc_get_playlist(const char *filter_string, const char *filter_string2
 void new_playlist()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//create playlists
-	ret = audio_svc_playlist_new(&handle, count);
+	ret = audio_svc_playlist_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2231,11 +2208,11 @@ int audio_svc_playlist_new(AudioHandleType **record, int count);
 void free_playlist()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//create playlist object, object number is "count".
-	ret = audio_svc_playlist_new(&handle, count);
+	ret = audio_svc_playlist_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2243,7 +2220,7 @@ void free_playlist()
 	}
 
 	//free playlist object
-	ret = audio_svc_playlist_free(handle);
+	ret = audio_svc_playlist_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2277,14 +2254,14 @@ int audio_svc_playlist_free(AudioHandleType *record);
 
  #include <audio-svc.h>
 
-void get_playlist_value()
+void get_playlist_value(MediaSvcHandle *db_handle)
 {
-	AudioHandleType*handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int i = 0;
 	int count = 0;
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist. error code->%d", ret);
@@ -2297,7 +2274,7 @@ void get_playlist_value()
 		return;
 	}
 
-	ret = audio_svc_playlist_new(&handle, count);
+	ret = audio_svc_playlist_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2305,34 +2282,34 @@ void get_playlist_value()
 	}
 
 	//get all the playlists in db.
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle, 
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,
 				count, //count
-				handle);
+				audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to get playlist. error code->%d", ret);
-		audio_svc_playlist_free(handle);
+		audio_svc_playlist_free(audio_handle);
 		return;
 	}
 
 	for (i = 0; i < count; i++) {
 		char *p = NULL;
-		int plst_id;
+		int playlist_id = -1;
 		int size;
 		//get the playlist id and playlist name of each playlist
-		ret = audio_svc_playlist_get_val(handle, i, AUDIO_SVC_PLAYLIST_ID, &plst_id, AUDIO_SVC_PLAYLIST_NAME, &p, &size, -1);
+		ret = audio_svc_playlist_get_val(audio_handle, i, AUDIO_SVC_PLAYLIST_ID, &playlist_id, AUDIO_SVC_PLAYLIST_NAME, &p, &size, -1);
 		if (ret < 0)
 		{
 			printf( "failed to get playlist attribute value. error code->%d", ret);
-			audio_svc_playlist_free(handle);
+			audio_svc_playlist_free(audio_handle);
 			return;
 		}
 	}
 
-	ret = audio_svc_playlist_free(handle);
+	ret = audio_svc_playlist_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2367,17 +2344,17 @@ int audio_svc_playlist_get_val(AudioHandleType *playlists, int index, audio_svc_
 
  #include <audio-svc.h>
 
-void set_playlist_value()
+void set_playlist_value(MediaSvcHandle *db_handle)
 {
 	int count = 0;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 	char *p = NULL;
-	int plst_id = 0;
+	int playlist_id = -1;
 	int size = AUDIO_SVC_METADATA_LEN_MAX;
 	int i = 0;
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist. error code->%d", ret);
@@ -2390,7 +2367,7 @@ void set_playlist_value()
 		return;
 	}
 
-	ret = audio_svc_playlist_new(&handle, count);
+	ret = audio_svc_playlist_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2398,29 +2375,29 @@ void set_playlist_value()
 	}
 
 	//get all the playlists.
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle,
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,
 				count, //rows
-				handle);
+				audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to get playlist. error code->%d", ret);
-		audio_svc_playlist_free(handle);
+		audio_svc_playlist_free(audio_handle);
 		return;
 	}
 
 	//set the name of first playlist to "playlist_test_name"
-	ret = audio_svc_playlist_set_val(handle, i, AUDIO_SVC_PLAYLIST_NAME, "playlist_test_name", size, -1);
+	ret = audio_svc_playlist_set_val(audio_handle, i, AUDIO_SVC_PLAYLIST_NAME, "playlist_test_name", size, -1);
 	if (ret < 0)
 	{
 		printf( "failed to set playlist attribute value. error code->%d", ret);
-		audio_svc_playlist_free(handle);
+		audio_svc_playlist_free(audio_handle);
 		return;
 	}
 
-	ret = audio_svc_playlist_free(handle);
+	ret = audio_svc_playlist_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2454,14 +2431,14 @@ int audio_svc_playlist_set_val(AudioHandleType *playlists, int index, audio_svc_
 
  #include <audio-svc.h>
 
-void get_playlist_item()
+void get_playlist_item(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType*handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 0;
 	int i = 0;
 
-	ret = audio_svc_count_playlist("", "", &count);
+	ret = audio_svc_count_playlist(db_handle, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist. error code->%d", ret);
@@ -2474,19 +2451,19 @@ void get_playlist_item()
 		return;
 	}
 
-	ret = audio_svc_playlist_new(&handle, count);
+	ret = audio_svc_playlist_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_get_playlist(
+	ret = audio_svc_get_playlist(db_handle,
 				NULL, //filter_string,
 				NULL, //filter_string2,
 				0, //offset,
 				count, //rows
-				handle);
+				audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to get playlist. error code->%d", ret);
@@ -2495,30 +2472,30 @@ void get_playlist_item()
 
 	for (i = 0; i < count; i++) {
 		char *p = NULL;
-		int plst_id;
-		int size;
+		int playlist_id = -1;
+		int size = 0;
 		AudioHandleType *plst = NULL;
 
 		//get the playlist object with index "i"
-		ret = audio_svc_playlist_get_item(handle, i, &plst);
+		ret = audio_svc_playlist_get_item(audio_handle, i, &plst);
 		if (ret < 0)
 		{
 			printf( "failed to get playlist item. error code->%d", ret);
-			audio_svc_playlist_free(handle);
+			audio_svc_playlist_free(audio_handle);
 			return;
 		}
 
 		//get the id and name of playlist object.
-		ret = audio_svc_playlist_get_val(plst, 0, AUDIO_SVC_PLAYLIST_ID, &plst_id, AUDIO_SVC_PLAYLIST_NAME, &p, &size, -1);
+		ret = audio_svc_playlist_get_val(plst, 0, AUDIO_SVC_PLAYLIST_ID, &playlist_id, AUDIO_SVC_PLAYLIST_NAME, &p, &size, -1);
 		if (ret < 0)
 		{
 			printf( "failed to get playlist attribute value. error code->%d", ret);
-			audio_svc_playlist_free(handle);
+			audio_svc_playlist_free(audio_handle);
 			return;
 		}
 	}
 
-	ret = audio_svc_playlist_free(handle);
+	ret = audio_svc_playlist_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2556,13 +2533,13 @@ int audio_svc_playlist_get_item(AudioHandleType *record, int index, AudioHandleT
 
  #include <audio-svc.h>
 
-void get_playlist_item_count()
+void get_playlist_item_count(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 	int playlist_id = 1;
 	// get the count of all tracks in db.
-	ret = audio_svc_count_playlist_item(playlist_id, "", "", &count);
+	ret = audio_svc_count_playlist_item(db_handle, playlist_id, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist items. error code->%d", ret);
@@ -2577,7 +2554,7 @@ void get_playlist_item_count()
  * 	@endcode
  */
 
-int audio_svc_count_playlist_item(int playlist_id, const char *filter_string, const char *filter_string2, int *count);
+int audio_svc_count_playlist_item(MediaSvcHandle *handle, int playlist_id, const char *filter_string, const char *filter_string2, int *count);
 
 
 /**
@@ -2603,15 +2580,15 @@ int audio_svc_count_playlist_item(int playlist_id, const char *filter_string, co
 
  #include <audio-svc.h>
 
-void get_track_item()
+void get_track_item(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = -1;
 	int playlist_id = 1;
 
 	// get the count of all tracks in db.
-	ret = audio_svc_count_playlist_item(playlist_id, "", "", &count);
+	ret = audio_svc_count_playlist_item(db_handle, playlist_id, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist items. error code->%d", ret);
@@ -2624,7 +2601,7 @@ void get_track_item()
 		return;
 	}
 
-	ret = audio_svc_playlist_item_new(&handle, count);
+	ret = audio_svc_playlist_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2632,28 +2609,28 @@ void get_track_item()
 	}
 
 	//get the playlist items.
-	ret = audio_svc_get_playlist_item(plst_id,
+	ret = audio_svc_get_playlist_item(db_handle, playlist_id,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //rows,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
-		audio_svc_playlist_item_free(handle);
+		audio_svc_playlist_item_free(audio_handle);
 		return;
 	}
 
-	audio_svc_playlist_item_free(handle);
+	audio_svc_playlist_item_free(audio_handle);
 	return;
 }
 
  * 	@endcode
  */
 
-int audio_svc_get_playlist_item(int playlist_id, const char *filter_string, const char *filter_string2, int offset, int rows, AudioHandleType *playlist_item);
+int audio_svc_get_playlist_item(MediaSvcHandle *handle, int playlist_id, const char *filter_string, const char *filter_string2, int offset, int rows, AudioHandleType *playlist_item);
 
 
 /**
@@ -2675,13 +2652,14 @@ int audio_svc_get_playlist_item(int playlist_id, const char *filter_string, cons
 
  #include <audio-svc.h>
 
-void playlist_item_new()
+void playlist_item_new(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 0;
+	int playlist_id = 1;
 
-	ret = audio_svc_count_playlist_item(AUDIO_SVC_TRACK_ALL, "", "", &count);
+	ret = audio_svc_count_playlist_item(db_handle, playlist_id, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of items. error code->%d", ret);
@@ -2689,7 +2667,7 @@ void playlist_item_new()
 	}
 
 	//allocate the memory of type list item with count
-	ret = audio_svc_playlist_item_new(&handle, count);
+	ret = audio_svc_playlist_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2726,11 +2704,11 @@ int audio_svc_playlist_item_new(AudioHandleType **record, int count);
 void playlist_item_free()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int count = 5;
 
 	//allocate the memory of type list item with count
-	ret = audio_svc_playlist_item_new(&handle, count);
+	ret = audio_svc_playlist_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2738,7 +2716,7 @@ void playlist_item_free()
 	}
 
 	//free the list item memory.
-	ret = audio_svc_playlist_item_free(handle);
+	ret = audio_svc_playlist_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2775,21 +2753,21 @@ int audio_svc_playlist_item_free(AudioHandleType *record);
 
  #include <audio-svc.h>
 
-void get_playlist_item_get_value()
+void get_playlist_item_get_value(MediaSvcHandle *db_handle)
 {
 	int count = 0;
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = 1;
+	int playlist_id = 1;
 
-	ret = audio_svc_count_playlist_item(plst_id, "", "", &count);
+	ret = audio_svc_count_playlist_item(db_handle, playlist_id, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist items. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_playlist_item_new(&handle, count);
+	ret = audio_svc_playlist_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2797,17 +2775,17 @@ void get_playlist_item_get_value()
 	}
 
 	//get the playlist items.
-	ret = audio_svc_get_playlist_item(plst_id,
+	ret = audio_svc_get_playlist_item(db_handle, playlist_id,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //rows,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
-		audio_svc_playlist_item_free(handle);
+		audio_svc_playlist_item_free(audio_handle);
 		return;
 	}
 
@@ -2820,7 +2798,7 @@ void get_playlist_item_get_value()
 		int size = 0;
 		int play_order = 0;
 
-		ret = audio_svc_playlist_item_get_val(handle, i ,
+		ret = audio_svc_playlist_item_get_val(audio_handle, i ,
 			AUDIO_SVC_PLAYLIST_ITEM_UID, &uid,
 			AUDIO_SVC_PLAYLIST_ITEM_AUDIO_ID, &audio_id, &size,
 			AUDIO_SVC_PLAYLIST_ITEM_THUMBNAIL_PATH, &thumbname, &size,
@@ -2835,12 +2813,12 @@ void get_playlist_item_get_value()
 		if (ret < 0)
 		{
 			printf( "failed to get playlist items. error code->%d", ret);
-			audio_svc_playlist_item_free(handle);
+			audio_svc_playlist_item_free(audio_handle);
 			return;
 		}
 	}
 
-	ret = audio_svc_playlist_item_free(handle);
+	ret = audio_svc_playlist_item_free(audio_handle);
 	if (ret < 0)
 	{
 		printf( "failed to free handle. error code->%d", ret);
@@ -2874,22 +2852,23 @@ int audio_svc_playlist_item_get_val(AudioHandleType *record, int index, audio_sv
 
  #include <audio-svc.h>
 
-void get_playlist_item()
+void get_playlist_item(MediaSvcHandle *db_handle)
 {
-	AudioHandleType *handle = NULL;
+	AudioHandleType *audio_handle = NULL;
 	AudioHandleType *item = NULL;
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = 0;
-	int i = 0
+	int i = 0;
+	int playlist_id = 1;
 
-	ret = audio_svc_count_playlist_item(plst_id, "", "", &count);
+	ret = audio_svc_count_playlist_item(db_handle, playlist_id, "", "", &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist items. error code->%d", ret);
 		return;
 	}
 
-	ret = audio_svc_playlist_item_new(&handle, count);
+	ret = audio_svc_playlist_item_new(&audio_handle, count);
 	if (ret < 0)
 	{
 		printf( "failed to allocate handle. error code->%d", ret);
@@ -2897,17 +2876,17 @@ void get_playlist_item()
 	}
 
 	//get the playlist items.
-	ret = audio_svc_get_playlist_item(plst_id,
+	ret = audio_svc_get_playlist_item(db_handle, playlist_id,
 		NULL, //filter_string,
 		NULL, //filter_string2,
 		0, //offset,
 		count, //rows,
-		handle
+		audio_handle
 		);
 
 	if (ret < 0)
 	{
-		audio_svc_playlist_item_free(handle);
+		audio_svc_playlist_item_free(audio_handle);
 		return;
 	}
 
@@ -2916,11 +2895,11 @@ void get_playlist_item()
 		char *audio_id = NULL;
 		int size = 0;
 		//get the playlist item with index "i"
-		ret = audio_svc_playlist_item_get(handle, i, &item);
+		ret = audio_svc_playlist_item_get(audio_handle, i, &item);
 		if (ret < 0)
 		{
 			printf( "failed to get playlistlist items. error code->%d", ret);
-			audio_svc_playlist_item_free(handle);
+			audio_svc_playlist_item_free(audio_handle);
 			return;
 		}
 		
@@ -2928,7 +2907,7 @@ void get_playlist_item()
 		if (ret < 0)
 		{
 			printf( "failed to get playlist items value. error code->%d", ret);
-			audio_svc_playlist_item_free(handle);
+			audio_svc_playlist_item_free(audio_handle);
 			return;
 		}
 	}
@@ -2958,13 +2937,13 @@ int audio_svc_playlist_item_get(AudioHandleType *record, int index, AudioHandleT
 
  #include <audio-svc.h>
 
- void add_playlist()
+ void add_playlist(MediaSvcHandle *db_handle)
  {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = -1;
+	int playlist_id = -1;
 	const char *playlist_name = "plst_test_001";
 	// add playlist with name "plst_test_001"
-	ret = audio_svc_add_playlist(playlist_name, &plst_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 
 	if (ret < 0)
 	{
@@ -2972,14 +2951,14 @@ int audio_svc_playlist_item_get(AudioHandleType *record, int index, AudioHandleT
 		return;
 	}
 	// printf the playlist index
-	printf("playlist index is %d", plst_id);
+	printf("playlist index is %d", playlist_id);
 
 	return;
 }
 
 * 	@endcode
 */
-int audio_svc_add_playlist(const char *playlist_name, int *playlist_id);
+int audio_svc_add_playlist(MediaSvcHandle *handle, const char *playlist_name, int *playlist_id);
 
 
 /**
@@ -2999,14 +2978,14 @@ int audio_svc_add_playlist(const char *playlist_name, int *playlist_id);
 
 #include <audio-svc.h>
 
-void delete_playlist()
+void delete_playlist(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = -1;
+	int playlist_id = -1;
 	const char *playlist_name = "plst_test_001";
 
 	//append a playlist with name "plst_test_001" into db.
-	ret = audio_svc_add_playlist(playlist_name, &plst_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to add playlist. error code->%d", ret);
@@ -3014,7 +2993,7 @@ void delete_playlist()
 	}
 
 	//delete the playlist "plst_test_001"
-	ret = audio_svc_delete_playlist(plst_id);
+	ret = audio_svc_delete_playlist(db_handle, playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to delete playlist. error code->%d", ret);
@@ -3026,7 +3005,7 @@ void delete_playlist()
 
  * 	@endcode
  */
-int audio_svc_delete_playlist(int playlist_id);
+int audio_svc_delete_playlist(MediaSvcHandle *handle, int playlist_id);
 
 
 /**
@@ -3046,15 +3025,15 @@ int audio_svc_delete_playlist(int playlist_id);
 
  #include <audio-svc.h>
 
-void add_item_to_playlist()
+void add_item_to_playlist(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = -1;
+	int playlist_id = -1;
 	const char *playlist_name = "plst_test_001";
 	char * test_audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
 	// append a playlist with name "plst_test_001"
-	ret = audio_svc_add_playlist(playlist_name, &plst_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to add playlist. error code->%d", ret);
@@ -3062,7 +3041,7 @@ void add_item_to_playlist()
 	}
 
 	// append a track with test_audio_id into playlist "plst_test_001"
-	ret = audio_svc_add_item_to_playlist(plst_id, test_audio_id);
+	ret = audio_svc_add_item_to_playlist(db_handle, playlist_id, test_audio_id);
 	if (ret < 0)
 	{
 		printf( "failed to add item to playlist. error code->%d", ret);
@@ -3075,7 +3054,7 @@ void add_item_to_playlist()
 
  * 	@endcode
  */
-int audio_svc_add_item_to_playlist(int playlist_id, const char *audio_id);
+int audio_svc_add_item_to_playlist(MediaSvcHandle *handle, int playlist_id, const char *audio_id);
 
 
 /**
@@ -3096,15 +3075,15 @@ int audio_svc_add_item_to_playlist(int playlist_id, const char *audio_id);
 
  #include <audio-svc.h>
 
- void remove_item_from_playlist()
+ void remove_item_from_playlist(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = -1;
+	int playlist_id = -1;
 	const char *playlist_name = "plst_test_001";
 	int test_uid = 50;
 
 	//append playlist "plst_test_001" into db.
-	ret = audio_svc_add_playlist(playlist_name, &plst_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to add playlist. error code->%d", ret);
@@ -3112,7 +3091,7 @@ int audio_svc_add_item_to_playlist(int playlist_id, const char *audio_id);
 	}
 
 	//remove music item with uid "50" from playlist "plst_test_001"
-	ret = audio_svc_remove_item_from_playlist_by_uid(plst_id, test_uid);
+	ret = audio_svc_remove_item_from_playlist_by_uid(db_handle, playlist_id, test_uid);
 	if (ret < 0)
 	{
 		printf( "failed to remove item to playlist. error code->%d", ret);
@@ -3126,7 +3105,7 @@ int audio_svc_add_item_to_playlist(int playlist_id, const char *audio_id);
  * 	@endcode
  */
 
-int audio_svc_remove_item_from_playlist_by_uid(int playlist_id, int uid);
+int audio_svc_remove_item_from_playlist_by_uid(MediaSvcHandle *handle, int playlist_id, int uid);
 
 
 /**
@@ -3147,15 +3126,15 @@ int audio_svc_remove_item_from_playlist_by_uid(int playlist_id, int uid);
 
  #include <audio-svc.h>
 
- void remove_item_from_playlist()
+ void remove_item_from_playlist(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = -1;
+	int playlist_id = -1;
 	const char *playlist_name = "plst_test_001";
 	char * test_audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
 	//append playlist "plst_test_001" into db.
-	ret = audio_svc_add_playlist(playlist_name, &plst_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to add playlist. error code->%d", ret);
@@ -3163,7 +3142,7 @@ int audio_svc_remove_item_from_playlist_by_uid(int playlist_id, int uid);
 	}
 
 	//remove music item with uid "50" from playlist "plst_test_001"
-	ret = audio_svc_remove_item_from_playlist_by_audio_id(plst_id, test_audio_id);
+	ret = audio_svc_remove_item_from_playlist_by_audio_id(db_handle, playlist_id, test_audio_id);
 	if (ret < 0)
 	{
 		printf( "failed to remove item to playlist. error code->%d", ret);
@@ -3177,7 +3156,7 @@ int audio_svc_remove_item_from_playlist_by_uid(int playlist_id, int uid);
  * 	@endcode
  */
 
-int audio_svc_remove_item_from_playlist_by_audio_id(int playlist_id, const char *audio_id);
+int audio_svc_remove_item_from_playlist_by_audio_id(MediaSvcHandle *handle, int playlist_id, const char *audio_id);
 
 
 /**
@@ -3200,13 +3179,13 @@ int audio_svc_remove_item_from_playlist_by_audio_id(int playlist_id, const char 
 
 #include <audio-svc.h>
 
-gchar* get_new_playlist_name (void)
+gchar* get_new_playlist_name (MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	char unique_name[24] = "\0";
 
 	//get a unique playlist name, based on "My playlist"
-	ret = audio_svc_get_unique_playlist_name("My playlist", unique_name, 24);
+	ret = audio_svc_get_unique_playlist_name(db_handle, "My playlist", unique_name, 24);
 	if (ret < 0)
 	{
 		printf( "failed to get unique playlist name. error code->%d", ret);
@@ -3229,7 +3208,7 @@ gchar* get_new_playlist_name (void)
  * 	@endcode
  */
 
-int audio_svc_get_unique_playlist_name(const char* orig_name, char *unique_name, size_t max_unique_name_length);
+int audio_svc_get_unique_playlist_name(MediaSvcHandle *handle, const char* orig_name, char *unique_name, size_t max_unique_name_length);
 
 
 /**
@@ -3251,13 +3230,14 @@ int audio_svc_get_unique_playlist_name(const char* orig_name, char *unique_name,
  *
  #include <audio-svc.h>
 
-char * get_playlist_name_by_playlist_id (int playlist_id)
+char * get_playlist_name_by_playlist_id (MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	char playlist_name[AUDIO_SVC_PATHNAME_SIZE] = {0,};
+	int playlist_id = 1;
 
 	//get the playlist name by playlist id "playlist_id"
-	ret = audio_svc_get_playlist_name_by_playlist_id(playlist_id, playlist_name, AUDIO_SVC_PATHNAME_SIZE);
+	ret = audio_svc_get_playlist_name_by_playlist_id(db_handle, playlist_id, playlist_name, AUDIO_SVC_PATHNAME_SIZE);
 	if (ret < 0)
 	{
 		printf( "failed to get playlist name. error code->%d", ret);
@@ -3268,7 +3248,7 @@ char * get_playlist_name_by_playlist_id (int playlist_id)
  * 	@endcode
  */
 
-int audio_svc_get_playlist_name_by_playlist_id(int playlist_id, char *playlist_name, size_t max_playlist_name_length);
+int audio_svc_get_playlist_name_by_playlist_id(MediaSvcHandle *handle, int playlist_id, char *playlist_name, size_t max_playlist_name_length);
 
 
 /**
@@ -3289,13 +3269,13 @@ int audio_svc_get_playlist_name_by_playlist_id(int playlist_id, char *playlist_n
 
 #include <audio-svc.h>
 
-int get_playlist_id (void)
+int get_playlist_id (MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int playlist_id = 0;
 
 	//get a playlist index.
-	ret = audio_svc_get_playlist_id_by_playlist_name("My playlist", &playlist_id);
+	ret = audio_svc_get_playlist_id_by_playlist_name(db_handle, "My playlist", &playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to get playlist index. error code->%d", ret);
@@ -3307,7 +3287,7 @@ int get_playlist_id (void)
  * 	@endcode
  */
 
-int audio_svc_get_playlist_id_by_playlist_name(const char *playlist_name, int *playlist_id);
+int audio_svc_get_playlist_id_by_playlist_name(MediaSvcHandle *handle, const char *playlist_name, int *playlist_id);
 
 
 /**
@@ -3330,14 +3310,14 @@ int audio_svc_get_playlist_id_by_playlist_name(const char *playlist_name, int *p
 #include <audio-svc.h>
 
 void
-update_playlist_name()
+update_playlist_name(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
-	int plst_id = -1;
+	int playlist_id = -1;
 	const char *playlist_name = "plst_test_001";
 
 	//append a playlist "plst_test_001" into db.
-	ret = audio_svc_add_playlist(playlist_name, &plst_id);
+	ret = audio_svc_add_playlist(db_handle, playlist_name, &playlist_id);
 	if (ret < 0)
 	{
 		printf( "failed to add playlist. error code->%d", ret);
@@ -3345,7 +3325,7 @@ update_playlist_name()
 	}
 
 	//rename playlist name to "plst_test_002"
-	ret = audio_svc_update_playlist_name(plst_id, "plst_test_002");
+	ret = audio_svc_update_playlist_name(db_handle, playlist_id, "plst_test_002");
 	if (ret < 0)
 	{
 		printf( "failed to update playlist name. error code->%d", ret);
@@ -3355,7 +3335,7 @@ update_playlist_name()
 
  * 	@endcode
  */
-int audio_svc_update_playlist_name(int playlist_id, const char *new_playlist_name);
+int audio_svc_update_playlist_name(MediaSvcHandle *handle, int playlist_id, const char *new_playlist_name);
 
 
 /**
@@ -3378,7 +3358,7 @@ int audio_svc_update_playlist_name(int playlist_id, const char *new_playlist_nam
 
   #include <audio-svc.h>
 
-void update_playlist_order()
+void update_playlist_order(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int playlist_id = 1;
@@ -3386,7 +3366,7 @@ void update_playlist_order()
 	int new_play_order = 5;
 
 	//update the item index in playlist
-	ret = audio_svc_update_playlist_item_play_order(playlist_id, uid, new_play_order);
+	ret = audio_svc_update_playlist_item_play_order(db_handle, playlist_id, uid, new_play_order);
 	if (ret < 0)
 	{
 		printf( "failed to update play order. error code->%d", ret);
@@ -3397,7 +3377,7 @@ void update_playlist_order()
  * 	@endcode
  */
 
-int audio_svc_update_playlist_item_play_order(int playlist_id, int uid, int new_play_order);
+int audio_svc_update_playlist_item_play_order(MediaSvcHandle *handle, int playlist_id, int uid, int new_play_order);
 
 
 /**
@@ -3419,14 +3399,14 @@ int audio_svc_update_playlist_item_play_order(int playlist_id, int uid, int new_
  #include <audio-svc.h>
 
 int
-get_playlist_count(void)
+get_playlist_count(MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
 	const char *playlist_name = "plst_test_001";
 
 	//get the count of playlists whose name are "plst_test_001"
-	ret = audio_svc_count_playlist_by_name(playlist_name, &count);
+	ret = audio_svc_count_playlist_by_name(db_handle, playlist_name, &count);
 	if (ret < 0)
 	{
 		printf( "failed to get count of playlist . error code->%d", ret);
@@ -3441,7 +3421,7 @@ get_playlist_count(void)
  * 	@endcode
  */
 
-int audio_svc_count_playlist_by_name(const char* playlist_name, int*count);
+int audio_svc_count_playlist_by_name(MediaSvcHandle *handle, const char* playlist_name, int*count);
 
 
 /**
@@ -3463,14 +3443,15 @@ int audio_svc_count_playlist_by_name(const char* playlist_name, int*count);
 
  #include <audio-svc.h>
 
-bool check_item_exist (gint plst_id, gint key_id)
+bool check_item_exist (MediaSvcHandle *db_handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 	int count = -1;
+	int playlist_id = 1;
 	char *audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
-	//get the count of music track with audio_id in playlist "plst_id"
-	ret = audio_svc_check_duplicate_insertion_in_playlist(plst_id, audio_id, &count);
+	//get the count of music track with audio_id in playlist "playlist_id"
+	ret = audio_svc_check_duplicate_insertion_in_playlist(db_handle, playlist_id, audio_id, &count);
 	if (ret < 0)
 	{
 		if(count > 0)
@@ -3487,7 +3468,7 @@ bool check_item_exist (gint plst_id, gint key_id)
 
  * 	@endcode
  */
-int audio_svc_check_duplicate_insertion_in_playlist(int playlist_id, const char *audio_id, int * count);
+int audio_svc_check_duplicate_insertion_in_playlist(MediaSvcHandle *handle, int playlist_id, const char *audio_id, int * count);
 
 /**
  * 	audio_svc_list_by_search:\n
@@ -3495,7 +3476,7 @@ int audio_svc_check_duplicate_insertion_in_playlist(int playlist_id, const char 
  *	This function takes a variable number of arguments, the arguments format is pair of atrribute index and attribute value.
  *	The last parameter should be "-1", which tell the compiler that the arguments list is over.
  *
- * 	@param[in]	handle			The handle for search
+ * 	@param[in]	record			The handle for search
  * 	@param[in]	order_field		field to order
  *			 	Please refer 'audio-svc-types.h', and see the enum audio_svc_search_order_e
  * 	@param[in]	offset		offset of list to be searched
@@ -3513,19 +3494,19 @@ int audio_svc_check_duplicate_insertion_in_playlist(int playlist_id, const char 
 
  #include <audio-svc.h>
 
-void test_audio_svc_list_by_search()
+void test_audio_svc_list_by_search(MediaSvcHandle *db_handle)
 {
 		int offset = 0, count = 10, i = 0;
 		const char *str = "Sa";
-		AudioHandleType *handle = NULL;
+		AudioHandleType *audio_handle = NULL;
 
-		err = audio_svc_search_item_new(&handle, count);
+		err = audio_svc_search_item_new(&audio_handle, count);
 		if (err < 0) {
 			printf("audio_svc_search_item_new failed:%d\n", err);
 			return err;
 		}
 
-		err = audio_svc_list_by_search(handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
+		err = audio_svc_list_by_search(db_handle, audio_handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
 
 		if (err != AUDIO_SVC_ERROR_NONE) {
 			mediainfo_dbg("Fail to get items : %d", err);
@@ -3534,7 +3515,7 @@ void test_audio_svc_list_by_search()
 		
 		for (i = 0; i < count; i++) {
 			AudioHandleType *item = NULL;
-			err = audio_svc_search_item_get(handle, i, &item);
+			err = audio_svc_search_item_get(audio_handle, i, &item);
 			char *audio_id = NULL, *title = NULL, *artist = NULL, *pathname = NULL, *album = NULL;
 			int size = 0;
 			if (err < 0) {
@@ -3558,12 +3539,12 @@ void test_audio_svc_list_by_search()
 			}
 		}
 
-		audio_svc_search_item_free(handle);
+		audio_svc_search_item_free(audio_handle);
 }
 
  * 	@endcode
  */
-int audio_svc_list_by_search(AudioHandleType *handle,
+int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							audio_svc_search_order_e order_field,
 							int offset,
 							int count,

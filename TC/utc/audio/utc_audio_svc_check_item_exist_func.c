@@ -52,7 +52,7 @@ void utc_audio_svc_check_item_exist_func_01()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_check_item_exist(DEFAULT_FILE);
+	ret = audio_svc_check_item_exist(db_handle, DEFAULT_FILE);
 	if(ret ==  AUDIO_SVC_ERROR_INVALID_PARAMETER)
 	{
 		dts_fail("audio_svc_check_item_exist","fail to check item.");
@@ -75,7 +75,7 @@ void utc_audio_svc_check_item_exist_func_02()
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
 
-	ret = audio_svc_check_item_exist(NULL);
+	ret = audio_svc_check_item_exist(db_handle, NULL);
 	if (ret ==  AUDIO_SVC_ERROR_INVALID_PARAMETER)
 	{
 		dts_pass("audio_svc_check_item_exist","abnormal condition test for invalid path parameter.");

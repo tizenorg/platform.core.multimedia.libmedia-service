@@ -34,7 +34,8 @@
   * @{
   */
 
-#include "minfo-types.h"
+#include "visual-svc-types.h"
+#include "media-svc-types.h"
 
 #ifndef _MINFO_CLUSTER
 #define _MINFO_CLUSTER
@@ -58,7 +59,7 @@
 */
 
 Mcluster* 
-minfo_mcluster_new(const char *uuid);
+minfo_mcluster_new(MediaSvcHandle *mb_svc_handle, const char *uuid);
 
 /**
 * @fn    void minfo_mcluster_destroy(Mcluster* cluster);

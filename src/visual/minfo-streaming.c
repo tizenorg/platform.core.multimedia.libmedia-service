@@ -21,7 +21,7 @@
 
 #include "minfo-streaming.h"
 #include "media-svc-api.h"
-#include "media-svc-util.h"
+#include "visual-svc-util.h"
 
 static void _minfo_mstreaming_init(Mstreaming *mstreaming);
 

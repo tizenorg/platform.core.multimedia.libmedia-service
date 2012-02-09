@@ -64,7 +64,7 @@ void utc_audio_svc_get_item_by_audio_id_func_01()
 		dts_fail("check_default_item_exist","fail to check default item.");
 	}
 	
-	ret = audio_svc_count_list_item(AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
+	ret = audio_svc_count_list_item(db_handle, AUDIO_SVC_TRACK_ALL, "", "", "", "", &count);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		dts_fail("audio_svc_count_list_item","failed to count items.");
@@ -87,7 +87,7 @@ void utc_audio_svc_get_item_by_audio_id_func_01()
 		dts_fail("get_item_audio_id","fail to get audio_id.");
 	}
 	
-	ret = audio_svc_get_item_by_audio_id(audio_id, item);
+	ret = audio_svc_get_item_by_audio_id(db_handle, audio_id, item);
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{
 		audio_svc_item_free(item);
@@ -113,7 +113,7 @@ void utc_audio_svc_get_item_by_audio_id_func_02()
 	AudioHandleType *item = NULL;
 	char * audio_id = "550e8400-e29b-41d4-a716-446655440000";
 
-	ret = audio_svc_get_item_by_audio_id(audio_id, item);
+	ret = audio_svc_get_item_by_audio_id(db_handle, audio_id, item);
 
 	if (ret != AUDIO_SVC_ERROR_NONE)
 	{

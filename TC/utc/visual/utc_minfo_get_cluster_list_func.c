@@ -52,7 +52,7 @@ void utc_minfo_get_cluster_list_func_01()
 	GList *p_list = NULL;
 
     minfo_cluster_filter cluster_filter ={MINFO_CLUSTER_TYPE_ALL,MINFO_CLUSTER_SORT_BY_NONE,0,10};
-	ret = minfo_get_cluster_list(cluster_filter, _cluster_ite_fn, &p_list);
+	ret = minfo_get_cluster_list(handle, cluster_filter, _cluster_ite_fn, &p_list);
 	
 	dts_check_ge(API_NAME, ret, MB_SVC_ERROR_NONE, "unable to get glist including media clusters. error code->%d", ret);
 }
@@ -72,7 +72,7 @@ void utc_minfo_get_cluster_list_func_02()
 	GList *p_list = NULL;
 
     minfo_cluster_filter cluster_filter ={MINFO_CLUSTER_TYPE_ALL,MINFO_CLUSTER_SORT_BY_NONE,0,10};
-	ret = minfo_get_cluster_list(cluster_filter, NULL, &p_list);
+	ret = minfo_get_cluster_list(handle, cluster_filter, NULL, &p_list);
 	
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"getting glist including media clusters should be failed because of the item_filter parameter.");
 }

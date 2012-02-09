@@ -1,3 +1,13 @@
+libmedia-service (0.2.0-3) unstable; urgency=low
+
+  * Change that makes user managing db handle
+  * Add DB field : size in visual_media, genre in video_meta
+  * Code cleanup and fix some bugs
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-3
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 10 Feb 2011 17:30:00 +0900
+
 libmedia-service (0.2.0-2) unstable; urgency=low
 
   * Remove libmedia-thumbnail dependancy

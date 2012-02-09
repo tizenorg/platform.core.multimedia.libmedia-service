@@ -40,13 +40,14 @@
 
 #include <glib.h>
 #include "media-svc-structures.h"
+#include "media-svc-types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /**
-* @fn    int  mb_svc_insert_file(char* file_full_path, mb_svc_media_type_t content_type);
+* @fn    int  mb_svc_insert_file(MediaSvcHandle *mb_svc_handle, char* file_full_path, mb_svc_media_type_t content_type);
 * This function insert file information into folder table, meida table, image_meta table/video_meta table and bookmark table
 *
 * @return                        This function returns 0 on success, and negative value on failure.
@@ -60,11 +61,11 @@ extern "C" {
 
 
 int
-mb_svc_insert_file(const char* file_full_path, minfo_file_type content_type);
+mb_svc_insert_file(MediaSvcHandle *mb_svc_handle, const char* file_full_path, minfo_file_type content_type);
 
 
 /**
-* @fn    int  mb_svc_delete_file(char* file_full_path, mb_svc_media_type_t type);
+* @fn    int  mb_svc_delete_file(MediaSvcHandle *mb_svc_handle, char* file_full_path, mb_svc_media_type_t type);
 * This function deletes file information from folder table,media table and related tables
 *
 * @return                        This function returns 0 on success, and negative value on failure.
@@ -77,10 +78,10 @@ mb_svc_insert_file(const char* file_full_path, minfo_file_type content_type);
 
 
 int 
-mb_svc_delete_file(const char* file_full_path);
+mb_svc_delete_file(MediaSvcHandle *mb_svc_handle, const char* file_full_path);
 
 /**
-* @fn    int  mb_svc_update_file(char* old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type);
+* @fn    int  mb_svc_update_file(MediaSvcHandle *mb_svc_handle, char* old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type);
 * This function updates file information for media table, image_meta table/video_meta table
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -95,10 +96,10 @@ mb_svc_delete_file(const char* file_full_path);
 
 
 int 
-mb_svc_update_file(const char* old_file_full_path, const char *new_file_full_path, minfo_file_type content_type);
+mb_svc_update_file(MediaSvcHandle *mb_svc_handle, const char* old_file_full_path, const char *new_file_full_path, minfo_file_type content_type);
 
 /**
-* @fn    int  mb_svc_rename_file(char *old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type, char* thumb_path);
+* @fn    int  mb_svc_rename_file(MediaSvcHandle *mb_svc_handle, char *old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type, char* thumb_path);
 * This function updates media table due to file name is changed
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -114,10 +115,10 @@ mb_svc_update_file(const char* old_file_full_path, const char *new_file_full_pat
 
 
 int 
-mb_svc_rename_file(const char *old_file_full_path, const char *new_file_full_path, minfo_file_type content_type, char* thumb_path);
+mb_svc_rename_file(MediaSvcHandle *mb_svc_handle, const char *old_file_full_path, const char *new_file_full_path, minfo_file_type content_type, char* thumb_path);
 
 /**
-* @fn    int  mb_svc_move_file(char *old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type, char* thumb_path);
+* @fn    int  mb_svc_move_file(MediaSvcHandle *mb_svc_handle, char *old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type, char* thumb_path);
 * This function updates media table and folder table due to the file is moved
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -133,10 +134,10 @@ mb_svc_rename_file(const char *old_file_full_path, const char *new_file_full_pat
 
 
 int 
-mb_svc_move_file(const char *old_file_full_path, const char *new_file_full_path, minfo_file_type content_type, char* thumb_path);
+mb_svc_move_file(MediaSvcHandle *mb_svc_handle, const char *old_file_full_path, const char *new_file_full_path, minfo_file_type content_type, char* thumb_path);
 
 /**
-* @fn    int  mb_svc_move_file_by_id(const char *src_media_id, const char *dst_cluster_id);
+* @fn    int  mb_svc_move_file_by_id(MediaSvcHandle *mb_svc_handle, const char *src_media_id, const char *dst_cluster_id);
 * This function moves a media to destination cluster
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -150,10 +151,10 @@ mb_svc_move_file(const char *old_file_full_path, const char *new_file_full_path,
 
 
 int 
-mb_svc_move_file_by_id(const char *src_media_id, const char *dst_cluster_id);
+mb_svc_move_file_by_id(MediaSvcHandle *mb_svc_handle, const char *src_media_id, const char *dst_cluster_id);
 
 /**
-* @fn    int  mb_svc_copy_file(char *old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type, char* thumb_path);	
+* @fn    int  mb_svc_copy_file(MediaSvcHandle *mb_svc_handle, char *old_file_full_path, char *new_file_full_path, mb_svc_media_type_t type, char* thumb_path);	
 * This function updates folder table, media table and image_meta/video_meta table
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -168,10 +169,10 @@ mb_svc_move_file_by_id(const char *src_media_id, const char *dst_cluster_id);
 */
 
 int 
-mb_svc_copy_file(const char *old_file_full_path, const char *new_file_full_path, minfo_file_type content_type, char* thumb_path);
+mb_svc_copy_file(MediaSvcHandle *mb_svc_handle, const char *old_file_full_path, const char *new_file_full_path, minfo_file_type content_type, char* thumb_path);
 
 /**
-* @fn    int  mb_svc_copy_file_by_id(const char *src_media_id, const char *dst_cluster_id);	
+* @fn    int  mb_svc_copy_file_by_id(MediaSvcHandle *mb_svc_handle, const char *src_media_id, const char *dst_cluster_id);	
 * This function copy a media to the destination cluster.
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -184,10 +185,10 @@ mb_svc_copy_file(const char *old_file_full_path, const char *new_file_full_path,
 */
 
 int 
-mb_svc_copy_file_by_id(const char *src_media_id, const char *dst_cluster_id);
+mb_svc_copy_file_by_id(MediaSvcHandle *mb_svc_handle, const char *src_media_id, const char *dst_cluster_id);
 
 /**
-* @fn    int  mb_svc_update_cluster_name(const char *cluster_id, const char* new_name);
+* @fn    int  mb_svc_update_cluster_name(MediaSvcHandle *mb_svc_handle, const char *cluster_id, const char* new_name);
 * This function update a name of the cluster.
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -200,16 +201,26 @@ mb_svc_copy_file_by_id(const char *src_media_id, const char *dst_cluster_id);
 */
 
 int 
-mb_svc_update_cluster_name(const char *cluster_id, const char* new_name);
+mb_svc_update_cluster_name(MediaSvcHandle *mb_svc_handle, const char *cluster_id, const char* new_name);
 
 void
 mb_svc_sync_files_to_db_with_path(char* dir_full_path);
 
 int
-mb_svc_insert_items();
+mb_svc_insert_items(MediaSvcHandle *mb_svc_handle);
 
 int
-mb_svc_insert_file_batch(const char *file_full_path, minfo_file_type content_type);
+mb_svc_move_items(MediaSvcHandle *mb_svc_handle);
+
+int
+mb_svc_insert_file_batch(MediaSvcHandle *mb_svc_handle, const char *file_full_path, minfo_file_type content_type);
+
+int
+mb_svc_move_file_batch(MediaSvcHandle *mb_svc_handle,
+						const char *old_file_full_path,
+						const char *new_file_full_path,
+		 				minfo_file_type content_type,
+						char *thumb_path);
 
 //clock_t 
 long mb_svc_get_clock(void);
@@ -239,7 +250,7 @@ int mb_svc_initialize();
 int mb_svc_finalize();
 
 /**
-* @fn      int mb_svc_get_folder_media_list(int folder_id, int file_type, int favoriate, GList** p_record_list);
+* @fn      int mb_svc_get_folder_media_list(MediaSvcHandle *mb_svc_handle, int folder_id, int file_type, int favoriate, GList** p_record_list);
 * This function gets folder media list from media table via folder ID. 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -253,12 +264,12 @@ int mb_svc_finalize();
 *                                                          
 */
 
-int mb_svc_get_folder_media_list(int folder_id, minfo_file_type content_type, int favorite,GList** p_record_list);
+int mb_svc_get_folder_media_list(MediaSvcHandle *mb_svc_handle, int folder_id, minfo_file_type content_type, int favorite,GList** p_record_list);
 
 
 
 /**
-* @fn      int  mb_svc_get_video_record_by_media_id(int media_id, mb_svc_video_meta_record_s* video_meta_record);
+* @fn      int  mb_svc_get_video_record_by_media_id(MediaSvcHandle *mb_svc_handle, int media_id, mb_svc_video_meta_record_s* video_meta_record);
 * This function gets a video record  from video meta table via media ID.
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -270,10 +281,10 @@ int mb_svc_get_folder_media_list(int folder_id, minfo_file_type content_type, in
 *
 */
 
-int  mb_svc_get_video_record_by_media_id(const char *media_id, mb_svc_video_meta_record_s* video_meta_record);
+int  mb_svc_get_video_record_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id, mb_svc_video_meta_record_s* video_meta_record);
 
 /**
-* @fn      int  mb_svc_get_image_record_by_media_id(int media_id, mb_svc_image_meta_record_s* image_meta_record);
+* @fn      int  mb_svc_get_image_record_by_media_id(MediaSvcHandle *mb_svc_handle, int media_id, mb_svc_image_meta_record_s* image_meta_record);
 * This function gets a image record  from image meta table via media ID.
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -284,10 +295,10 @@ int  mb_svc_get_video_record_by_media_id(const char *media_id, mb_svc_video_meta
 *
 *
 */
-int  mb_svc_get_image_record_by_media_id(const char *media_id, mb_svc_image_meta_record_s* image_meta_record);
+int  mb_svc_get_image_record_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id, mb_svc_image_meta_record_s* image_meta_record);
 
 /**
-* @fn      int mb_svc_get_video_list(int folder_id, int favoriate, GList** p_record_list);
+* @fn      int mb_svc_get_video_list(MediaSvcHandle *mb_svc_handle, int folder_id, int favoriate, GList** p_record_list);
 * This function gets all the video file in some folder via folder ID. 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -299,10 +310,10 @@ int  mb_svc_get_image_record_by_media_id(const char *media_id, mb_svc_image_meta
 *                                                             
 *                                                          
 */
-int mb_svc_get_video_list(int folder_id, int favorite, GList** p_record_list);
+int mb_svc_get_video_list(MediaSvcHandle *mb_svc_handle, int folder_id, int favorite, GList** p_record_list);
 
 /**
-* @fn     int  mb_svc_get_folder_fullpath_by_folder_id( int folder_id, char* folder_fullpath);	
+* @fn     int  mb_svc_get_folder_fullpath_by_folder_id(MediaSvcHandle *mb_svc_handle, int folder_id, char* folder_fullpath);	
 * This function gets some folder's full path. 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -314,12 +325,12 @@ int mb_svc_get_video_list(int folder_id, int favorite, GList** p_record_list);
 *                                                             
 *                                                          
 */
-int 
-mb_svc_get_folder_fullpath_by_folder_id(const char *folder_id, char* folder_fullpath, int max_length);
+int
+mb_svc_get_folder_fullpath_by_folder_id(MediaSvcHandle *mb_svc_handle, const char *folder_id, char* folder_fullpath, int max_length);
 
 
 /**
-* @fn     int  mb_svc_get_folder_id_by_full_path( const char* folder_full_path,int* folder_id, int max_length);	
+* @fn     int  mb_svc_get_folder_id_by_full_path(MediaSvcHandle *mb_svc_handle, const char* folder_full_path,int* folder_id, int max_length);	
 * This function gets some folder's full path. 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -332,10 +343,10 @@ mb_svc_get_folder_fullpath_by_folder_id(const char *folder_id, char* folder_full
 */
 
 int 
-mb_svc_get_folder_id_by_full_path( const char* folder_full_path, char *folder_id, int max_length);
+mb_svc_get_folder_id_by_full_path(MediaSvcHandle *mb_svc_handle, const char* folder_full_path, char *folder_id, int max_length);
 
 /**
-* @fn     int  mb_svc_get_folder_id_by_web_album_id(const char* web_album_id,int* folder_id);	
+* @fn     int  mb_svc_get_folder_id_by_web_album_id(MediaSvcHandle *mb_svc_handle, const char* web_album_id,int* folder_id);	
 * This function could get folder id of a cluster, using its web album ID. 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -348,11 +359,11 @@ mb_svc_get_folder_id_by_full_path( const char* folder_full_path, char *folder_id
 */
 
 int 
-mb_svc_get_folder_id_by_web_album_id(const char* web_album_id, char *folder_id);
+mb_svc_get_folder_id_by_web_album_id(MediaSvcHandle *mb_svc_handle, const char* web_album_id, char *folder_id);
 
 
 /**
-* @fn    int mb_svc_get_media_fullpath(const char *folder_id, char* media_display_name, char* media_fullpath);
+* @fn    int mb_svc_get_media_fullpath(MediaSvcHandle *mb_svc_handle, const char *folder_id, char* media_display_name, char* media_fullpath);
 * This function gets some media file's full path. 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -364,12 +375,12 @@ mb_svc_get_folder_id_by_web_album_id(const char* web_album_id, char *folder_id);
 *                                                             
 *                                                          
 */
-int mb_svc_get_media_fullpath(const char *folder_id, char* media_display_name, char* media_fullpath);
+int mb_svc_get_media_fullpath(MediaSvcHandle *mb_svc_handle, const char *folder_id, char* media_display_name, char* media_fullpath);
 
 
 
 /**
-* @fn     int mb_svc_get_media_image_item_list(int folder_id, int media_type, int favoriate, GList** p_item_list)
+* @fn     int mb_svc_get_media_image_item_list(MediaSvcHandle *mb_svc_handle, int folder_id, int media_type, int favoriate, GList** p_item_list)
 * This function gets all the media item or image item from  record of media table  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -385,11 +396,11 @@ int mb_svc_get_media_fullpath(const char *folder_id, char* media_display_name, c
 *                                                             
 *                                                          
 */
-int mb_svc_get_media_image_item_list(int folder_id, minfo_file_type content_type, int favorite, GList** p_item_list);
+int mb_svc_get_media_image_item_list(MediaSvcHandle *mb_svc_handle, int folder_id, minfo_file_type content_type, int favorite, GList** p_item_list);
 
 
 /**
-* @fn     int mb_svc_get_video_item_list(int folder_id, int favoriate, GList** p_item_list)
+* @fn     int mb_svc_get_video_item_list(MediaSvcHandle *mb_svc_handle, int folder_id, int favoriate, GList** p_item_list)
 * This function gets video item from  record of media table  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -402,10 +413,10 @@ int mb_svc_get_media_image_item_list(int folder_id, minfo_file_type content_type
 *                                                             
 *                                                          
 */
-int mb_svc_get_video_item_list(int folder_id, int favorite, GList** p_item_list);
+int mb_svc_get_video_item_list(MediaSvcHandle *mb_svc_handle, int folder_id, int favorite, GList** p_item_list);
 
 /**
-* @fn     int mb_svc_get_media_item_list(int folder_id, int media_type, int favoriate, GList** p_item_list)
+* @fn     int mb_svc_get_media_item_list(MediaSvcHandle *mb_svc_handle, int folder_id, int media_type, int favoriate, GList** p_item_list)
 * This function gets all the media item or image item or video item from  record of media table  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -422,10 +433,10 @@ int mb_svc_get_video_item_list(int folder_id, int favorite, GList** p_item_list)
 *                                                             
 *                                                          
 */
-int mb_svc_get_media_item_list(int folder_id, minfo_file_type content_type, int favorite, GList** p_item_list);
+int mb_svc_get_media_item_list(MediaSvcHandle *mb_svc_handle, int folder_id, minfo_file_type content_type, int favorite, GList** p_item_list);
 
 /**
-* @fn     int mb_svc_get_all_favorite_media_item_list(int media_type, GList** p_item_list);
+* @fn     int mb_svc_get_all_favorite_media_item_list(MediaSvcHandle *mb_svc_handle, int media_type, GList** p_item_list);
 * This function gets all the favorite media item or image item or video item from  record of media table  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -437,12 +448,12 @@ int mb_svc_get_media_item_list(int folder_id, minfo_file_type content_type, int 
 *                                                          
 */
 int 
-mb_svc_get_all_favorite_media_item_list(minfo_file_type content_type, GList** p_item_list);
+mb_svc_get_all_favorite_media_item_list(MediaSvcHandle *mb_svc_handle, minfo_file_type content_type, GList** p_item_list);
 
 
 
 /**
-* @fn   int mb_svc_get_media_record_cnt_by_folder_id (int folder_id, int* count);
+* @fn   int mb_svc_get_media_record_cnt_by_folder_id (MediaSvcHandle *mb_svc_handle, int folder_id, int* count);
 * This function gets record count in some folder  
 *
 * @return                        This function returns record count.
@@ -453,10 +464,10 @@ mb_svc_get_all_favorite_media_item_list(minfo_file_type content_type, GList** p_
 *                                                             
 *                                                          
 */
-int mb_svc_get_media_record_cnt_by_folder_id(int folder_id, int* count);
+int mb_svc_get_media_record_cnt_by_folder_id(MediaSvcHandle *mb_svc_handle, int folder_id, int* count);
 
 /**
-* @fn   int mb_svc_get_folder_list(GList** p_record_list);
+* @fn   int mb_svc_get_folder_list(MediaSvcHandle *mb_svc_handle, GList** p_record_list);
 * This function gets all the folders  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -466,10 +477,10 @@ int mb_svc_get_media_record_cnt_by_folder_id(int folder_id, int* count);
 *
 *
 */
-int mb_svc_get_folder_list(GList** p_record_list);
+int mb_svc_get_folder_list(MediaSvcHandle *mb_svc_handle, GList** p_record_list);
 
 /**
-* @fn  int mb_svc_get_folder_item_list(GList** p_item_list);
+* @fn  int mb_svc_get_folder_item_list(MediaSvcHandle *mb_svc_handle, GList** p_item_list);
 * This function gets all the folder items 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -479,10 +490,10 @@ int mb_svc_get_folder_list(GList** p_record_list);
 *                                                             
 *                                                          
 */
-int mb_svc_get_folder_item_list(GList** p_item_list);
+int mb_svc_get_folder_item_list(MediaSvcHandle *mb_svc_handle, GList** p_item_list);
 
 /**
-* @fn    int  mb_svc_get_bookmark_record_by_id(int record_id, mb_svc_bookmark_record_s* record);
+* @fn    int  mb_svc_get_bookmark_record_by_id(MediaSvcHandle *mb_svc_handle, int record_id, mb_svc_bookmark_record_s* record);
 * This function gets the bookmark  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -493,10 +504,10 @@ int mb_svc_get_folder_item_list(GList** p_item_list);
 *                                                             
 *                                                          
 */
-int  mb_svc_get_bookmark_record_by_id(int record_id, mb_svc_bookmark_record_s* record);
+int  mb_svc_get_bookmark_record_by_id(MediaSvcHandle *mb_svc_handle, int record_id, mb_svc_bookmark_record_s* record);
 
 /**
-* @fn    int  mb_svc_get_media_tag_by_id(int _id, mb_svc_tag_record_s *mtag_record);
+* @fn    int  mb_svc_get_media_tag_by_id(MediaSvcHandle *mb_svc_handle, int _id, mb_svc_tag_record_s *mtag_record);
 * This function gets the tag record according to its ID
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -508,11 +519,11 @@ int  mb_svc_get_bookmark_record_by_id(int record_id, mb_svc_bookmark_record_s* r
 *                                                          
 */
 
-int mb_svc_get_media_tag_by_id(int _id, mb_svc_tag_record_s *mtag_record);
+int mb_svc_get_media_tag_by_id(MediaSvcHandle *mb_svc_handle, int _id, mb_svc_tag_record_s *mtag_record);
 
 
 /**
-* @fn    int mb_svc_get_bookmark_record_by_media_id(int media_id, mb_svc_bookmark_record_s* bookmark_record);
+* @fn    int mb_svc_get_bookmark_record_by_media_id(MediaSvcHandle *mb_svc_handle, int media_id, mb_svc_bookmark_record_s* bookmark_record);
 * This function gets the bookmark  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -525,12 +536,12 @@ int mb_svc_get_media_tag_by_id(int _id, mb_svc_tag_record_s *mtag_record);
 */
 
 int  
-mb_svc_get_bookmark_record_by_media_id(int media_id, mb_svc_bookmark_record_s* bookmark_record);
+mb_svc_get_bookmark_record_by_media_id(MediaSvcHandle *mb_svc_handle, int media_id, mb_svc_bookmark_record_s* bookmark_record);
 
 
 
 /**
-* @fn   int  mb_svc_get_image_list_by_location(double longitude, double latitude, GList** p_record_list);
+* @fn   int  mb_svc_get_image_list_by_location(MediaSvcHandle *mb_svc_handle, double longitude, double latitude, GList** p_record_list);
 * This function gets all the image records at some location  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -542,10 +553,10 @@ mb_svc_get_bookmark_record_by_media_id(int media_id, mb_svc_bookmark_record_s* b
 *
 *
 */
-int  mb_svc_get_image_list_by_location(double longitude, double latitude, GList** p_record_list);
+int  mb_svc_get_image_list_by_location(MediaSvcHandle *mb_svc_handle, double longitude, double latitude, GList** p_record_list);
 
 /**
-* @fn   int  mb_svc_get_video_list_by_location(double longitude, double latitude, GList** p_record_list);
+* @fn   int  mb_svc_get_video_list_by_location(MediaSvcHandle *mb_svc_handle, double longitude, double latitude, GList** p_record_list);
 * This function gets all the video records at some location  
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -557,10 +568,10 @@ int  mb_svc_get_image_list_by_location(double longitude, double latitude, GList*
 *
 *
 */
-int  mb_svc_get_video_list_by_location(double longitude, double latitude, GList** p_record_list);
+int  mb_svc_get_video_list_by_location(MediaSvcHandle *mb_svc_handle, double longitude, double latitude, GList** p_record_list);
 
 /**
-* @fn   int mb_svc_get_media_item_list_by_location(double longitude, double latitude, int media_type, int favoriate, GList** p_item_list);
+* @fn   int mb_svc_get_media_item_list_by_location(MediaSvcHandle *mb_svc_handle, double longitude, double latitude, int media_type, int favoriate, GList** p_item_list);
 
 * This function gets all the media item at some location  
 *
@@ -575,11 +586,11 @@ int  mb_svc_get_video_list_by_location(double longitude, double latitude, GList*
 *                                                             
 *                                                          
 */
-int mb_svc_get_media_item_list_by_location(double longitude, double latitude, minfo_file_type content_type, int favorite, GList** p_item_list);
+int mb_svc_get_media_item_list_by_location(MediaSvcHandle *mb_svc_handle, double longitude, double latitude, minfo_file_type content_type, int favorite, GList** p_item_list);
 
 
 /**
-* @fn   int  mb_svc_get_web_streaming_record_by_folder_id(int folder_id, GList** p_record_list);
+* @fn   int  mb_svc_get_web_streaming_record_by_folder_id(MediaSvcHandle *mb_svc_handle, int folder_id, GList** p_record_list);
 * This function gets the web streaming records list mapped to folder ID . 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -590,10 +601,10 @@ int mb_svc_get_media_item_list_by_location(double longitude, double latitude, mi
 *                                                             
 *                                                          
 */
-int  mb_svc_get_web_streaming_record_by_folder_id(int folder_id, GList** p_record_list);
+int  mb_svc_get_web_streaming_record_by_folder_id(MediaSvcHandle *mb_svc_handle, int folder_id, GList** p_record_list);
 
 /**
-* @fn   int  mb_svc_get_web_album_list_by_web_account(char *web_account,GList** p_record_list);
+* @fn   int  mb_svc_get_web_album_list_by_web_account(MediaSvcHandle *mb_svc_handle, char *web_account,GList** p_record_list);
 * This function gets the web streaming records list via web account 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -604,10 +615,10 @@ int  mb_svc_get_web_streaming_record_by_folder_id(int folder_id, GList** p_recor
 *
 *
 */
-int  mb_svc_get_web_album_list_by_web_account(char *web_account,GList** p_record_list);
+int  mb_svc_get_web_album_list_by_web_account(MediaSvcHandle *mb_svc_handle, char *web_account,GList** p_record_list);
 
 /**
-* @fn   int  mb_svc_get_web_streaming_item_by_web_account(char *web_account,GList** p_item_list);
+* @fn   int  mb_svc_get_web_streaming_item_by_web_account(MediaSvcHandle *mb_svc_handle, char *web_account,GList** p_item_list);
 * This function gets the web streaming item list via web account 
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -618,10 +629,10 @@ int  mb_svc_get_web_album_list_by_web_account(char *web_account,GList** p_record
 *                                                             
 *                                                          
 */
-int  mb_svc_get_web_streaming_item_by_web_account(char *web_account,GList** p_item_list);
+int  mb_svc_get_web_streaming_item_by_web_account(MediaSvcHandle *mb_svc_handle, char *web_account,GList** p_item_list);
 
 /**
-* @fn    int  mb_svc_update_favorite_by_media_id(const char *media_id, int favorite);
+* @fn    int  mb_svc_update_favorite_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int favorite);
 * This function update rate field of media record
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -635,10 +646,10 @@ int  mb_svc_get_web_streaming_item_by_web_account(char *web_account,GList** p_it
 */
 
 int
-mb_svc_update_favorite_by_media_id(const char *media_id, int favorite);
+mb_svc_update_favorite_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int favorite);
 
 /**
-* @fn    int  mb_svc_get_media_record_by_fid_name(int folder_id, char* display_name, mb_svc_media_record_s* m_record);
+* @fn    int  mb_svc_get_media_record_by_fid_name(MediaSvcHandle *mb_svc_handle, int folder_id, char* display_name, mb_svc_media_record_s* m_record);
 * This function gets media record by folder id and file name
 *
 * @return                        This function returns 0 on success, and -1 on failure.
@@ -652,10 +663,10 @@ mb_svc_update_favorite_by_media_id(const char *media_id, int favorite);
 */
 
 int 
-mb_svc_get_media_record_by_fid_name(const char *folder_id, const char* display_name, mb_svc_media_record_s* m_record);
+mb_svc_get_media_record_by_fid_name(MediaSvcHandle *mb_svc_handle, const char *folder_id, const char* display_name, mb_svc_media_record_s* m_record);
 
 /**
-* @fn    int  mb_svc_get_folder_content_count_by_folder_id(int folder_id);
+* @fn    int  mb_svc_get_folder_content_count_by_folder_id(MediaSvcHandle *mb_svc_handle, int folder_id);
 * This function gets matched media record count with specified folder id
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -667,10 +678,10 @@ mb_svc_get_media_record_by_fid_name(const char *folder_id, const char* display_n
 */
 
 int 
-mb_svc_get_folder_content_count_by_folder_id(const char *folder_id);
+mb_svc_get_folder_content_count_by_folder_id(MediaSvcHandle *mb_svc_handle, const char *folder_id);
 
 /**
-* @fn    int  mb_svc_media_iter_start(int folder_id, mb_svc_media_list_filter* filter, minfo_folder_type folder_type, int valid,  GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator );
+* @fn    int  mb_svc_media_iter_start(MediaSvcHandle *mb_svc_handle, int folder_id, mb_svc_media_list_filter* filter, minfo_folder_type folder_type, int valid,  GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator );
 * This function gets media record iterator
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -686,10 +697,10 @@ mb_svc_get_folder_content_count_by_folder_id(const char *folder_id);
 */
 
 int 
-mb_svc_media_iter_start(int folder_id, minfo_item_filter* filter, minfo_folder_type folder_type, int valid, GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_media_iter_start(MediaSvcHandle *mb_svc_handle, int folder_id, minfo_item_filter* filter, minfo_folder_type folder_type, int valid, GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator);
 
 /**
-* @fn    int  mb_svc_media_iter_start_new(int folder_id, mb_svc_media_list_filter* filter, minfo_folder_type folder_type, int valid,  GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator );
+* @fn    int  mb_svc_media_iter_start_new(MediaSvcHandle *mb_svc_handle, int folder_id, mb_svc_media_list_filter* filter, minfo_folder_type folder_type, int valid,  GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator );
 * This function gets media record iterator
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -705,10 +716,10 @@ mb_svc_media_iter_start(int folder_id, minfo_item_filter* filter, minfo_folder_t
 */
 
 int 
-mb_svc_media_iter_start_new(const char *folder_id, minfo_item_filter* filter, minfo_folder_type folder_type, int valid, GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_media_iter_start_new(MediaSvcHandle *mb_svc_handle, const char *folder_id, minfo_item_filter* filter, minfo_folder_type folder_type, int valid, GList* p_folder_id_list, mb_svc_iterator_s* mb_svc_iterator);
 
 /**
-* @fn    int  mb_svc_media_search_iter_start(minfo_search_field_t search_field, const char *search_str, const minfo_item_filter filter, mb_svc_iterator_s *mb_svc_iterator );
+* @fn    int  mb_svc_media_search_iter_start(MediaSvcHandle *mb_svc_handle, minfo_search_field_t search_field, const char *search_str, const minfo_item_filter filter, mb_svc_iterator_s *mb_svc_iterator );
 * This function gets media record iterator
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -721,7 +732,7 @@ mb_svc_media_iter_start_new(const char *folder_id, minfo_item_filter* filter, mi
 */
 
 int 
-mb_svc_media_search_iter_start(minfo_search_field_t search_field, const char *search_str, minfo_folder_type folder_type, minfo_item_filter filter, mb_svc_iterator_s *mb_svc_iterator);
+mb_svc_media_search_iter_start(MediaSvcHandle *mb_svc_handle, minfo_search_field_t search_field, const char *search_str, minfo_folder_type folder_type, minfo_item_filter filter, mb_svc_iterator_s *mb_svc_iterator);
 
 /**
 * @fn    int  mb_svc_media_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_media_record_s *record);
@@ -740,7 +751,7 @@ int
 mb_svc_media_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_media_record_s *record);
 
 /**
-* @fn    int  mb_svc_folder_iter_start(minfo_cluster_filter* cluster_filter, mb_svc_iterator_s* mb_svc_iterator);
+* @fn    int  mb_svc_folder_iter_start(MediaSvcHandle *mb_svc_handle, minfo_cluster_filter* cluster_filter, mb_svc_iterator_s* mb_svc_iterator);
 * This function gets folder record iterator
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -753,7 +764,7 @@ mb_svc_media_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_media_record_s
 */
 
 int 
-mb_svc_folder_iter_start(minfo_cluster_filter* cluster_filter, mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_folder_iter_start(MediaSvcHandle *mb_svc_handle, minfo_cluster_filter* cluster_filter, mb_svc_iterator_s* mb_svc_iterator);
 
 /**
 * @fn    int  mb_svc_folder_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_folder_record_s *record);
@@ -787,7 +798,7 @@ int
 mb_svc_iter_finish(mb_svc_iterator_s* mb_svc_iterator);
 
 /**
-* @fn    int  mb_svc_get_media_record_by_id(int media_id,mb_svc_media_record_s *media_record);
+* @fn    int  mb_svc_get_media_record_by_id(MediaSvcHandle *mb_svc_handle, int media_id,mb_svc_media_record_s *media_record);
 * This function gets media record matched with field _id
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -800,10 +811,10 @@ mb_svc_iter_finish(mb_svc_iterator_s* mb_svc_iterator);
 */
 
 int
-mb_svc_get_media_record_by_id(const char *media_id, mb_svc_media_record_s *media_record);
+mb_svc_get_media_record_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, mb_svc_media_record_s *media_record);
 
 /**
-* @fn    int  mb_svc_get_folder_record_by_id(const char *folder_id, mb_svc_folder_record_s *folder_record);
+* @fn    int  mb_svc_get_folder_record_by_id(MediaSvcHandle *mb_svc_handle, const char *folder_id, mb_svc_folder_record_s *folder_record);
 * This function gets folder record matched with field _id
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -816,10 +827,10 @@ mb_svc_get_media_record_by_id(const char *media_id, mb_svc_media_record_s *media
 */
 
 int
-mb_svc_get_folder_record_by_id(const char *folder_id, mb_svc_folder_record_s *folder_record);
+mb_svc_get_folder_record_by_id(MediaSvcHandle *mb_svc_handle, const char *folder_id, mb_svc_folder_record_s *folder_record);
 
 /**
-* @fn    int  mb_svc_get_video_id_by_media_id(int media_id, int* video_id);	
+* @fn    int  mb_svc_get_video_id_by_media_id(MediaSvcHandle *mb_svc_handle, int media_id, int* video_id);	
 * This function gets video record id by media_id filed in video_meta table
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -832,10 +843,10 @@ mb_svc_get_folder_record_by_id(const char *folder_id, mb_svc_folder_record_s *fo
 */
 
 int  
-mb_svc_get_id_by_media_id(int media_id, char* table_name, int* video_id);	
+mb_svc_get_id_by_media_id(MediaSvcHandle *mb_svc_handle, int media_id, char* table_name, int* video_id);	
 
 /**
-* @fn    int  mb_svc_delete_folder(const char *folder_id, minfo_store_type storage_type);
+* @fn    int  mb_svc_delete_folder(MediaSvcHandle *mb_svc_handle, const char *folder_id, minfo_store_type storage_type);
 * This function delete folder record,matched media record,image_meta record or video_meta record and bookmark record by field "_id"
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -848,10 +859,10 @@ mb_svc_get_id_by_media_id(int media_id, char* table_name, int* video_id);
 */
 
 int
-mb_svc_delete_folder(const char *folder_id, minfo_store_type storage_type);
+mb_svc_delete_folder(MediaSvcHandle *mb_svc_handle, const char *folder_id, minfo_store_type storage_type);
 
 /**
-* @fn    int  mb_svc_webstreaming_iter_start(mb_svc_iterator_s* mb_svc_iterator);
+* @fn    int  mb_svc_webstreaming_iter_start(MediaSvcHandle *mb_svc_handle, mb_svc_iterator_s* mb_svc_iterator);
 * This function gets webstreaming record iterator
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -863,7 +874,7 @@ mb_svc_delete_folder(const char *folder_id, minfo_store_type storage_type);
 */
 
 int 
-mb_svc_webstreaming_iter_start(mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_webstreaming_iter_start(MediaSvcHandle *mb_svc_handle, mb_svc_iterator_s* mb_svc_iterator);
 
 /**
 * @fn    int  mb_svc_webstreaming_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_web_streaming_record_s *webstreaming_record);
@@ -883,7 +894,7 @@ mb_svc_webstreaming_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_web_str
 
 
 /**
-* @fn    int  mb_svc_bookmark_iter_start(mb_svc_iterator_s* mb_svc_iterator);
+* @fn    int  mb_svc_bookmark_iter_start(MediaSvcHandle *mb_svc_handle, mb_svc_iterator_s* mb_svc_iterator);
 * This function gets bookmark record iterator
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -896,7 +907,7 @@ mb_svc_webstreaming_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_web_str
 */
 
 int 
-mb_svc_bookmark_iter_start(const char *media_id, mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_bookmark_iter_start(MediaSvcHandle *mb_svc_handle, const char *media_id, mb_svc_iterator_s* mb_svc_iterator);
 
 
 /**
@@ -916,7 +927,7 @@ int
 mb_svc_bookmark_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_bookmark_record_s *record);
 
 /**
-* @fn    mb_svc_tag_iter_start(const char *tag_name, int media_id, mb_svc_iterator_s* mb_svc_iterator);
+* @fn    mb_svc_tag_iter_start(MediaSvcHandle *mb_svc_handle, const char *tag_name, int media_id, mb_svc_iterator_s* mb_svc_iterator);
 * This function gets tag record iterator, according tag_name, if any, or media_id.
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -930,10 +941,10 @@ mb_svc_bookmark_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_bookmark_re
 */
 
 int 
-mb_svc_tag_iter_start(const char *tag_name, const char *media_id, mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_tag_iter_start(MediaSvcHandle *mb_svc_handle, const char *tag_name, const char *media_id, mb_svc_iterator_s* mb_svc_iterator);
 
 /**
-* @fn    mb_svc_tag_iter_with_filter_start(const char *tag_name, int media_id, minfo_tag_filter, filter, mb_svc_iterator_s* mb_svc_iterator);
+* @fn    mb_svc_tag_iter_with_filter_start(MediaSvcHandle *mb_svc_handle, const char *tag_name, int media_id, minfo_tag_filter, filter, mb_svc_iterator_s* mb_svc_iterator);
 * This function gets tag record iterator, according tag_name, if any, or media_id.
 *
 * @return                       This function returns 0 on success, and negative value on failure.
@@ -948,7 +959,7 @@ mb_svc_tag_iter_start(const char *tag_name, const char *media_id, mb_svc_iterato
 */
 
 int 
-mb_svc_tag_iter_with_filter_start(const char *tag_name, minfo_tag_filter filter, mb_svc_iterator_s* mb_svc_iterator);
+mb_svc_tag_iter_with_filter_start(MediaSvcHandle *mb_svc_handle, const char *tag_name, minfo_tag_filter filter, mb_svc_iterator_s* mb_svc_iterator);
 
 /**
 * @fn    int  mb_svc_tag_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_tag_record_s *record);
@@ -970,49 +981,50 @@ int
 mb_svc_media_id_list_by_tag_iter_next(mb_svc_iterator_s* mb_svc_iterator, mb_svc_tag_record_s *record);
 
 int 
-mb_svc_delete_record_tag(const char *tag_name, const char *media_id);
+mb_svc_delete_record_tag(MediaSvcHandle *mb_svc_handle, const char *tag_name, const char *media_id);
 
 int 
-mb_svc_rename_record_tag(const char* src_tagname, const char* dst_tag_name);
+mb_svc_rename_record_tag(MediaSvcHandle *mb_svc_handle, const char* src_tagname, const char* dst_tag_name);
 
 int 
-mb_svc_rename_record_tag_by_id(const char *media_id, const char* src_tagname, const char* dst_tag_name);
+mb_svc_rename_record_tag_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, const char* src_tagname, const char* dst_tag_name);
 
 int
-mb_svc_get_tagid_by_tagname(const char* tag_name);
+mb_svc_get_tagid_by_tagname(MediaSvcHandle *mb_svc_handle, const char* tag_name);
 
 int 
-mb_svc_add_web_streaming_folder(char *folder_id);
+mb_svc_add_web_streaming_folder(MediaSvcHandle *mb_svc_handle, char *folder_id);
 
 int 
-mb_svc_get_web_streaming_folder_id();
+mb_svc_get_web_streaming_folder_id(MediaSvcHandle *mb_svc_handle);
 
 int
-mb_svc_get_web_streaming_folder_uuid(char *folder_uuid, int max_length);
+mb_svc_get_web_streaming_folder_uuid(MediaSvcHandle *mb_svc_handle, char *folder_uuid, int max_length);
 
 int
-mb_svc_get_media_id_by_full_path(const char* file_full_path, char *media_id);
+mb_svc_get_media_id_by_full_path(MediaSvcHandle *mb_svc_handle, const char* file_full_path, char *media_id);
 
 int
-mb_svc_get_media_id_by_http_url(const char* http_url, char* media_id);
+mb_svc_get_media_id_by_http_url(MediaSvcHandle *mb_svc_handle, const char* http_url, char* media_id);
 
 int
-mb_svc_get_media_record_by_full_path(const char* file_full_path, mb_svc_media_record_s* record);
+mb_svc_get_media_record_by_full_path(MediaSvcHandle *mb_svc_handle, const char* file_full_path, mb_svc_media_record_s* record);
 
 int  
-mb_svc_get_web_album_cluster_record(int sns_type, const char* name, const char *account_id, const char *album_id, mb_svc_folder_record_s* folder_record);
+mb_svc_get_web_album_cluster_record(MediaSvcHandle *mb_svc_handle, int sns_type, const char* name, const char *account_id, const char *album_id, mb_svc_folder_record_s* folder_record);
 
 int
-mb_svc_delete_invalid_media_records(const minfo_store_type storage_type);
+mb_svc_delete_invalid_media_records(MediaSvcHandle *mb_svc_handle, const minfo_store_type storage_type);
 
 int
-mb_svc_get_folder_name_by_id(const char *folder_id, char *folder_name, int max_length);
+mb_svc_get_folder_name_by_id(MediaSvcHandle *mb_svc_handle, const char *folder_id, char *folder_name, int max_length);
 
 int 
-mb_svc_get_folder_list_by_web_account_id(char *web_account, GList** p_record_list);
+mb_svc_get_folder_list_by_web_account_id(MediaSvcHandle *mb_svc_handle, char *web_account, GList** p_record_list);
 
 int 
-mb_svc_geo_media_iter_start(const char *folder_id,
+mb_svc_geo_media_iter_start(MediaSvcHandle *mb_svc_handle, 
+						const char *folder_id,
 						minfo_folder_type store_filter,
 						minfo_item_filter* filter,
 						mb_svc_iterator_s* mb_svc_iterator,
@@ -1021,16 +1033,24 @@ mb_svc_geo_media_iter_start(const char *folder_id,
 						double min_latitude, 
 						double max_latitude );
 
-int
-mb_svc_get_all_item_count(int *cnt);
+int mb_svc_get_all_item_count(
+				MediaSvcHandle *mb_svc_handle,
+				minfo_folder_type folder_type,
+				minfo_file_type file_type,
+				minfo_media_favorite_type fav_type,
+				int *cnt);
 
 int
-mb_svc_get_media_count_by_tagname(const char* tagname, int* count);
+mb_svc_get_media_count_by_tagname(MediaSvcHandle *mb_svc_handle, const char* tagname, int* count);
 
 int
-mb_svc_delete_tagmap_by_media_id(const char *media_id);
+mb_svc_delete_tagmap_by_media_id(MediaSvcHandle *mb_svc_handle, const char *media_id);
 
+int
+mb_svc_check_exist_by_path(MediaSvcHandle *mb_svc_handle, const char *path, const char *table_name);
 
+int
+mb_svc_delete_all_media_records(MediaSvcHandle *mb_svc_handle, const minfo_store_type storage_type);
 
 #ifdef __cplusplus
 }

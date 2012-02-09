@@ -1,7 +1,6 @@
 /utc/audio/utc_audio_svc_add_item_to_playlist_func
 /utc/audio/utc_audio_svc_add_playlist_func
 /utc/audio/utc_audio_svc_check_duplicate_insertion_in_playlist_func
-/utc/audio/utc_audio_svc_close_func
 /utc/audio/utc_audio_svc_count_group_item_func
 /utc/audio/utc_audio_svc_count_list_item_func
 /utc/audio/utc_audio_svc_count_playlist_by_name_func
@@ -27,7 +26,6 @@
 /utc/audio/utc_audio_svc_list_item_get_val_func
 /utc/audio/utc_audio_svc_list_item_new_func
 /utc/audio/utc_audio_svc_move_item_func
-/utc/audio/utc_audio_svc_open_func
 /utc/audio/utc_audio_svc_playlist_free_func
 /utc/audio/utc_audio_svc_playlist_get_item_func
 /utc/audio/utc_audio_svc_playlist_get_val_func

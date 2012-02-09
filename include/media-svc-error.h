@@ -19,64 +19,70 @@
  *
  */
 
-/** 
- * This file defines the error code of media service
- *
- * @file       	media-svc-error.h
- * @author 		Hyunjun Ko <zzoon.ko@samsung.com>
- * @version 	1.0
- * @brief     	This file defines the error code of media service 
- */
 
-/**
-* @ingroup MINFO_SVC_API
-* @defgroup	MEDIA_SVC_ERROR Media service error code table
-* @{
-*/
 
 #ifndef _MEDIA_SVC_ERROR_H_
 #define _MEDIA_SVC_ERROR_H_
 
+/**
+	@addtogroup MEDIA_SVC
+	 @{
+	 * @file		media-svc-error.h
+	 * @brief	This file defines error codes for media service.
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-//Error types definition
-#define MB_SVC_ERROR_NONE					0				/**< base */
-#define MB_SVC_ERROR_INVALID_PARAMETER 		-1  			/**< invalid parameter(s) */
-#define MB_SVC_ERROR_INVALID_MEDIA  	 	-2				/**< invalid or unknown media */
-#define MB_SVC_ERROR_FILE_NOT_EXSITED 		-3				/**< file doesn't exist */
-#define MB_SVC_ERROR_DIR_NOT_EXSITED 		-4				/**< folder doesn't exist */
-
-#define MB_SVC_ERROR_FILE_IO 				-11				/**< file I/O error  */
-#define MB_SVC_ERROR_OUT_OF_MEMORY         	-12				/**< memory allocation error*/
-
-#define MB_SVC_ERROR_CREATE_THUMBNAIL       -101			/**< create thumbnail */
-#define MB_SVC_ERROR_COPY_THUMBNAIL    		-102			/**< copy thumbnail */
-#define MB_SVC_ERROR_MOVE_THUMBNAIL    		-103			/**< move thumbnail */
-
-#define MB_SVC_ERROR_DB_CONNECT 			-201			/**< connect DB error */
-#define MB_SVC_ERROR_DB_DISCONNECT 			-202			/**< disconnect DB error  */
-#define MB_SVC_ERROR_DB_CREATE_TABLE 		-203			/**< create table error */
-#define MB_SVC_ERROR_DB_NO_RECORD 			-204			/**< No record */
-#define MB_SVC_ERROR_DB_OUT_OF_RANGE 		-205			/**< DB out of table records range*/
-#define MB_SVC_ERROR_DB_INTERNAL	 		-206			/**< internal db error  */
-
-#define MB_SVC_ERROR_NOT_IMPLEMENTED		-997			/**< Not implemented */
-#define MB_SVC_ERROR_INTERNAL				-998			/**< internal error */
-#define MB_SVC_ERROR_UNKNOWN				-999			/**< Unknown error */
-
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+ */
 
 /**
-* @}
+        @defgroup MEDIA_SVC_COMMON  Global data structure and error code
+        @{
+
+        @par
+         type definition and error code
+ */
+
+
+#define MEDIA_INFO_ERROR_NONE							0			/**< No Error */
+
+#define MEDIA_INFO_ERROR_INVALID_PARAMETER			-1			/**< Invalid parameter */
+#define MEDIA_INFO_ERROR_INVALID_MEDIA				-2			/**< Invalid media */
+#define MEDIA_INFO_ERROR_INVALID_FILE_FORMAT		-3			/**< Invalid file format */
+#define MEDIA_INFO_ERROR_INVALID_PATH				-4			/**< Invalid file path */
+#define MEDIA_INFO_ERROR_OUT_OF_MEMORY				-5			/**< Out of memory */
+#define MEDIA_INFO_ERROR_OUT_OF_STORAGE				-6			/**< Out of storage */
+#define MEDIA_INFO_ERROR_INSERT_FAIL					-7			/**< Insert failed  */
+#define MEDIA_INFO_ERROR_DRM_INSERT_FAIL				-8			/**< DRM file insert failed */
+
+#define MEDIA_INFO_ERROR_ITEM_NOT_FOUND				-11			/**< Item not found */
+#define MEDIA_INFO_ERROR_FILE_NOT_FOUND				-12			/**< File not found */
+#define MEDIA_INFO_ERROR_APPEND_ITEM_FAILED			-13			/**< Append item failed */
+#define MEDIA_INFO_ERROR_REMOVE_ITEM_FAILED			-14			/**< Remove item failed */
+#define MEDIA_INFO_ERROR_GET_ITEM_FAILED				-15			/**< Get item failed */
+#define MEDIA_INFO_ERROR_REMOVE_FILE_FAILED			-16			/**< Remove file failed */
+#define MEDIA_INFO_ERROR_EXTRACT_FAILED				-17			/**< Extract Failed */
+#define MEDIA_INFO_ERROR_MAKE_PLAYLIST_NAME_FAILED	-18			/**< fail to make new playlist name */
+
+#define MEDIA_INFO_ERROR_DATABASE_CONNECT			-100		/**< DB connect error */
+#define MEDIA_INFO_ERROR_DATABASE_DISCONNECT		-101		/**< DB disconnect error */
+#define MEDIA_INFO_ERROR_DATABASE_QUERY				-104		/**< DB query error */
+#define MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN		-105		/**< DB table open error */
+#define MEDIA_INFO_ERROR_DATABASE_INVALID			-106		/**< DB invalid error */
+#define MEDIA_INFO_ERROR_DATABASE_INTERNAL			-107		/**< DB internal error */
+
+#define MEDIA_INFO_ERROR_SOCKET_CONN					-201		/**< Socket connect error */
+#define MEDIA_INFO_ERROR_SOCKET_MSG					-202		/**< Socket message error */
+#define MEDIA_INFO_ERROR_SOCKET_SEND					-203		/**< Socket send error */
+#define MEDIA_INFO_ERROR_SOCKET_RECEIVE				-204		/**< Socket receive error */
+#define MEDIA_INFO_ERROR_SOCKET_RECEIVE_TIMEOUT	-205		/**< Socket time out */
+
+#define MEDIA_INFO_ERROR_INTERNAL						-998		/**< Internal error */
+#define MEDIA_INFO_ERROR_UNKNOWN					-999		/**< Unknown error */
+#define MEDIA_INFO_ERROR_NOT_IMPLEMENTED			-200		/**< Not implemented */
+/**
+	@}
+*/
+
+/**
+	@}
 */
 
 #endif /*_MEDIA_SVC_ERROR_H_*/
-
-
-

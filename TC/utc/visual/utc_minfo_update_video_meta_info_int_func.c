@@ -41,13 +41,13 @@
 void utc_minfo_update_video_meta_info_int_func_01()
 {
 	int ret = -1;
-	char *file_url = "/opt/media/Images and videos/My video clips/Helicopter.mp4";
+	char *file_url = "/opt/media/Videos/Helicopter.mp4";
 	char origin_name[256];
 	Mitem* item = NULL;
 	memset( origin_name, 0x00, 256 );
 
 
-	ret = minfo_get_item( file_url, &item );
+	ret = minfo_get_item(handle, file_url, &item);
 	if (ret < MB_SVC_ERROR_NONE)
 	{
 		dts_fail(API_NAME, "unable to get a media content from media table. error code->%d", ret);
@@ -55,14 +55,14 @@ void utc_minfo_update_video_meta_info_int_func_01()
 
 	if( item ) {
 		strncpy( origin_name, item->display_name, sizeof( origin_name ) );
-    	ret = minfo_update_video_meta_info_int(item->uuid, MINFO_VIDEO_META_BOOKMARK_LAST_PLAYED, 3000);
+    	ret = minfo_update_video_meta_info_int(handle, item->uuid, MINFO_VIDEO_META_BOOKMARK_LAST_PLAYED, 3000);
 
 		if (ret < MB_SVC_ERROR_NONE)
 		{
 			dts_fail(API_NAME, "unable to update a media content from media table. error code->%d", ret);
 		}
 
-    	ret = minfo_update_video_meta_info_int(item->uuid, MINFO_VIDEO_META_BOOKMARK_LAST_PLAYED, 0);
+    	ret = minfo_update_video_meta_info_int(handle, item->uuid, MINFO_VIDEO_META_BOOKMARK_LAST_PLAYED, 0);
 
 		if (ret < MB_SVC_ERROR_NONE)
 		{
@@ -87,7 +87,7 @@ void utc_minfo_update_video_meta_info_int_func_02()
 	const char *media_uuid = NULL;
 	minfo_video_meta_field_t meta_field = MINFO_VIDEO_META_BOOKMARK_LAST_PLAYED;
 
-    ret = minfo_update_video_meta_info_int(media_uuid, meta_field, 3000);
+    ret = minfo_update_video_meta_info_int(handle, media_uuid, meta_field, 3000);
 		
 	dts_check_lt(API_NAME, ret, MB_SVC_ERROR_NONE,"update a media content from media table should be failed because of the new_name NULL.");
 }
