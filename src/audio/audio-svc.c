@@ -45,184 +45,6 @@ static __thread int g_audio_svc_move_item_cur_data_cnt = 0;
 static __thread int g_audio_svc_insert_item_data_cnt = 1;
 static __thread int g_audio_svc_insert_item_cur_data_cnt = 0;
 
-#if 0
-/**
- *	audio_svc_open:\n
- *	Open audio service library. This is the function that an user who wants to use music-service calls first.
- * 	This function connects with the music database and initialize efreet mime libary.
- *
- *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
- *				Please refer 'audio-svc-types.h' to know the exact meaning of the error.
- *	@see		audio_svc_close
- *	@pre		None.
- *	@post		call audio_svc_close() to close music database
- *	@remark	The database name is "/opt/dbspace/.music.db".
- * 	@par example
- * 	@code
-
-#include <audio-svc.h>
-
-void open_music_db()
-{
-	int ret = AUDIO_SVC_ERROR_NONE;
-	// open music database
-	ret = audio_svc_open();
-	// open failed
-	if (ret < 0)
-	{
-		printf( "Cannot open music db. error code->%d", ret);
-		return;
-	}
-
-	return;
-}
-
- * 	@endcode
- */
-int audio_svc_open(void);
-
-
-/**
- *    audio_svc_close:\n
- *	Close audio service library. This is the function need to call before close the application.
- *	This function disconnects with the music database and shutdown the efreet mime libary.
- *
- *	@return		This function returns zero(AUDIO_SVC_ERROR_NONE) on success, or negative value with error code.\n
- *				Please refer 'audio-svc-types.h' to know the exact meaning of the error.
- *	@see		audio_svc_open
- *	@pre		music database already is opened.
- *	@post 		None
- *	@remark	memory free before you call this function to close database.
- * 	@par example
- * 	@code
-
-#include <audio-svc.h>
-
-void close_music_db()
-{
-	int ret = AUDIO_SVC_ERROR_NONE;
-	// close music database
-	ret = audio_svc_close();
-	// close failed
-	if (ret < 0)
-	{
-		printf( "unable to close music db. error code->%d", ret);
-		return;
-	}
-
-	return;
-}
-
- * 	@endcode
- */
-int audio_svc_close(void);
-
-int audio_svc_open(void)
-{
-	int err = -1;
-	int tid = -1;
-
-	audio_svc_debug("");
-
-	err = _media_info_init_handle_tbl();
-	if (err < 0) {
-		audio_svc_debug("Error:_media_info_init_handle_tbl\n");
-		return AUDIO_SVC_ERROR_DB_CONNECT;
-	}
-
-	tid = _media_info_get_thread_id();
-	audio_svc_debug("Current thread id : %d", tid);
-
-	HandleTable *handle_table = NULL;
-	handle_table = _media_info_search_handle(tid);
-
-	if (handle_table == NULL) {
-		audio_svc_debug("A handle in thread [%d] does not exist. So now trying to make connection");
-		int *key_tid = NULL;
-
-		err = _media_info_insert_handle(&key_tid, tid, &handle_table);
-		if (err < 0) {
-			audio_svc_error("Fail to insert handle");
-			if (key_tid)	g_free(key_tid);
-			if (handle_table)	g_free(handle_table);
-			return AUDIO_SVC_ERROR_DB_CONNECT;
-		}
-
-		sqlite3 *handle = NULL;
-
-		if (db_util_open(MEDIA_INFO_DATABASE_NAME, &handle, DB_UTIL_REGISTER_HOOK_METHOD) != SQLITE_OK) {
-			audio_svc_error("Unable to open database");
-			if (handle) audio_svc_error("[sqlite] %s\n", sqlite3_errmsg(handle));
-			if (key_tid)	g_free(key_tid);
-			if (handle_table)	g_free(handle_table);
-			return AUDIO_SVC_ERROR_DB_CONNECT;
-		}
-
-		handle_table->handle = handle;
-
-		/* Register Busy handler */
-		err = sqlite3_busy_handler(handle, _audio_svc_sql_busy_handler, NULL);
-		if (SQLITE_OK != err) {
-			audio_svc_error("Fail to register busy handler\n");	
-			if (handle) audio_svc_error("[sqlite] %s\n", sqlite3_errmsg(handle));	
-
-			db_util_close(handle);
-			handle = NULL;
-
-			return AUDIO_SVC_ERROR_DB_CONNECT;
-		}
-
-	} else {
-		audio_svc_debug("A handle in thread [%d] exists. ");
-		_media_info_atomic_add_counting(handle_table);
-	}
-
-	audio_svc_debug("audio_svc_open succeed");
-	return AUDIO_SVC_ERROR_NONE;
-}
-
-int audio_svc_close(void)
-{
-	int ret = AUDIO_SVC_ERROR_NONE;
-	int err = -1;
-	int tid = -1;
-	audio_svc_debug("");
-
-	tid = _media_info_get_thread_id();
-	audio_svc_debug("Current thread id : %d", tid);
-
-	HandleTable *handle_table = NULL;
-	handle_table = _media_info_search_handle(tid);
-
-	if (handle_table == NULL) {
-		audio_svc_error("handle_table is NULL");
-		return AUDIO_SVC_ERROR_DB_DISCONNECT;
-	} else {
-		audio_svc_debug("ref count in thread[%d] is %d", tid, handle_table->ref_cnt);
-
-		if (handle_table->ref_cnt > 1) {
-			_media_info_atomic_sub_counting(handle_table);
-		} else {
-			if (db_util_close(handle_table->handle) != SQLITE_OK) {
-				audio_svc_error("error closing database: %s\n", sqlite3_errmsg(handle_table->handle));
-				ret = AUDIO_SVC_ERROR_DB_DISCONNECT;
-			}
-
-			err = _media_info_remove_handle(tid);
-			if (err < 0) {
-				audio_svc_error
-				    ("Error:_media_info_remove_handle\n");
-				return AUDIO_SVC_ERROR_DB_DISCONNECT;
-			}
-
-			_media_info_finalize_handle_tbl();
-		}
-	}
-
-	audio_svc_debug("audio_svc_close succeed");
-	return ret;
-}
-#endif
 int audio_svc_create_table(MediaSvcHandle *handle)
 {
 	int ret = AUDIO_SVC_ERROR_NONE;
@@ -277,11 +99,6 @@ int audio_svc_delete_all(MediaSvcHandle *handle, audio_svc_storage_type_e storag
 	/* update folder table */
 	ret = _audio_svc_delete_folder(db_handle, storage_type, NULL);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
-
-#if 0
-	ret = _audio_svc_check_and_update_albums_table(NULL);
-	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
-#endif
 
 	return AUDIO_SVC_ERROR_NONE;
 }
@@ -521,16 +338,6 @@ int audio_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 	ret = _audio_svc_check_and_update_folder_table(db_handle, path);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-#if 0
-	ret = _audio_svc_check_and_update_albums_table(item.audio.album);
-	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
-#endif
-#if 0
-	if (strlen(item.thumbname) > 0) {
-		ret = _audio_svc_check_and_remove_thumbnail(item.thumbname);
-		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
-	}
-#endif
 	if (strlen(item.thumbname) > 0) {
 		if (_audio_svc_remove_file(item.thumbname) == FALSE) {
 			audio_svc_error("fail to remove thumbnail file.");
@@ -1427,11 +1234,6 @@ int audio_svc_delete_invalid_items(MediaSvcHandle *handle, audio_svc_storage_typ
 	ret = _audio_svc_update_folder_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
-#if 0
-	ret = _audio_svc_check_and_update_albums_table(NULL);
-	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
-#endif
-
 	return AUDIO_SVC_ERROR_NONE;
 }
 
@@ -1496,11 +1298,6 @@ int audio_svc_set_item_valid(MediaSvcHandle *handle, const char *path, int valid
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 	
-#if 0	//original code
-	return _audio_svc_update_valid_in_music_record(path, valid);
-
-#else	//stack up querys and commit it at once when query counts are same as g_audio_svc_item_valid_data_cnt
-
 	audio_svc_debug("g_audio_svc_item_valid_data_cnt =[%d], g_audio_svc_item_valid_cur_data_cnt =[%d]", 
 			g_audio_svc_item_valid_data_cnt , g_audio_svc_item_valid_cur_data_cnt );
 
@@ -1530,7 +1327,6 @@ int audio_svc_set_item_valid(MediaSvcHandle *handle, const char *path, int valid
  	}
 
 	return AUDIO_SVC_ERROR_NONE;
-#endif
 }
 
 int audio_svc_get_path_by_audio_id(MediaSvcHandle *handle, const char *audio_id, char *path,

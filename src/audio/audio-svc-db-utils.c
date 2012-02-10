@@ -55,13 +55,7 @@ int _audio_svc_sql_query(sqlite3 *handle, const char *sql_str)
 	char *zErrMsg = NULL;
 	
 	audio_svc_debug("SQL = [%s]", sql_str);
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_error("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	err = sqlite3_exec(handle, sql_str, NULL, NULL, &zErrMsg);
 
 	if (SQLITE_OK != err) {
@@ -108,13 +102,7 @@ int _audio_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3
 	int err = -1;
 
 	audio_svc_debug("[SQL query] : %s", sql_str);
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_error("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	err = sqlite3_prepare_v2(handle, sql_str, -1, stmt, NULL);
 	sqlite3_free((char *)sql_str);
 	
@@ -138,13 +126,7 @@ int _audio_svc_sql_begin_trans(sqlite3 *handle)
 	char *err_msg = NULL;
 
 	audio_svc_debug("========_audio_svc_sql_begin_trans");
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_error("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (SQLITE_OK != sqlite3_exec(handle, "BEGIN IMMEDIATE;", NULL, NULL, &err_msg)) {
 		audio_svc_error("Error:failed to begin transaction: error=%s", err_msg);
 		sqlite3_free(err_msg);
@@ -161,13 +143,7 @@ int _audio_svc_sql_end_trans(sqlite3 *handle)
 	char *err_msg = NULL;
 
 	audio_svc_debug("========_audio_svc_sql_end_trans");
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_error("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (SQLITE_OK != sqlite3_exec(handle, "COMMIT;", NULL, NULL, &err_msg)) {
 		audio_svc_error("Error:failed to end transaction: error=%s", err_msg);
 		sqlite3_free(err_msg);
@@ -184,14 +160,7 @@ int _audio_svc_sql_rollback_trans(sqlite3 *handle)
 	char *err_msg = NULL;
 
 	audio_svc_debug("========_audio_svc_sql_rollback_trans");
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
 
-	if (handle == NULL) {
-		audio_svc_error("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
 	if (SQLITE_OK != sqlite3_exec(handle, "ROLLBACK;", NULL, NULL, &err_msg)) {
 		audio_svc_error("Error:failed to rollback transaction: error=%s", err_msg);
 		sqlite3_free(err_msg);

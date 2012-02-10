@@ -383,101 +383,10 @@ int field_num_max[MB_SVC_TABLE_CNT_MAX] = { MB_SVC_BOOKMARK_NUM,
 static __thread GList *g_sql_list = NULL;
 static __thread char g_last_updated_folder_uuid[MB_SVC_UUID_LEN_MAX + 1] = {0,};
 
-#if 0
-static int __mb_svc_create_tbl(bool external);
-static int __mb_svc_drop_tbl(void);
-#endif
 static int __mb_svc_delete_record(MediaSvcHandle *mb_svc_handle, int id, mb_svc_tbl_name_e tbl_name);
 static int __mb_svc_delete_record_by_uuid(MediaSvcHandle *mb_svc_handle, const char *id, mb_svc_tbl_name_e tbl_name);
 static int __mb_svc_db_get_next_id(MediaSvcHandle *mb_svc_handle, int table_id);
 
-#if 0
-static int __mb_svc_create_tbl(bool external)
-{
-	int err = -1;
-	char table_name[MB_SVC_TABLE_NAME_MAX_LEN] = { 0, };
-	char *primary_key = NULL;
-	int i, j;
-	mb_svc_tbl_field_s *mb_svc_field = NULL;
-	int field_count = 0;
-	GString *query_string =
-	    g_string_sized_new(MB_SVC_DEFAULT_QUERY_SIZE + 1);
-	mb_svc_debug("__mb_svc_create_tbl--enter\n");
-
-	for (i = 0; i < MB_SVC_TABLE_CNT_MAX; ++i) {
-		field_count = field_num_max[i];
-		memset(table_name, 0x00, MB_SVC_TABLE_NAME_MAX_LEN);
-
-		snprintf(table_name, MB_SVC_TABLE_NAME_MAX_LEN, "%s",
-			 mb_svc_tbl[i].table_name);
-
-		mb_svc_field = mb_svc_tbl[i].mb_svc_field;
-		primary_key = mb_svc_tbl[i].primary_key;
-
-		err = _mb_svc_table_exist(table_name);
-		if (err > 0) {
-			continue;
-		}
-		g_string_printf(query_string, "CREATE TABLE %s(", table_name);
-
-		for (j = 0; j < field_count; ++j) {
-			if (j != 0) {
-				g_string_append(query_string, ", ");
-			}
-			g_string_append_printf(query_string, "%s %s",
-					       mb_svc_field[j].field_name,
-					       mb_svc_field[j].field_type);
-		}
-
-		g_string_append(query_string, primary_key);
-		g_string_append(query_string, " );");
-
-		err = mb_svc_query_sql_gstring(query_string);
-		if (err < 0) {
-			mb_svc_debug("failed to create table\n");
-			mb_svc_debug("query string is %s\n", query_string->str);
-
-			g_string_free(query_string, TRUE);
-			return MB_SVC_ERROR_DB_INTERNAL;
-		}
-	}
-
-	g_string_free(query_string, TRUE);
-
-	mb_svc_debug("__mb_svc_create_tbl--leave\n");
-	return 0;
-}
-
-static int __mb_svc_drop_tbl(void)
-{
-	char query_string[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
-	int i, err;
-	char *table_name;
-	mb_svc_debug("__mb_svc_drop_tbl--enter\n");
-
-	for (i = 0; i < MB_SVC_TABLE_CNT_MAX; ++i) {
-		table_name = mb_svc_tbl[i].table_name;
-		if (table_name == NULL) {
-			mb_svc_debug("table_name is null\n");
-			return MB_SVC_ERROR_INVALID_PARAMETER;
-		}
-		err = _mb_svc_table_exist(table_name);
-		if (err > 0) {
-			snprintf(query_string, sizeof(query_string),
-				 MB_SVC_TABLE_DROP_QUERY_STRING, table_name);
-			err = mb_svc_query_sql(query_string);
-			if (err < 0) {
-				mb_svc_debug("drop failed\n");
-				mb_svc_debug("query string is %s\n",
-					     query_string);
-				return MB_SVC_ERROR_DB_INTERNAL;
-			}
-		}
-	}
-	mb_svc_debug("__mb_svc_drop_tbl--leave\n");
-	return 0;
-}
-#endif
 
 int mb_svc_set_folder_as_valid_sql_add(const char *folder_id, int valid)
 {
@@ -567,71 +476,6 @@ int mb_svc_set_item_as_valid(MediaSvcHandle *mb_svc_handle)
 	return 0;
 }
 
-#if 0
-static int mb_svc_busy_handler(void *pData, int count)
-{
-	usleep(50000);
-	printf("mb_svc_busy_handler called : %d\n", count);
-	mb_svc_debug("mb_svc_busy_handler called : %d\n", count);
-
-	return 100 - count;
-}
-
-/* connect to database-server */
-int mb_svc_connect_db(sqlite3 **handle)
-{
-	mb_svc_debug("mb_svc_connect_db\n");
-	int ret = 0;
-
-	ret =
-	    db_util_open(MEDIA_INFO_DATABASE_NAME, handle,
-			 DB_UTIL_REGISTER_HOOK_METHOD);
-	if (SQLITE_OK != ret) {
-		mb_svc_debug("can not connect to db-server\n");
-		if (*handle) mb_svc_debug("[sqlite] %s\n", sqlite3_errmsg(*handle));
-
-		*handle = NULL;
-
-		return MB_SVC_ERROR_DB_CONNECT;
-	}
-
-	/* Register Busy handler */
-	ret = sqlite3_busy_handler(*handle, mb_svc_busy_handler, NULL);
-	if (SQLITE_OK != ret) {
-		mb_svc_debug("Fail to register busy handler\n");	
-		if (*handle) mb_svc_debug("[sqlite] %s\n", sqlite3_errmsg(*handle));
-
-		db_util_close(*handle);
-		*handle = NULL;
-
-		return MB_SVC_ERROR_DB_CONNECT;
-	}
-
-	mb_svc_debug("connected to db-server\n");
-
-	return 0;
-}
-
-/* disconnect from database-server */
-int mb_svc_disconnect_db(sqlite3 *handle)
-{
-	/* disconnect from database-server */
-	int ret = 0;
-
-	ret = db_util_close(handle);
-
-	if (SQLITE_OK != ret) {
-		mb_svc_debug("can not disconnect database\n");
-		mb_svc_debug("[sqlite] %s\n", sqlite3_errmsg(handle));
-
-		return MB_SVC_ERROR_DB_DISCONNECT;
-	}
-	handle = NULL;
-
-	mb_svc_debug("Disconnected successfully\n");
-	return 0;
-}
-#endif
 mb_svc_tbl_s *mb_svc_search_matched_svc_tbl(mb_svc_tbl_name_e tbl_name)
 {
 	int i;

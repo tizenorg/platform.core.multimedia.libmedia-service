@@ -28,42 +28,6 @@
 extern "C" {
 #endif
 
-#if 0
-typedef struct _handle_table {
-	int ref_cnt;
-	sqlite3* handle;
-} HandleTable;
-
-
-int
-_media_info_get_thread_id();
-
-/* To manage handles in each trhead, use GHashTable */
-int
-_media_info_init_handle_tbl();
-
-int
-_media_info_finalize_handle_tbl();
-
-int
-_media_info_insert_handle(int** tid_key, int tid, HandleTable** handle_table);
-
-int
-_media_info_remove_handle(int tid);
-
-HandleTable*
-_media_info_search_handle(int tid);
-
-sqlite3*
-_media_info_get_proper_handle();
-
-void
-_media_info_atomic_add_counting(HandleTable *handle_table);
-
-void
-_media_info_atomic_sub_counting(HandleTable *handle_table);
-#endif
-
 char *_media_info_generate_uuid(void);
 
 #ifdef __cplusplus

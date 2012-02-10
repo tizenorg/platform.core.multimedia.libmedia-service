@@ -26,7 +26,7 @@
 #include <string.h>
 #include <dirent.h>
 
-void insert_into_db(const char * dir_path);
+void insert_into_db(MediaSvcHandle * db_handle, const char * dir_path);
 void msg_print(int line, char *msg);
 
 int main()
@@ -62,7 +62,7 @@ int main()
 		msg_print(__LINE__, "error to delete all items on phone");
 		return -1;
 	}
-	//insert_into_db("/opt/media/Sounds/Music");
+	//insert_into_db(db_handle, "/opt/media/Sounds/Music");
 #endif
 	//iterate all tracks and get the info of tracks ==================================================
 	msg_print(__LINE__, "iterate all tracks");
@@ -608,7 +608,7 @@ int main()
 }
 
 
-void insert_into_db(const char * dir_path)
+void insert_into_db(MediaSvcHandle * db_handle, const char * dir_path)
 {
 	int audio_id = 300;
 	char thumb_path[AUDIO_SVC_PATHNAME_SIZE+1] = {0};
@@ -626,12 +626,11 @@ void insert_into_db(const char * dir_path)
 
 		fprintf(stderr,"[file path] : %s\n", fpath);
 
-		#if 0
-		int ret = audio_svc_insert_item(AUDIO_SVC_STORAGE_PHONE, fpath, AUDIO_SVC_CATEGORY_MUSIC);
+		int ret = audio_svc_insert_item(db_handle, AUDIO_SVC_STORAGE_PHONE, fpath, AUDIO_SVC_CATEGORY_MUSIC);
 		if (ret != AUDIO_SVC_ERROR_NONE) {
 			fprintf(stderr,"[error to insert music] : %s\n", fpath);
 		}
-		#endif
+
 		audio_id++;
 	}
 

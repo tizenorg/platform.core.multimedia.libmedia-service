@@ -44,20 +44,6 @@ static __thread int g_cur_trans_insert_cnt = 0;
 static __thread int g_trans_move_cnt = 1;
 static __thread int g_cur_trans_move_cnt = 0;
 
-#if 0
-EXPORT_API int minfo_init(void)
-{
-	mb_svc_debug("");
-	return mb_svc_initialize();
-}
-
-EXPORT_API int minfo_finalize(void)
-{
-	mb_svc_debug("");
-	return mb_svc_finalize();
-}
-#endif
-
 EXPORT_API int
 minfo_get_item_list(MediaSvcHandle *mb_svc_handle,
 			const char *cluster_id,

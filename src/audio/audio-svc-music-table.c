@@ -253,13 +253,7 @@ __audio_svc_get_invalid_records_with_thumbnail(sqlite3 *handle, audio_svc_storag
 	int err = -1;
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	char *sql =
 	    sqlite3_mprintf
 	    ("select thumbnail_path from %s where valid=0 and storage_type=%d and thumbnail_path is not null",
@@ -296,13 +290,7 @@ static int __audio_svc_get_records_with_thumbnail(sqlite3 *handle, audio_svc_sto
 	int err = -1;
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	char *sql =
 	    sqlite3_mprintf
 	    ("select thumbnail_path from %s where storage_type=%d and thumbnail_path is not null",
@@ -479,13 +467,6 @@ int _audio_svc_insert_item_with_data(sqlite3 *handle, audio_svc_audio_item_s *it
 	int year = -1;
 	char *audio_id = NULL;
 
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
 	if (item == NULL) {
 		audio_svc_error("Invalid handle");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
@@ -1074,13 +1055,7 @@ int _audio_svc_count_music_group_records(sqlite3 *handle, audio_svc_group_type_e
 	int text_bind = 1;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -1432,13 +1407,7 @@ int _audio_svc_get_music_group_records(sqlite3 *handle, audio_svc_group_type_e g
 	int idx = 0;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -1837,13 +1806,7 @@ int _audio_svc_count_music_track_records(sqlite3 *handle, audio_svc_track_type_e
 	int text_bind = 1;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -2233,13 +2196,7 @@ int _audio_svc_get_music_track_records(sqlite3 *handle, audio_svc_track_type_e t
 	int idx = 0;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 #define filter_condition(filter_mode, filter_mode2, query)	\
 	if ((filter_mode)) 	g_strlcat((query), " and title like ?", sizeof((query))); \
 	if ((filter_mode2))	g_strlcat((query), " and title like ?", sizeof((query)));
@@ -2889,23 +2846,6 @@ int _audio_svc_delete_invalid_music_records(sqlite3 *handle, audio_svc_storage_t
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
 
-#if 0
-	for (idx = 0; idx < invalid_count; idx++) {
-		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
-			ret =
-			    _audio_svc_check_and_remove_thumbnail
-			    (thumbpath_record[idx].thumbnail_path);
-			if (ret != AUDIO_SVC_ERROR_NONE) {
-				audio_svc_error
-				    ("error _audio_svc_check_and_remove_thumbnail");
-				SAFE_FREE(thumbpath_record);
-				return ret;
-			}
-		}
-	}
-
-	SAFE_FREE(thumbpath_record);
-#endif
 	for (idx = 0; idx < invalid_count; idx++) {
 		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
 			if (_audio_svc_remove_file(thumbpath_record[idx].thumbnail_path) == FALSE) {
@@ -3090,13 +3030,7 @@ int _audio_svc_append_audio_folder(sqlite3 *handle, audio_svc_storage_type_e sto
 				    const char *folder_id, const char *path_name, const char *folder_name, int modified_date)
 {
 	int err = -1;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	char *sql = sqlite3_mprintf("insert into %s (folder_uuid, path, folder_name, storage_type, modified_date) values ('%q', '%q', '%q', '%d', '%d'); ",
 					     AUDIO_SVC_DB_TABLE_AUDIO_FOLDER, folder_id, path_name, folder_name, storage_type, modified_date);
 	err = _audio_svc_sql_query(handle, sql);
@@ -3308,13 +3242,7 @@ int _audio_svc_list_search(sqlite3 *handle, audio_svc_audio_item_s *item,
 	char order_str[AUDIO_SVC_QUERY_SIZE] = { 0 };
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	snprintf(query, sizeof(query), "SELECT * FROM audio_media WHERE %s", where_query);
 
 	audio_svc_debug("");

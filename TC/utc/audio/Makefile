@@ -13,7 +13,6 @@ endif
 TS1=utc_audio_svc_add_item_to_playlist_func
 TS2=utc_audio_svc_add_playlist_func
 TS3=utc_audio_svc_check_duplicate_insertion_in_playlist_func
-#TS4=utc_audio_svc_close_func
 TS5=utc_audio_svc_get_playlist_func
 TS7=utc_audio_svc_count_group_item_func
 TS8=utc_audio_svc_count_list_item_func
@@ -37,7 +36,6 @@ TS30=utc_audio_svc_list_item_get_func
 TS31=utc_audio_svc_list_item_get_val_func
 TS32=utc_audio_svc_list_item_new_func
 TS34=utc_audio_svc_move_item_func
-#TS35=utc_audio_svc_open_func
 TS36=utc_audio_svc_playlist_free_func
 TS37=utc_audio_svc_playlist_get_item_func
 TS38=utc_audio_svc_playlist_get_val_func

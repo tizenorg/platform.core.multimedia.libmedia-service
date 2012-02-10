@@ -268,13 +268,7 @@ int _audio_svc_count_playlist_records(sqlite3 *handle, const char *filter_string
 	bool filter_mode2 = FALSE;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	const char *filter_1 = " where name like ?";
 	const char *filter_2 = " and name like ?";
 	if (filter_string) {
@@ -375,13 +369,7 @@ int _audio_svc_get_playlist_records(sqlite3 *handle, int offset, int rows,
 	int ret = AUDIO_SVC_ERROR_NONE;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			filter_mode = TRUE;
@@ -508,13 +496,7 @@ int _audio_svc_count_playlist_item_records(sqlite3 *handle, int playlist_id,
 	int text_bind = 1;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	if (filter_string) {
 		if (strlen(filter_string) > 0) {
 			snprintf(filter_query, sizeof(filter_query), "%%%s%%",
@@ -612,13 +594,7 @@ int _audio_svc_get_playlist_item_records(sqlite3 *handle, int playlist_id,
 	int idx = 0;
 
 	sqlite3_stmt *sql_stmt = NULL;
-#if 0
-	sqlite3 *handle = _media_info_get_proper_handle();
-	if (handle == NULL) {
-		audio_svc_debug("handle is NULL");
-		return AUDIO_SVC_ERROR_DB_INTERNAL;
-	}
-#endif
+
 	filter_mode = STRING_VALID(filter_string);
 	filter_mode2 = STRING_VALID(filter_string2);
 

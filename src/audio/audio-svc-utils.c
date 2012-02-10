@@ -147,11 +147,6 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 	bool thumb_extracted_from_drm = FALSE;
 	char *err_attr_name = NULL;
 	char *title = NULL;
-#if 0
-	bool extract_thumbnail = FALSE;
-	int album_id = -1;
-	char *thumbnail_path = NULL;
-#endif
 	int artwork_mime_size = -1;
 	
 	_strncpy_safe(item->pathname, path, sizeof(item->pathname));
@@ -555,18 +550,6 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 
 		/* extract thumbnail image */
 		/* remove thumbnail extract routine while db creating.*/
-#if 0
-		album_id = _audio_svc_get_album_id(item->audio.album);
-		if (album_id < 0) {
-			audio_svc_debug("album does not exist. So start to make album art");
-			extract_thumbnail = TRUE;
-		} else {
-			audio_svc_debug("album already exists. don't need to make album art");
-			thumbnail_path = _audio_svc_get_thumbnail_path_by_album_id(album_id);
-			_strncpy_safe(item->thumbname, thumbnail_path, sizeof(item->thumbname));
-			SAFE_FREE(thumbnail_path);
-		}
-#endif
 		if ((!thumb_extracted_from_drm)/* && (extract_thumbnail == TRUE)*/) {
 			mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_ARTWORK, &image, &size, NULL);
 			if (mmf_error != 0) {

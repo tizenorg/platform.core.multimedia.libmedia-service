@@ -48,77 +48,7 @@ extern "C" {
         manage the service database.
  */
 
-#if 0
-/**
- *	mediainfo_open:
- *	Open media information service library. This is the function that an user who wants to use media information service calls first.
- * 	This function connects to the media database.
- *
- *	@return		This function returns zero(MEDIA_INFO_ERROR_NONE) on success, or negative value with error code.
- *				Please refer 'media-info-error.h' to know the exact meaning of the error.
- *	@see		mediainfo_close
- *	@pre		None.
- *	@post		call mediainfo_close() to close the media database
- *	@remark	The database name is "/opt/dbspace/.media.db".
- * 	@par example
- * 	@code
 
-#include <media-info.h>
-
-void open_media_db()
-{
-	int ret = MEDIA_INFO_ERROR_NONE;
-	// open media database
-	ret = mediainfo_open();
-	// open failed
-	if (ret < 0)
-	{
-		printf( "Cannot open media db. error code->%d", ret);
-		return;
-	}
-
-	return;
-}
-
- * 	@endcode
- */
-int mediainfo_open(void);
-
-/**
- *	mediainfo_close:
- *	Open media information service library. This is the function that an user who wants to finalize media information service calls before closing the application.
- * 	This function disconnects to the media database.
- *
- *	@return		This function returns zero(MEDIA_INFO_ERROR_NONE) on success, or negative value with error code.
- *				Please refer 'media-info-error.h' to know the exact meaning of the error.
- *	@see		mediainfo_open
- *	@pre		None.
- *	@post		call mediainfo_open() to open the media database
- *	@remark	The database name is "/opt/dbspace/.media.db".
- * 	@par example
- * 	@code
-
-#include <media-info.h>
-
-void close_media_db()
-{
-	int ret = MEDIA_INFO_ERROR_NONE;
-	// close media database
-	ret = mediainfo_close();
-	// close failed
-	if (ret < 0)
-	{
-		printf( "Cannot close media db. error code->%d", ret);
-		return;
-	}
-
-	return;
-}
-
- * 	@endcode
- */
-int mediainfo_close(void);
-#endif
 /**
  *	media_svc_connect:
  *	Connect to the media database. This is the function that an user who wants to get a handle to access the media database. 
