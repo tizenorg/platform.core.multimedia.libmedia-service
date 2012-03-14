@@ -1,9 +1,9 @@
 Name:	    libmedia-service
 Summary:    Media Service
-Version:    0.1.33
+Version:	0.2.0
 Release:    0
 Group:      System/Libraries
-License:    LGPL
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -19,8 +19,13 @@ BuildRequires: pkgconfig(libpng12)
 BuildRequires: pkgconfig(mm-fileinfo)
 BuildRequires: pkgconfig(drm-service)
 BuildRequires: pkgconfig(aul)
+BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(libexif)
 BuildRequires: pkgconfig(xdmcp)
+BuildRequires: pkgconfig(x11)
+BuildRequires: pkgconfig(xrender)
+BuildRequires: pkgconfig(xcb)
+BuildRequires: pkgconfig(xau)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(ecore-evas)
 BuildRequires: pkgconfig(evas)
@@ -50,7 +55,6 @@ cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 make %{?jobs:-j%jobs}
 
 %install
-rm -rf %{buildroot}
 %make_install
 
 
@@ -60,24 +64,13 @@ rm -rf %{buildroot}
 
 
 %files
-%defattr(-,root,root,-)
 /usr/lib/libmedia-service.so.1
 /usr/lib/libmedia-service.so.1.0.0
 /usr/lib/libmedia-svc-hash.so.1
 /usr/lib/libmedia-svc-hash.so.1.0.0
 
 %files devel
-%defattr(-,root,root,-)
 /usr/lib/libmedia-service.so
 /usr/lib/libmedia-svc-hash.so
 /usr/lib/pkgconfig/libmedia-service.pc
-/usr/include/media-service/audio-svc-error.h
-/usr/include/media-service/audio-svc-types.h
-/usr/include/media-service/audio-svc.h
-/usr/include/media-service/media-info-error.h
-/usr/include/media-service/media-info-types.h
-/usr/include/media-service/media-info.h
-/usr/include/media-service/media-svc-error.h
-/usr/include/media-service/media-svc.h
-/usr/include/media-service/minfo-api.h
-/usr/include/media-service/minfo-types.h
+/usr/include/media-service/*.h
