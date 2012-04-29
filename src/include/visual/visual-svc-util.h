@@ -35,8 +35,8 @@
 */
 
 
-#ifndef _MEDIA_SVC_UTIL_H_
-#define _MEDIA_SVC_UTIL_H_
+#ifndef _VISUAL_SVC_UTIL_H_
+#define _VISUAL_SVC_UTIL_H_
 	
 #include <glib.h>
 #include <stdbool.h>
@@ -209,7 +209,7 @@ _mb_svc_get_path_by_full(const char* full_path, char* path, int max_length);
 #endif /* __cplusplus */
 
 
-#endif /*_MEDIA_SVC_UTIL_H_*/
+#endif /*_VISUAL_SVC_UTIL_H_*/
 
 /**
 * @}

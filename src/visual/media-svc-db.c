@@ -1823,10 +1823,10 @@ mb_svc_load_record_video_meta(sqlite3_stmt *stmt,
 	    sqlite3_column_double(stmt, MB_SVC_VIDEO_META_LONGISTUDE);
 	record->latitude =
 	    sqlite3_column_double(stmt, MB_SVC_VIDEO_META_LATITUDE);
-	record->width = sqlite3_column_int(stmt, MB_SVC_VIDEO_META_LATITUDE);
-	record->height = sqlite3_column_int(stmt, MB_SVC_VIDEO_META_LATITUDE);
+	record->width = sqlite3_column_int(stmt, MB_SVC_VIDEO_META_WIDTH);
+	record->height = sqlite3_column_int(stmt, MB_SVC_VIDEO_META_HEIGHT);
 	record->datetaken =
-	    sqlite3_column_int(stmt, MB_SVC_VIDEO_META_LATITUDE);
+	    sqlite3_column_int(stmt, MB_SVC_VIDEO_META_DATETAKEN);
 
 	return 0;
 }

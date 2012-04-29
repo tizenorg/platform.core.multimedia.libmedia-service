@@ -20,6 +20,7 @@
  */
 
 #include "uuid.h"
+#include <stdlib.h>
 
 char *_media_info_generate_uuid(void)
 {
@@ -31,5 +32,46 @@ char *_media_info_generate_uuid(void)
 
 	//mediainfo_dbg("UUID : %s", uuid_unparsed);
 	return uuid_unparsed;
+}
+
+int _media_svc_check_escape_char(char ch)
+{
+	int i;
+	char escape_char[3] = {'%', '_' ,'#'};
+
+	for (i = 0; i < 3; i++) {
+		if (ch == escape_char[i]) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+char *_media_svc_escape_str(char *input, int len)
+{
+	int i = 0;
+	int j = 0;
+	char *result = NULL;
+	
+	result = (char*)malloc(len * 2 * sizeof(char) + 1);
+	if (result == NULL) {
+		return NULL;
+	}
+
+	for (i = 0; i < len; i++, j++) {
+		if (input[i] == '\0') break;
+
+		if (_media_svc_check_escape_char(input[i])) {
+			result[j] = '#';
+			result[++j] = input[i];
+		} else {
+			result[j] = input[i];
+		}
+	}
+
+	result[j] = '\0';
+	
+	return result;
 }
 

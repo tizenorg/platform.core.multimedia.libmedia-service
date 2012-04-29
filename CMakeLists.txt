@@ -5,6 +5,7 @@ SET(VERSION "${VERSION_MAJOR}.0.0")
 
 SET(MEDIASERVICE-LIB "media-service")
 SET(MEDIASERVICE-HASH-LIB "media-svc-hash")
+SET(MEDIASERVICE-PLUGIN-LIB "media-svc-plugin")
 SET(SRCS 
 	src/visual/media-svc-db.c
 	src/visual/media-svc-db-util.c
@@ -53,6 +54,10 @@ SET(HASH_SRCS
 	md5/media-svc-hash.c
 	)
 
+SET(PLUGIN_SRCS
+	plugin/media-svc-plugin.c
+	)
+
 SET(TEST-SRCS test/test_media_info.c)
 SET(TEST-AUDIO-SRCS test/audio/audio_svc_test.c)
 SET(TEST-VISUAL-SRCS test/test_visual.c)
@@ -77,7 +82,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/include/
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pkgs REQUIRED 
 glib-2.0 gobject-2.0 libpng libpng12 gio-2.0 gio-unix-2.0 
-dlog sqlite3 db-util mm-common  mm-fileinfo drm-service aul
+dlog sqlite3 db-util mm-common  mm-fileinfo drm-service aul media-thumbnail
 libexif gthread-2.0 vconf ecore-evas evas mmutil-imgp mmutil-jpeg dbus-1)
 
 
@@ -118,9 +123,14 @@ ADD_LIBRARY(${MEDIASERVICE-LIB} SHARED ${SRCS})
 TARGET_LINK_LIBRARIES(${MEDIASERVICE-LIB} ${pkgs_LDFLAGS} ${MEDIASERVICE-HASH-LIB} z Xrender X11 xcb expat Xau Xdmcp)
 SET_TARGET_PROPERTIES(${MEDIASERVICE-LIB} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${MEDIASERVICE-LIB} PROPERTIES VERSION ${VERSION})
+ADD_LIBRARY(${MEDIASERVICE-PLUGIN-LIB} SHARED ${PLUGIN_SRCS})
+TARGET_LINK_LIBRARIES(${MEDIASERVICE-PLUGIN-LIB} ${MEDIASERVICE-LIB})
+SET_TARGET_PROPERTIES(${MEDIASERVICE-PLUGIN-LIB} PROPERTIES SOVERSION ${VERSION_MAJOR})
+SET_TARGET_PROPERTIES(${MEDIASERVICE-PLUGIN-LIB} PROPERTIES VERSION ${VERSION})
 
 INSTALL(TARGETS ${MEDIASERVICE-LIB} LIBRARY DESTINATION lib)
 INSTALL(TARGETS ${MEDIASERVICE-HASH-LIB} LIBRARY DESTINATION lib)
+INSTALL(TARGETS ${MEDIASERVICE-PLUGIN-LIB} LIBRARY DESTINATION lib)
 
 #ADD_EXECUTABLE( media_service_test ${TEST-SRCS})
 #TARGET_LINK_LIBRARIES(media_service_test ${pkgs_LDFLAGS} ${MEDIASERVICE-LIB} )

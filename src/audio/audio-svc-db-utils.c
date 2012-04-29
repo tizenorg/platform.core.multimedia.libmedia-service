@@ -86,6 +86,7 @@ int _audio_svc_sql_query_list(sqlite3 *handle, GList **query_list)
 			sqlite3_free(sql);
 			sql = NULL;
 			if (err != SQLITE_OK) {
+				_audio_svc_sql_query_release(query_list);
 				return AUDIO_SVC_ERROR_DB_INTERNAL;
 			}
 		}

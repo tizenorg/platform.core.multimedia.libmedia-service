@@ -713,10 +713,12 @@ minfo_get_bookmark_list(MediaSvcHandle *mb_svc_handle,
 					minfo_bm_ite_cb func,
 					void *user_data)
 {
-	int record_cnt = 0;
-	mb_svc_bookmark_record_s bookmark_record = { 0 };
+	mb_svc_debug("");
 	int ret = -1;
-	mb_svc_iterator_s mb_svc_iterator = { 0 };
+	int record_cnt = 0;
+
+	mb_svc_bookmark_record_s bookmark_record = { 0, };
+	mb_svc_iterator_s mb_svc_iterator = { 0, };
 	Mbookmark *mbookmark = NULL;
 
 	if (mb_svc_handle == NULL) {
@@ -744,8 +746,7 @@ minfo_get_bookmark_list(MediaSvcHandle *mb_svc_handle,
 
 	while (1) {
 		ret =
-		    mb_svc_bookmark_iter_next(&mb_svc_iterator,
-					      &bookmark_record);
+		    mb_svc_bookmark_iter_next(&mb_svc_iterator, &bookmark_record);
 
 		if (ret == MB_SVC_NO_RECORD_ANY_MORE)
 			break;
@@ -762,7 +763,6 @@ minfo_get_bookmark_list(MediaSvcHandle *mb_svc_handle,
 	}
 
 	mb_svc_iter_finish(&mb_svc_iterator);
-
 	mb_svc_debug("minfo_get_bookmark by media_id--leave\n");
 	if (record_cnt == 0)
 		return MB_SVC_ERROR_DB_NO_RECORD;

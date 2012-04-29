@@ -669,6 +669,23 @@ int main(int argc, char *argv[])
 		printf("count : %d\n", cnt);
 		break;
 
+	case 22:
+		printf("test minfo_get_meta_info\n");
+		const char *video_media_id = "77b876ed-5db9-4114-82c0-d08e814b5051";
+		Mmeta *mmeta = NULL;
+
+		err = minfo_get_meta_info(handle, video_media_id, &mmeta);
+
+		if (err < 0) {
+			printf("minfo_get_meta_info failed");
+			return -1;
+		}
+
+		if (mmeta->video_info) {
+			printf("Album name : %s\n", mmeta->video_info->album_name);
+		}
+		break;
+
 	case 36:
 		printf("test minfo_get_thumb_path \n");
 		char thumb_path[255] = {0,};
@@ -769,7 +786,7 @@ int main(int argc, char *argv[])
 		
 		for (i = 0; i < count; i++) {
 			AudioHandleType *item = NULL;
-			err = audio_svc_search_item_get(handle, i, &item);
+			err = audio_svc_search_item_get(a_handle, i, &item);
 			char *title = NULL, *artist = NULL, *pathname = NULL, *album = NULL;
 			char *audio_id = NULL;
 			int size = 0;
@@ -795,7 +812,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		audio_svc_search_item_free(handle); 
+		audio_svc_search_item_free(a_handle);
 	}
 	break;
 

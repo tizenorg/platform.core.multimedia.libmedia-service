@@ -275,7 +275,7 @@ int main()
 		
 		for (j = 0; j < count; j++)
 		{
-			char *audio_id = NULL, *title = NULL, *artist = NULL, *thumbname = NULL, *pathname = NULL;
+			char *audio_id = NULL, *title = NULL, *artist = NULL, *thumbname = NULL, *pathname = NULL, *album = NULL;
 			int rating = 0;
 			int duration = 0;
 			int size = 0;
@@ -285,6 +285,7 @@ int main()
 				AUDIO_SVC_LIST_ITEM_THUMBNAIL_PATH, &thumbname, &size,
 				AUDIO_SVC_LIST_ITEM_TITLE, &title, &size,
 				AUDIO_SVC_LIST_ITEM_ARTIST, &artist, &size,
+				AUDIO_SVC_LIST_ITEM_ALBUM, &album, &size,
 				AUDIO_SVC_LIST_ITEM_PATHNAME, &pathname, &size,
 				AUDIO_SVC_LIST_ITEM_DURATION, &duration,
 				AUDIO_SVC_LIST_ITEM_RATING, &rating,
@@ -303,6 +304,7 @@ int main()
 			fprintf(stderr, "	**thumbnail_path = %s\n", thumbname);
 			fprintf(stderr, "	**title = %s\n", title);
 			fprintf(stderr, "	**artist = %s\n", artist);
+			fprintf(stderr, "	**album = %s\n", album);
 			fprintf(stderr, "	**path = %s\n", pathname);
 			fprintf(stderr, "	**duration = %d\n", duration);
 			fprintf(stderr, "	**rating = %d\n\n", rating);

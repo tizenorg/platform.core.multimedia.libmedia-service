@@ -47,7 +47,7 @@ extern "C" {
 
 #define MB_SVC_UUID_LEN_MAX			36
 #define MB_SVC_FILE_NAME_LEN_MAX 		255 * 3									/**< File name max length */
-#define MB_SVC_FILE_PATH_LEN_MAX 		4095 * 3								/**< File path max length  */
+#define MB_SVC_FILE_PATH_LEN_MAX 		4095 * 2								/**< File path max length  */
 #define MB_SVC_DIR_NAME_LEN_MAX 		MB_SVC_FILE_NAME_LEN_MAX				/**< Directory name max length*/
 #define MB_SVC_DIR_PATH_LEN_MAX 		MB_SVC_FILE_PATH_LEN_MAX				/**< Directory path max length */
 #define MB_SVC_FILE_EXT_LEN_MAX      	6 										/**< file extention max length */

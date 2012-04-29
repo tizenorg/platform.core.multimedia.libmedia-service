@@ -13,6 +13,7 @@ Build-Depends: debhelper (>= 5), libglib2.0-dev,
                libexif-dev,
                libevas-dev,
                libecore-dev,
+               libmedia-thumbnail-dev,
                libaul-1-dev
 Standards-Version: 0.1
 Homepage: N/A
@@ -26,7 +27,7 @@ Description: Media information service library for multimedia applications.
 Package: libmedia-service-dev
 Section: libdevel
 Architecture: any
-Depends: libmedia-service (= ${Source-Version}), libsqlite3-dev, libslp-db-util-dev, libmm-common-dev, libmm-fileinfo-dev, libmm-utility-dev, libglib2.0-dev, libxext-dev, dlog-dev, drm-service-dev, libevas-dev, libecore-dev, libexif-dev, libaul-1-dev
+Depends: libmedia-service (= ${Source-Version}), libsqlite3-dev, libslp-db-util-dev, libmm-common-dev, libmm-fileinfo-dev, libmm-utility-dev, libglib2.0-dev, libxext-dev, dlog-dev, drm-service-dev, libevas-dev, libecore-dev, libexif-dev, libmedia-thumbnail, libaul-1-dev
 Description: Media information service library for multimedia applications. (development)
 
 Package: libmedia-service-dbg

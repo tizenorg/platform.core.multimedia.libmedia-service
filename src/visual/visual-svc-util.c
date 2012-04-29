@@ -30,6 +30,7 @@
 #include <drm-service.h>
 #include <string.h>
 #include <aul/aul.h>
+#include <sys/stat.h>
 
 bool _mb_svc_get_file_display_name(const char *file_path, char *file_name)
 {
@@ -109,10 +110,11 @@ bool _mb_svc_get_dir_parent_path(const char *dir_path, char *parent_path)
 
 int _mb_svc_get_file_dir_modified_date(const char *full_path)
 {
-	struct stat statbuf = { 0 };
+	struct stat statbuf;
 	int fd = 0;
 	int err = 0;
 
+	memset(&statbuf, 0, sizeof(struct stat));
 	fd = stat(full_path, &statbuf);
 	if (fd == -1) {
 		err = errno;

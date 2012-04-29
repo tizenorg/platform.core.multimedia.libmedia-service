@@ -24,6 +24,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <string.h>
+#include <media-thumbnail.h>
 #include "media-svc-debug.h"
 #include "media-svc-api.h"
 #include "media-svc-thumb.h"
@@ -225,11 +226,10 @@ mb_svc_insert_file_batch(MediaSvcHandle *mb_svc_handle, const char *file_full_pa
 	    _mb_svc_get_file_dir_modified_date(file_full_path);
 	is_drm = (drm_svc_is_drm_file(file_full_path) == DRM_TRUE);
 
-	ret =
-		_mb_svc_thumb_generate_hash_name(file_full_path,
-								media_record.thumbnail_path,
-								MB_SVC_FILE_PATH_LEN_MAX + 1);
-	
+	ret = _mb_svc_thumb_generate_hash_name(file_full_path,
+										media_record.thumbnail_path,
+										MB_SVC_FILE_PATH_LEN_MAX + 1);
+       
 	if (ret < 0) {
 		mb_svc_debug("_mb_svc_thumb_generate_hash_name failed : %d", ret);
 		return ret;
@@ -311,6 +311,14 @@ mb_svc_insert_file_batch(MediaSvcHandle *mb_svc_handle, const char *file_full_pa
 		mb_svc_sql_list_add(&g_insert_sql_list, &meta_sql);
 	}
 
+	/* Extracting thumbnail */
+	ret = thumbnail_request_from_db(file_full_path, media_record.thumbnail_path, sizeof(media_record.thumbnail_path));
+	if (ret < 0) {
+		mb_svc_debug("thumbnail_request_from_db failed: %d", ret);
+	} else {
+		mb_svc_debug("thumbnail_request_from_db success: %s", media_record.thumbnail_path);
+	}
+
 	return 0;
 }
 
@@ -318,6 +326,7 @@ int
 mb_svc_insert_file(MediaSvcHandle *mb_svc_handle, const char *file_full_path, minfo_file_type content_type)
 {
 	char dir_path[MB_SVC_DIR_PATH_LEN_MAX + 1] = { 0 };
+	char thumb_path[MB_SVC_DIR_PATH_LEN_MAX + 1] = { 0 };
 	char dir_display_name[MB_SVC_FILE_NAME_LEN_MAX + 1] = { 0 };
 	char file_display_name[MB_SVC_FILE_NAME_LEN_MAX + 1] = { 0 };
 	mb_svc_folder_record_s folder_record = {"",};
@@ -582,6 +591,14 @@ mb_svc_insert_file(MediaSvcHandle *mb_svc_handle, const char *file_full_path, mi
 		mb_svc_sqlite3_rollback_trans(mb_svc_handle);
 		mb_svc_sql_list_release(&insert_sql_list);
 		return ret;
+	}
+
+	/* Extracting thumbnail */
+	ret = thumbnail_request_from_db(file_full_path, thumb_path, sizeof(thumb_path));
+	if (ret < 0) {
+		mb_svc_debug("thumbnail_request_from_db failed: %d", ret);
+	} else {
+		mb_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
 	}
 
 #ifdef _PERFORMANCE_CHECK_
@@ -2300,7 +2317,7 @@ mb_svc_media_search_iter_start(MediaSvcHandle *mb_svc_handle,
 	char condition_str[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
 	int len = 0;
 	char *like_str = NULL;
-
+	char *escaped_search_str = NULL;
 	char table_name[MB_SVC_TABLE_NAME_MAX_LEN] = { 0, };
 	memset(table_name, 0x00, MB_SVC_TABLE_NAME_MAX_LEN);
 	snprintf(table_name, MB_SVC_TABLE_NAME_MAX_LEN, "%s",
@@ -2465,6 +2482,7 @@ mb_svc_media_search_iter_start(MediaSvcHandle *mb_svc_handle,
 			break;
 	}
 */
+/*
 	if (search_field & MINFO_SEARCH_BY_NAME) {
 		like_str = sqlite3_mprintf("and (display_name like '%%%q%%' ", search_str);
 
@@ -2508,6 +2526,58 @@ mb_svc_media_search_iter_start(MediaSvcHandle *mb_svc_handle,
 			return MB_SVC_ERROR_INVALID_PARAMETER;
 		}
 	}
+*/
+	escaped_search_str = _media_svc_escape_str((char *)search_str, strlen(search_str));
+	if (escaped_search_str == NULL) {
+		mb_svc_debug("Failed to escape");
+		return MB_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (search_field & MINFO_SEARCH_BY_NAME) {
+		like_str = sqlite3_mprintf("and (display_name like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+
+		len = g_strlcat(query_where, like_str, sizeof(query_where));
+		sqlite3_free(like_str);
+
+		if (len >= sizeof(query_where)) {
+			mb_svc_debug("strlcat returns failure ( %d )", len);
+			return MB_SVC_ERROR_INVALID_PARAMETER;
+		}
+	}
+
+	if (search_field & MINFO_SEARCH_BY_PATH) {
+		if (search_field & MINFO_SEARCH_BY_NAME) {
+			like_str = sqlite3_mprintf("or m.path like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+		} else {
+			like_str = sqlite3_mprintf("and (m.path like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+		}
+
+		len = g_strlcat(query_where, like_str, sizeof(query_where));
+		sqlite3_free(like_str);
+
+		if (len >= sizeof(query_where)) {
+			mb_svc_debug("strlcat returns failure ( %d )", len);
+			return MB_SVC_ERROR_INVALID_PARAMETER;
+		}
+	}
+
+	if (search_field & MINFO_SEARCH_BY_HTTP_URL) {
+		if ((search_field & MINFO_SEARCH_BY_NAME) || (search_field & MINFO_SEARCH_BY_PATH)) {
+			like_str = sqlite3_mprintf("or http_url like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+		} else {
+			like_str = sqlite3_mprintf("and (http_url like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+		}
+
+		len = g_strlcat(query_where, like_str, sizeof(query_where));
+		sqlite3_free(like_str);
+
+		if (len >= sizeof(query_where)) {
+			mb_svc_debug("strlcat returns failure ( %d )", len);
+			return MB_SVC_ERROR_INVALID_PARAMETER;
+		}
+	}
+
+	if (escaped_search_str) free(escaped_search_str);
 
 	len = g_strlcat(query_where, ") ", sizeof(query_where));
 
@@ -4375,7 +4445,6 @@ mb_svc_bookmark_iter_next(mb_svc_iterator_s *mb_svc_iterator,
 		mb_svc_debug("pointer record is null\n");
 		return MB_SVC_ERROR_INVALID_PARAMETER;
 	}
-
 	err = sqlite3_step(mb_svc_iterator->stmt);
 	if (err != SQLITE_ROW) {
 		mb_svc_debug("end of iteration : count = %d\n",

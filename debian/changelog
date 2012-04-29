@@ -1,3 +1,27 @@
+libmedia-service (0.2.0-6) unstable; urgency=low
+
+  * Fix build errors
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-6
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 21 Mar 2012 16:35:00 +0900
+
+libmedia-service (0.2.0-5) unstable; urgency=low
+
+  * Fix build errors
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-5
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 21 Mar 2012 16:30:00 +0900
+
+libmedia-service (0.2.0-4) unstable; urgency=low
+
+  * Push for tizen 1.0 release
+  * Git : pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.2.0-4
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 19 Mar 2012 18:30:00 +0900
+
 libmedia-service (0.2.0-3) unstable; urgency=low
 
   * Change that makes user managing db handle

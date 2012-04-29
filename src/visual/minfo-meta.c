@@ -181,9 +181,9 @@ static int _minfo_bm_ite_fn(Mbookmark *bookmark, void *user_data)
 
 int minfo_mvideo_load(MediaSvcHandle *mb_svc_handle, const char *media_id, Mvideo *mvideo)
 {
-	mb_svc_video_meta_record_s video_meta_record = { 0 };
 	int ret = 0;
 	int length = 0;
+	mb_svc_video_meta_record_s video_meta_record = { 0 };
 
 	ret = mb_svc_get_video_record_by_media_id(mb_svc_handle, media_id, &video_meta_record);
 	if (ret < 0) {
@@ -232,12 +232,10 @@ int minfo_mvideo_load(MediaSvcHandle *mb_svc_handle, const char *media_id, Mvide
 	}
 	memset(mvideo->web_category, 0x00, length);
 
-	strncpy(mvideo->web_category, video_meta_record.youtube_category,
-		length);
+	strncpy(mvideo->web_category, video_meta_record.youtube_category, length);
 
 	GList *tmp_list = NULL;
 	minfo_get_bookmark_list(mb_svc_handle, media_id, _minfo_bm_ite_fn, &tmp_list);
-
 	mvideo->bookmarks = tmp_list;
 
 	mvideo->_reserved = NULL;
@@ -308,9 +306,7 @@ void minfo_mvideo_destroy(Mvideo *mvideo)
 			     i < g_list_length((GList *) mvideo->bookmarks);
 			     i++) {
 				bookmark =
-				    (Mbookmark *) g_list_nth_data((GList *)
-								  mvideo->
-								  bookmarks, i);
+				    (Mbookmark *) g_list_nth_data((GList *)mvideo->bookmarks, i);
 				if (bookmark)
 					minfo_mbookmark_destroy(bookmark);
 			}

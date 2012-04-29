@@ -42,6 +42,7 @@
 typedef enum {
 	AUDIO_SVC_AUDIO_INFO_AUDIO_ID,
 	AUDIO_SVC_AUDIO_INFO_PATH,
+	AUDIO_SVC_AUDIO_INFO_FILE_NAME,
 	AUDIO_SVC_AUDIO_INFO_THUMBNAIL_PATH,
 	AUDIO_SVC_AUDIO_INFO_TITLE,
 	AUDIO_SVC_AUDIO_INFO_ALBUM,
@@ -77,10 +78,6 @@ typedef enum {
 #define AUDIO_SVC_ORDER_BY_AUTHOR	"ORDER BY author COLLATE NOCASE"
 #define AUDIO_SVC_ORDER_BY_ARTIST		"ORDER BY artist COLLATE NOCASE"
 #define AUDIO_SVC_COLLATE_NOCASE		"COLLATE NOCASE"
-
-static const char *g_audio_svc_music_fields =
-    "audio_uuid, path, thumbnail_path, title, album, artist, genre, author, year,\
-copyright, description, format, bitrate,track_num,duration, rating, played_count, last_played_time, added_time, modified_date, size, category, valid, folder_uuid, storage_type";
 
 static __thread GList *g_audio_svc_item_valid_query_list = NULL;
 static __thread GList *g_audio_svc_move_item_query_list = NULL;
@@ -466,6 +463,9 @@ int _audio_svc_insert_item_with_data(sqlite3 *handle, audio_svc_audio_item_s *it
 	char folder_id[AUDIO_SVC_UUID_SIZE+1] = {0,};
 	int year = -1;
 	char *audio_id = NULL;
+	char *g_audio_svc_music_fields = "audio_uuid, path, file_name, thumbnail_path, title, album, artist, genre, author, year,\
+	copyright, description, format, bitrate,track_num,duration, rating, played_count, last_played_time, added_time, modified_date, size, category, valid, folder_uuid, storage_type";
+	char * file_name = NULL;
 
 	if (item == NULL) {
 		audio_svc_error("Invalid handle");
@@ -496,12 +496,15 @@ int _audio_svc_insert_item_with_data(sqlite3 *handle, audio_svc_audio_item_s *it
 	ret = _audio_svc_get_and_append_folder_id_by_path(handle, item->pathname,  item->storage_type, folder_id);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
+	file_name = g_path_get_basename( item->pathname);
+
 	char *sql =
 	    sqlite3_mprintf
-	    ("insert into %s (%s) values ('%q', '%q', '%q', '%q', '%q','%q', '%q','%q',%d,'%q','%q','%q',%d,%d,%d,%d,%d,%d,%d,%d, %d, %d, %d, '%q', %d);",
+	    ("insert into %s (%s) values ('%q', '%q', '%q', '%q', '%q', '%q','%q', '%q','%q',%d,'%q','%q','%q',%d,%d,%d,%d,%d,%d,%d,%d, %d, %d, %d, '%q', %d);",
 	     AUDIO_SVC_DB_TABLE_AUDIO, g_audio_svc_music_fields,
 	     audio_id,
 	     item->pathname,
+	     file_name,
 	     item->thumbname,
 	     item->audio.title,
 	     item->audio.album,
@@ -527,6 +530,8 @@ int _audio_svc_insert_item_with_data(sqlite3 *handle, audio_svc_audio_item_s *it
 	     item->storage_type);
 
 	audio_svc_debug("query : %s", sql);
+
+	SAFE_FREE(file_name);
 
 	if(!stack_query) {
 		err = _audio_svc_sql_query(handle, sql);
@@ -2182,8 +2187,7 @@ int _audio_svc_get_music_track_records(sqlite3 *handle, audio_svc_track_type_e t
 				       int rows, audio_svc_list_item_s *track)
 {
 	char query[AUDIO_SVC_QUERY_SIZE] = { 0 };
-	char *result_field =
-	    "audio_uuid, path, thumbnail_path, title, artist, duration, rating";
+	char *result_field = "audio_uuid, path, thumbnail_path, title, artist, duration, rating, album";
 
 	char tail_query[70] = { 0 };
 	char filter_query[AUDIO_SVC_METADATA_LEN_MAX + 5] = { 0 };
@@ -2500,7 +2504,7 @@ int _audio_svc_get_music_track_records(sqlite3 *handle, audio_svc_track_type_e t
 	case AUDIO_SVC_TRACK_BY_PLAYLIST:
 		{
 			char *result_field_for_playlist =
-			    "b.audio_uuid, b.path, b.thumbnail_path, b.title, b.artist, b.duration, b.rating";
+			    "b.audio_uuid, b.path, b.thumbnail_path, b.title, b.artist, b.duration, b.rating, b.album";
 			len =
 			    snprintf(query, sizeof(query),
 				     "select %s from %s a, %s b where a.playlist_id=%d and b.audio_uuid=a.audio_uuid and b.valid=1 and b.category=%d ",
@@ -2642,6 +2646,9 @@ int _audio_svc_get_music_track_records(sqlite3 *handle, audio_svc_track_type_e t
 			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_TITLE), sizeof(track[idx].title));
 		_strncpy_safe(track[idx].artist,
 			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_ARTIST), sizeof(track[idx].artist));
+		_strncpy_safe(track[idx].album,
+			      (const char *)sqlite3_column_text(sql_stmt, AUDIO_SVC_LIST_ITEM_ALBUM), sizeof(track[idx].artist));
+
 		track[idx].duration = sqlite3_column_int(sql_stmt, AUDIO_SVC_LIST_ITEM_DURATION);
 		track[idx].rating = sqlite3_column_int(sql_stmt, AUDIO_SVC_LIST_ITEM_RATING);
 		audio_svc_debug ("Index : %d : audio_uuid = %s, title = %s, pathname = %s, duration = %d",
@@ -2846,6 +2853,23 @@ int _audio_svc_delete_invalid_music_records(sqlite3 *handle, audio_svc_storage_t
 		return AUDIO_SVC_ERROR_DB_INTERNAL;
 	}
 
+#if 0
+	for (idx = 0; idx < invalid_count; idx++) {
+		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
+			ret =
+			    _audio_svc_check_and_remove_thumbnail
+			    (thumbpath_record[idx].thumbnail_path);
+			if (ret != AUDIO_SVC_ERROR_NONE) {
+				audio_svc_error
+				    ("error _audio_svc_check_and_remove_thumbnail");
+				SAFE_FREE(thumbpath_record);
+				return ret;
+			}
+		}
+	}
+
+	SAFE_FREE(thumbpath_record);
+#endif
 	for (idx = 0; idx < invalid_count; idx++) {
 		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
 			if (_audio_svc_remove_file(thumbpath_record[idx].thumbnail_path) == FALSE) {

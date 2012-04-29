@@ -100,6 +100,11 @@ int audio_svc_delete_all(MediaSvcHandle *handle, audio_svc_storage_type_e storag
 	ret = _audio_svc_delete_folder(db_handle, storage_type, NULL);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
+#if 0
+	ret = _audio_svc_check_and_update_albums_table(NULL);
+	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
+#endif
+
 	return AUDIO_SVC_ERROR_NONE;
 }
 
@@ -338,6 +343,16 @@ int audio_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 	ret = _audio_svc_check_and_update_folder_table(db_handle, path);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
+#if 0
+	ret = _audio_svc_check_and_update_albums_table(item.audio.album);
+	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
+#endif
+#if 0
+	if (strlen(item.thumbname) > 0) {
+		ret = _audio_svc_check_and_remove_thumbnail(item.thumbname);
+		audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
+	}
+#endif
 	if (strlen(item.thumbname) > 0) {
 		if (_audio_svc_remove_file(item.thumbname) == FALSE) {
 			audio_svc_error("fail to remove thumbnail file.");
@@ -1234,6 +1249,11 @@ int audio_svc_delete_invalid_items(MediaSvcHandle *handle, audio_svc_storage_typ
 	ret = _audio_svc_update_folder_table(db_handle);
 	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
 
+#if 0
+	ret = _audio_svc_check_and_update_albums_table(NULL);
+	audio_svc_retv_if(ret != AUDIO_SVC_ERROR_NONE, ret);
+#endif
+
 	return AUDIO_SVC_ERROR_NONE;
 }
 
@@ -1298,6 +1318,11 @@ int audio_svc_set_item_valid(MediaSvcHandle *handle, const char *path, int valid
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 	
+#if 0	//original code
+	return _audio_svc_update_valid_in_music_record(path, valid);
+
+#else	//stack up querys and commit it at once when query counts are same as g_audio_svc_item_valid_data_cnt
+
 	audio_svc_debug("g_audio_svc_item_valid_data_cnt =[%d], g_audio_svc_item_valid_cur_data_cnt =[%d]", 
 			g_audio_svc_item_valid_data_cnt , g_audio_svc_item_valid_cur_data_cnt );
 
@@ -1327,6 +1352,7 @@ int audio_svc_set_item_valid(MediaSvcHandle *handle, const char *path, int valid
  	}
 
 	return AUDIO_SVC_ERROR_NONE;
+#endif
 }
 
 int audio_svc_get_path_by_audio_id(MediaSvcHandle *handle, const char *audio_id, char *path,
@@ -1646,6 +1672,20 @@ int audio_svc_list_item_get_val(AudioHandleType *record, int index,
 				} else {
 					*val = item[index].artist;
 					*size = strlen(item[index].artist);
+				}
+
+				break;
+			}
+		case AUDIO_SVC_LIST_ITEM_ALBUM:
+			{
+				char **val = va_arg((var_args), char **);
+				int *size = va_arg((var_args), int *);
+				if (strlen(item[index].album) == 0) {
+					audio_svc_debug("album is NULL");
+					*size = 0;
+				} else {
+					*val = item[index].album;
+					*size = strlen(item[index].album);
 				}
 
 				break;
@@ -2673,6 +2713,7 @@ int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 	char query_where[AUDIO_SVC_QUERY_SIZE] = { 0 };
 	char search_str[AUDIO_SVC_METADATA_LEN_MAX] = { 0 };
 	char *condition_str = NULL;
+	char *escaped_search_str = NULL;
 	
 	audio_svc_audio_item_s *item = (audio_svc_audio_item_s *)record;
 	sqlite3 * db_handle = (sqlite3 *)handle;
@@ -2729,7 +2770,14 @@ int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							  sizeof(search_str)));
 				}
 
-				condition_str = sqlite3_mprintf(" or title like '%%%q%%' ", search_str);
+				escaped_search_str = _media_svc_escape_str((char *)search_str, strlen(search_str));
+				if (escaped_search_str == NULL) {
+					audio_svc_error("Failed to escape");
+					return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+				}
+
+				condition_str = sqlite3_mprintf(" or title like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+				SAFE_FREE(escaped_search_str);
 
 				len =
 					g_strlcat(query_where, condition_str,
@@ -2757,7 +2805,14 @@ int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							  sizeof(search_str)));
 				}
 
-				condition_str = sqlite3_mprintf(" or artist like '%%%q%%' ", search_str);
+				escaped_search_str = _media_svc_escape_str((char *)search_str, strlen(search_str));
+				if (escaped_search_str == NULL) {
+					audio_svc_error("Failed to escape");
+					return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+				}
+
+				condition_str = sqlite3_mprintf(" or artist like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+				SAFE_FREE(escaped_search_str);
 
 				len =
 					g_strlcat(query_where, condition_str,
@@ -2785,7 +2840,14 @@ int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							  sizeof(search_str)));
 				}
 
-				condition_str = sqlite3_mprintf(" or album like '%%%q%%' ", search_str);
+				escaped_search_str = _media_svc_escape_str((char *)search_str, strlen(search_str));
+				if (escaped_search_str == NULL) {
+					audio_svc_error("Failed to escape");
+					return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+				}
+
+				condition_str = sqlite3_mprintf(" or album like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+				SAFE_FREE(escaped_search_str);
 
 				len =
 					g_strlcat(query_where, condition_str,
@@ -2813,7 +2875,14 @@ int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							  sizeof(search_str)));
 				}
 
-				condition_str = sqlite3_mprintf(" or genre like '%%%q%%' ", search_str);
+				escaped_search_str = _media_svc_escape_str((char *)search_str, strlen(search_str));
+				if (escaped_search_str == NULL) {
+					audio_svc_error("Failed to escape");
+					return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+				}
+
+				condition_str = sqlite3_mprintf(" or genre like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+				SAFE_FREE(escaped_search_str);
 
 				len =
 					g_strlcat(query_where, condition_str,
@@ -2839,7 +2908,14 @@ int audio_svc_list_by_search(MediaSvcHandle *handle, AudioHandleType *record,
 							  sizeof(search_str)));
 				}
 
-				condition_str = sqlite3_mprintf(" or author like '%%%q%%' ", search_str);
+				escaped_search_str = _media_svc_escape_str((char *)search_str, strlen(search_str));
+				if (escaped_search_str == NULL) {
+					audio_svc_error("Failed to escape");
+					return AUDIO_SVC_ERROR_INVALID_PARAMETER;
+				}
+
+				condition_str = sqlite3_mprintf(" or author like '%%%q%%' ESCAPE('#') ", escaped_search_str);
+				SAFE_FREE(escaped_search_str);
 
 				len =
 					g_strlcat(query_where, condition_str,

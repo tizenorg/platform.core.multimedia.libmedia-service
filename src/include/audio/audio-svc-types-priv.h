@@ -103,6 +103,7 @@ typedef struct{
 	char title[AUDIO_SVC_METADATA_LEN_MAX];				/**< title of track */
 	char artist[AUDIO_SVC_METADATA_LEN_MAX];			/**< artist of track */
 	char thumbnail_path[AUDIO_SVC_PATHNAME_SIZE];			/**< Thumbnail image file path */
+	char album[AUDIO_SVC_METADATA_LEN_MAX];			/**< album of track */
 	int duration;											/**< track duration*/
 	int rating;											/**< track rating*/
 }audio_svc_list_item_s;

@@ -29,9 +29,9 @@ static void _minfo_mbookmark_init(Mbookmark *mbookmark);
 
 int minfo_mbookmark_load(MediaSvcHandle *mb_svc_handle, Mbookmark *mbookmark)
 {
-	mb_svc_bookmark_record_s bookmark_record = { 0 };
 	int ret = 0;
 	int length = 0;
+	mb_svc_bookmark_record_s bookmark_record = { 0, };
 
 	ret =
 	    mb_svc_get_bookmark_record_by_id(mb_svc_handle, mbookmark->_id, &bookmark_record);

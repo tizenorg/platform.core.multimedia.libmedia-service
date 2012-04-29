@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 char *_media_info_generate_uuid(void);
+char *_media_svc_escape_str(char *input, int len);
 
 #ifdef __cplusplus
 }

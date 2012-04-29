@@ -261,7 +261,7 @@ DEPRECATED_API int
 minfo_get_all_item_cnt(MediaSvcHandle *mb_svc_handle, int *cnt);
 
 /**
- * minfo_get_all_item_conut
+ * minfo_get_all_item_count
  * This function gets count of all records in the specific storage.
  * User can specify folder type like MINFO_CLUSTER_TYPE_ALL, MINFO_CLUSTER_TYPE_LOCAL_PHONE, etc.
  * Please refer 'visual-svc-types.h' to know what folder type exists.
@@ -283,7 +283,7 @@ minfo_get_all_item_cnt(MediaSvcHandle *mb_svc_handle, int *cnt);
 
 #include <media-svc.h>
 
-void test_minfo_get_all_item_conut(MediaSvcHandle *mb_svc_handle)
+void test_minfo_get_all_item_count(MediaSvcHandle *mb_svc_handle)
 {
 	int ret = -1;
 	int cnt = 0;
@@ -291,7 +291,7 @@ void test_minfo_get_all_item_conut(MediaSvcHandle *mb_svc_handle)
 	minfo_file_type file_type = MINFO_ITEM_ALL;
 	minfo_media_favorite_type fav_type = MINFO_MEDIA_FAV_ALL;
 
-	ret = minfo_get_all_item_conut(mb_svc_handle, folder_type, file_type, fav_type, &cnt);
+	ret = minfo_get_all_item_count(mb_svc_handle, folder_type, file_type, fav_type, &cnt);
 	if(ret< 0) {
 		printf("minfo_get_all_item_cnt error\n");
 		return;

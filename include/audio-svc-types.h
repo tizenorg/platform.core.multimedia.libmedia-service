@@ -146,6 +146,7 @@ typedef enum{
 	AUDIO_SVC_LIST_ITEM_ARTIST,					/**< Artist of media file */
 	AUDIO_SVC_LIST_ITEM_DURATION,					/**< Duration of media file*/
 	AUDIO_SVC_LIST_ITEM_RATING,					/**< The rating used in mtp*/
+	AUDIO_SVC_LIST_ITEM_ALBUM,					/**< Album of media file*/
 }audio_svc_list_item_type_e;
 
 /**
