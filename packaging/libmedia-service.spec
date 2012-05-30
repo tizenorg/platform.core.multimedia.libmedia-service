@@ -5,6 +5,7 @@ Release:    6
 Group:      System/Libraries
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: packaging/libmedia-service.manifest 
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -53,6 +54,7 @@ Media information service library for multimedia applications. (development file
 cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 
 %build
+cp %{SOURCE1001} .
 make %{?jobs:-j%jobs}
 
 %install
@@ -64,6 +66,7 @@ rm -rf %{buildroot}
 %postun -p /sbin/ldconfig
 
 %files
+%manifest libmedia-service.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libmedia-service.so
 %{_libdir}/libmedia-service.so.1
@@ -76,5 +79,6 @@ rm -rf %{buildroot}
 %{_libdir}/libmedia-svc-plugin.so.1.0.0
 
 %files devel
+%manifest libmedia-service.manifest
 %{_libdir}/pkgconfig/libmedia-service.pc
 %{_includedir}/media-service/*.h
