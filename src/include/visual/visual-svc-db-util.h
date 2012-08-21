@@ -22,7 +22,7 @@
 /** 
  * This file defines synchronize apis for phone explorer.
  *
- * @file       	media-svc-db-util.h
+ * @file       	visual-svc-db-util.h
  * @author 		Hyunjun Ko <zzoon.ko@samsung.com>
  * @version 	1.0
  * @brief     	This file defines in-house apis for media service.
@@ -120,6 +120,7 @@ extern "C" {
 #define MB_SVC_UPDATE_MEDIA_THUMB_PATH   "UPDATE %s SET thumbnail_path = '%q' WHERE visual_uuid = '%s';"
 #define MB_SVC_UPDATE_MEDIA_FAVORITE_BY_ID   "UPDATE %s SET rating = %d WHERE visual_uuid = '%s';"
 #define MB_SVC_UPDATE_MEDIA_DATE_BY_ID   "UPDATE %s SET modified_date = %d WHERE visual_uuid = '%s';"
+#define MB_SVC_UPDATE_MEDIA_ORIENTATION_BY_ID   "UPDATE %s SET orientation = %d WHERE visual_uuid = '%s';"
 #define MB_SVC_UPDATE_FOLDER_ALBUM_STATUS   "UPDATE %s SET lock_status = ? WHERE folder_uuid = ?;"
 #define MB_SVC_UPDATE_MEDIA_VALID_BY_UUID   "UPDATE %s SET valid = %d WHERE visual_uuid = '%s';"
 #define MB_SVC_UPDATE_FOLDER_VALID_BY_UUID   "UPDATE %s SET valid = %d WHERE folder_uuid = '%s';"

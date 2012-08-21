@@ -19,11 +19,12 @@
  *
  */
 #include "media-img-codec-osal.h"
+#include "visual-svc-debug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <drm-service.h>
+#include <drm_client.h>
 
 void *IfegMemAlloc(unsigned int size)
 {
@@ -58,74 +59,23 @@ int IfegMemcmp(const void *pMem1, const void *pMem2, size_t length)
 	return memcmp(pMem1, pMem2, length);
 }
 
-DRM_FILE_HANDLE hDrmFile = NULL;
-static BOOL _is_real_drm = FALSE;
-
 HFile DrmOpenFile(const char *szPathName)
 {
-	if (drm_svc_is_drm_file(szPathName) == DRM_TRUE) {
-		_is_real_drm = TRUE;
-	} else {
-		_is_real_drm = FALSE;
-	}
-
-	if (!_is_real_drm) {
-		FILE *fp = fopen(szPathName, "rb");
-
-		if (fp == NULL) {
-			return (HFile) INVALID_HOBJ;
-		}
-
-		return fp;
-
-	} else {
-		int ret =
-		    drm_svc_open_file(szPathName, DRM_PERMISSION_DISPLAY,
-				      &hDrmFile);
-
-		if (ret != DRM_RESULT_SUCCESS) {
-			return (HFile) INVALID_HOBJ;
-		}
-		return hDrmFile;
-	}
+	return NULL;
 }
 
 BOOL DrmReadFile(HFile hFile, void *pBuffer, ULONG bufLen, ULONG * pReadLen)
 {
-	size_t readCnt = -1;
-
-	if (!_is_real_drm) {
-		readCnt = fread(pBuffer, sizeof(char), bufLen, hFile);
-		*pReadLen = (ULONG) readCnt;
-	} else {
-		drm_svc_read_file((DRM_FILE_HANDLE) hFile, pBuffer, bufLen,
-				  &readCnt);
-		*pReadLen = (ULONG) readCnt;
-	}
 	return TRUE;
 }
 
 long DrmTellFile(HFile hFile)
 {
-	if (!_is_real_drm) {
-		return ftell(hFile);
-	} else {
-		return drm_svc_tell_file((DRM_FILE_HANDLE) hFile);
-	}
+	return 0;
 }
 
 BOOL DrmSeekFile(HFile hFile, long position, long offset)
 {
-
-	if (position < 0) {
-		return FALSE;
-	}
-	if (!_is_real_drm) {
-		fseek(hFile, offset, position);
-	} else {
-		drm_svc_seek_file((DRM_FILE_HANDLE) hFile, offset, position);
-	}
-
 	return TRUE;
 }
 
@@ -148,11 +98,5 @@ BOOL DrmGetFileAttributes(const char *szPathName, FmFileAttribute * pFileAttr)
 
 BOOL DrmCloseFile(HFile hFile)
 {
-	if (!_is_real_drm) {
-		fclose(hFile);
-	} else {
-		drm_svc_close_file((DRM_FILE_HANDLE) hFile);
-	}
-
 	return TRUE;
 }

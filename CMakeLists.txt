@@ -6,9 +6,10 @@ SET(VERSION "${VERSION_MAJOR}.0.0")
 SET(MEDIASERVICE-LIB "media-service")
 SET(MEDIASERVICE-HASH-LIB "media-svc-hash")
 SET(MEDIASERVICE-PLUGIN-LIB "media-svc-plugin")
+SET(MEDIACONTENT-PLUGIN-LIB "media-content-plugin")
 SET(SRCS 
-	src/visual/media-svc-db.c
-	src/visual/media-svc-db-util.c
+	src/visual/visual-svc-db.c
+	src/visual/visual-svc-db-util.c
 	src/visual/visual-svc-util.c
 	src/visual/media-svc-api.c
 	src/visual/media-svc-thumb.c   
@@ -45,6 +46,10 @@ SET(SRCS
 	uuid/uuid_time.c
 
 	src/common/media-svc.c
+	src/common/media-svc-media.c
+	src/common/media-svc-album.c
+	src/common/media-svc-media-folder.c
+	src/common/media-svc-db-utils.c
 	src/common/media-svc-util.c
 	src/common/media-svc-debug.c
 	)
@@ -56,6 +61,9 @@ SET(HASH_SRCS
 
 SET(PLUGIN_SRCS
 	plugin/media-svc-plugin.c
+	)
+SET(CONTENTPLUGIN_SRCS
+	plugin/media-content-plugin.c
 	)
 
 SET(TEST-SRCS test/test_media_info.c)
@@ -82,7 +90,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/include/
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pkgs REQUIRED 
 glib-2.0 gobject-2.0 libpng libpng12 gio-2.0 gio-unix-2.0 
-dlog sqlite3 db-util mm-common  mm-fileinfo drm-service aul media-thumbnail
+dlog sqlite3 db-util mm-common  mm-fileinfo drm-client aul media-thumbnail
 libexif gthread-2.0 vconf ecore-evas evas mmutil-imgp mmutil-jpeg dbus-1)
 
 
@@ -106,6 +114,7 @@ ADD_DEFINITIONS("-DVENDOR=\"${VENDOR}\"")
 ADD_DEFINITIONS("-DPACKAGE=\"${PACKAGE}\"")
 ADD_DEFINITIONS("-DPACKAGE_NAME=\"${PKGNAME}\"")
 ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
+ADD_DEFINITIONS("-D_FILE_OFFSET_BITS=64")
 #ADD_DEFINITIONS("-D_PERFORMANCE_CHECK_")
 #ADD_DEFINITIONS("-D_USE_LOG_FILE_")
 #ADD_DEFINITIONS("-D_USE_DBUS_")
@@ -127,10 +136,15 @@ ADD_LIBRARY(${MEDIASERVICE-PLUGIN-LIB} SHARED ${PLUGIN_SRCS})
 TARGET_LINK_LIBRARIES(${MEDIASERVICE-PLUGIN-LIB} ${MEDIASERVICE-LIB})
 SET_TARGET_PROPERTIES(${MEDIASERVICE-PLUGIN-LIB} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${MEDIASERVICE-PLUGIN-LIB} PROPERTIES VERSION ${VERSION})
+ADD_LIBRARY(${MEDIACONTENT-PLUGIN-LIB} SHARED ${CONTENTPLUGIN_SRCS})
+TARGET_LINK_LIBRARIES(${MEDIACONTENT-PLUGIN-LIB} ${MEDIASERVICE-LIB})
+SET_TARGET_PROPERTIES(${MEDIACONTENT-PLUGIN-LIB} PROPERTIES SOVERSION ${VERSION_MAJOR})
+SET_TARGET_PROPERTIES(${MEDIACONTENT-PLUGIN-LIB} PROPERTIES VERSION ${VERSION})
 
 INSTALL(TARGETS ${MEDIASERVICE-LIB} LIBRARY DESTINATION lib)
 INSTALL(TARGETS ${MEDIASERVICE-HASH-LIB} LIBRARY DESTINATION lib)
 INSTALL(TARGETS ${MEDIASERVICE-PLUGIN-LIB} LIBRARY DESTINATION lib)
+INSTALL(TARGETS ${MEDIACONTENT-PLUGIN-LIB} LIBRARY DESTINATION lib)
 
 #ADD_EXECUTABLE( media_service_test ${TEST-SRCS})
 #TARGET_LINK_LIBRARIES(media_service_test ${pkgs_LDFLAGS} ${MEDIASERVICE-LIB} )

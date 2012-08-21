@@ -34,7 +34,44 @@
 
 #define LOG_TAG "Media-Service"
 
-#define mediainfo_dbg(fmt, arg...)	 LOGD("[%s : %d] [%s] " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##arg)
+#define media_svc_debug(fmt, arg...) do { \
+			LOGD("[%s-%d]\n"fmt"", __FUNCTION__, __LINE__,##arg);     \
+		} while (0)
+
+#define media_svc_error(fmt, arg...) do { \
+			LOGE("%s-%d]\n"fmt"", __FUNCTION__, __LINE__,##arg);     \
+		} while (0)
+
+#define media_svc_debug_func() do { \
+			LOGD("[%s-%d]\n", __FUNCTION__, __LINE__);     \
+		} while (0)
+
+#define media_svc_retm_if(expr, fmt, arg...) do { \
+			if(expr) { \
+				LOGE("[%s-%d]\n"fmt"", __FUNCTION__, __LINE__,##arg);   \
+				return; \
+			} \
+		} while (0)
+#define media_svc_retv_if(expr, val) do { \
+			if(expr) { \
+				LOGE("[%s-%d]\n", __FUNCTION__, __LINE__);     \
+				return (val); \
+			} \
+		} while (0)
+#define media_svc_retvm_if(expr, val, fmt, arg...) do { \
+			if(expr) { \
+				LOGE("[%s-%d]\n"fmt"", __FUNCTION__, __LINE__,##arg); 	\
+				return (val); \
+			} \
+		} while (0)
+
+#define media_svc_retv_del_if(expr, val, p_str) do { \
+			if(expr) { \
+				LOGE("[%s-%d]\n", __FUNCTION__, __LINE__);     \
+				_media_svc_destroy_content_info(p_str);        \
+				return (val); \
+			} \
+		} while (0)
 
 #ifdef _USE_LOG_FILE_
 void mediainfo_init_file_debug();

@@ -52,14 +52,13 @@ extern "C" {
 /**
  *	media_svc_connect:
  *	Connect to the media database. This is the function that an user who wants to get a handle to access the media database. 
- * 	This function connects to the media database.
  *
  *  @param 		handle [out]		Handle to access database.
  *	@return		This function returns zero(MEDIA_INFO_ERROR_NONE) on success, or negative value with error code.
  *				Please refer 'media-info-error.h' to know the exact meaning of the error.
  *	@see		media_svc_disconnect
- *	@pre		None.
- *	@post		call media_svc_connect to connect to the media database
+ *	@pre		None
+ *	@post		call media_svc_disconnect to disconnect media database.
  *	@remark	The database name is "/opt/dbspace/.media.db".
  * 	@par example
  * 	@code
@@ -91,14 +90,13 @@ int media_svc_connect(MediaSvcHandle **handle);
 /**
  *	media_svc_disconnect:
  *	Disconnect to the media database. This is the function that an user who wants to disconnect the media database. 
- * 	This function disconnects to the media database.
  *
- *  @param 		handle [out]		Handle to access database.
+ *  @param 		handle [in]		Handle to access database.
  *	@return		This function returns zero(MEDIA_INFO_ERROR_NONE) on success, or negative value with error code.
  *				Please refer 'media-info-error.h' to know the exact meaning of the error.
  *	@see		media_svc_connect
- *	@pre		None.
- *	@post		call media_svc_disconnect to disconnect to the media database
+ *	@pre		call media_svc_connect to connect media database.
+ *	@post		None
  *	@remark	The database name is "/opt/dbspace/.media.db".
  * 	@par example
  * 	@code
@@ -137,6 +135,92 @@ void disconnect_media_db()
  */
 int media_svc_disconnect(MediaSvcHandle *handle);
 
+
+/**
+ *	media_svc_create_table:
+ *	Create table of media database and set Index and Triggers.
+ *
+ *  @param 		handle [in]		Handle to access database.
+ *	@return		This function returns zero(MEDIA_INFO_ERROR_NONE) on success, or negative value with error code.
+ *				Please refer 'media-info-error.h' to know the exact meaning of the error.
+ *	@see		None
+ *	@pre		call media_svc_connect to connect media database.
+ *	@post		call media_svc_disconnect to disconnect media database.
+ *	@remark	The database name is "/opt/dbspace/.media.db".
+ * 	@par example
+ * 	@code
+
+#include <media-info.h>
+
+void create_media_db_table()
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	MediaSvcHandle* my_handle = NULL;
+
+	// connect to the media database
+	ret = media_svc_connect(&my_handle);
+
+	if (ret < 0)
+	{
+		printf("Fatal error to connect DB\n");
+		return;
+	}
+
+	ret = media_svc_create_table(my_handle);
+	if (ret < 0)
+	{
+		printf("Fatal error to create DB table\n");
+	}
+
+	ret = media_svc_disconnect(my_handle);
+	if (ret < 0)
+	{
+		printf("Fatal error to disconnect DB\n");
+	}
+
+	return;
+}
+
+ * 	@endcode
+ */
+
+int media_svc_create_table(MediaSvcHandle *handle);
+
+int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *path);
+
+int media_svc_insert_folder(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path);
+
+int media_svc_insert_item_begin(MediaSvcHandle *handle, int data_cnt);
+
+int media_svc_insert_item_end(MediaSvcHandle *handle);
+
+int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type);
+
+int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type);
+
+int media_svc_move_item_begin(MediaSvcHandle *handle, int data_cnt);
+
+int media_svc_move_item_end(MediaSvcHandle *handle);
+
+int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_storage, const char *src_path, media_svc_storage_type_e dest_storage, const char *dest_path);
+
+int media_svc_set_item_validity_begin(MediaSvcHandle *handle, int data_cnt);
+
+int media_svc_set_item_validity_end(MediaSvcHandle *handle);
+
+int media_svc_set_item_validity(MediaSvcHandle *handle, const char *path, int validity);
+
+int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path);
+
+int media_svc_delete_all_items_in_storage(MediaSvcHandle *handle, media_svc_storage_type_e storage_type);
+
+int media_svc_delete_invalid_items_in_storage(MediaSvcHandle *handle, media_svc_storage_type_e storage_type);
+
+int media_svc_set_all_storage_items_validity(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, int validity);
+
+int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, media_svc_media_type_e media_type);
+
+int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const char *dst_path);
 
 /** @} */
 

@@ -24,9 +24,9 @@
 #include <sys/stat.h>
 #include "media-svc-env.h"
 #include "media-svc-util.h"
-#include "media-svc-db.h"
+#include "visual-svc-db.h"
 #include "visual-svc-debug.h"
-#include "media-svc-db-util.h"
+#include "visual-svc-db-util.h"
 #include "visual-svc-util.h"
 #include "media-svc-api.h"
 #include "media-svc-structures.h"
@@ -387,6 +387,14 @@ static int __mb_svc_delete_record(MediaSvcHandle *mb_svc_handle, int id, mb_svc_
 static int __mb_svc_delete_record_by_uuid(MediaSvcHandle *mb_svc_handle, const char *id, mb_svc_tbl_name_e tbl_name);
 static int __mb_svc_db_get_next_id(MediaSvcHandle *mb_svc_handle, int table_id);
 
+
+void mb_svc_init_last_updated_folder_uuid()
+{
+	/* Initialize g_last_updated_folder_uuid */
+	memset(g_last_updated_folder_uuid, 0x00, sizeof(g_last_updated_folder_uuid));
+
+	return;
+}
 
 int mb_svc_set_folder_as_valid_sql_add(const char *folder_id, int valid)
 {
@@ -2187,6 +2195,30 @@ int mb_svc_update_date_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id
 
 	snprintf(query_string, sizeof(query_string),
 		 MB_SVC_UPDATE_MEDIA_DATE_BY_ID, table_name, date, media_id);
+	err = mb_svc_query_sql(mb_svc_handle, query_string);
+	if (err < 0) {
+		mb_svc_debug("failed to update record date\n");
+		mb_svc_debug("query string is %s\n", query_string);
+		return MB_SVC_ERROR_DB_INTERNAL;
+	}
+
+	return 0;
+}
+
+int mb_svc_update_orientation_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int orientation)
+{
+	mb_svc_debug("");
+	int err = -1;
+	char query_string[MB_SVC_DEFAULT_QUERY_SIZE + 1] = { 0 };
+
+	char table_name[MB_SVC_TABLE_NAME_MAX_LEN] = { 0, };
+	memset(table_name, 0x00, MB_SVC_TABLE_NAME_MAX_LEN);
+
+	snprintf(table_name, sizeof(table_name), "%s",
+		 mb_svc_tbl[MB_SVC_TABLE_IMAGE_META].table_name);
+
+	snprintf(query_string, sizeof(query_string),
+		 MB_SVC_UPDATE_MEDIA_ORIENTATION_BY_ID, table_name, orientation, media_id);
 	err = mb_svc_query_sql(mb_svc_handle, query_string);
 	if (err < 0) {
 		mb_svc_debug("failed to update record date\n");

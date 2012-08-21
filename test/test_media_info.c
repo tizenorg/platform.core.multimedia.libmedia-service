@@ -95,10 +95,10 @@ int main(int argc, char *argv[])
 	MediaSvcHandle *handle = NULL;
 	err = media_svc_connect(&handle);
 	if(err < 0) {
-		mediainfo_dbg("media_svc_connect fails");
+		media_svc_debug("media_svc_connect fails");
 	}
 
-	mediainfo_dbg("media_svc_connect succeeds");
+	media_svc_debug("media_svc_connect succeeds");
 
 	test_case = atoi(argv[1]);
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 			test_connect_disconn();
 			break;
 		case 1: 
-			audio_svc_create_table(handle);
+			media_svc_create_table(handle);
 			break;
 		
 		case 2: 
@@ -780,7 +780,7 @@ int main(int argc, char *argv[])
 		err = audio_svc_list_by_search(handle, a_handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
 
 		if (err != AUDIO_SVC_ERROR_NONE) {
-			mediainfo_dbg("Fail to get items : %d", err);
+			media_svc_debug("Fail to get items : %d", err);
 			return err;
 		}
 		
@@ -841,7 +841,7 @@ int main(int argc, char *argv[])
 
 	err = media_svc_disconnect(handle);
 	if(err < 0) {
-		mediainfo_dbg("media_svc_disconnect fails");
+		media_svc_debug("media_svc_disconnect fails");
 	}
 
 	printf("End of Test\n");
@@ -855,7 +855,7 @@ void *do_newjob()
 	MediaSvcHandle *handle = NULL;
 	err = media_svc_connect(&handle);
 	if(err < 0) {
-		mediainfo_dbg("media_svc_connect fails");
+		media_svc_debug("media_svc_connect fails");
 	}
 
 	const char *media_id = "2b0a4efe-c3cb-cb62-fe12-3f4f7aef4ab9";
@@ -870,7 +870,7 @@ void *do_newjob()
 	printf("Calling media_svc_disconnect in do_newjob \n");
 	err = media_svc_disconnect(handle);
 	if(err < 0) {
-		mediainfo_dbg("media_svc_disconnect fails");
+		media_svc_debug("media_svc_disconnect fails");
 		return NULL;
 	}
 
@@ -882,25 +882,25 @@ void *do_newjob()
 
 void test_connect_disconn()
 {
-	mediainfo_dbg("");
+	media_svc_debug("");
 	int err = -1;
 	MediaSvcHandle *handle = NULL;
 	err = media_svc_connect(&handle);
 	if( err < 0 ) {
-		mediainfo_dbg("Error");
+		media_svc_debug("Error");
 		return;
-	} else { mediainfo_dbg("success"); }
+	} else { media_svc_debug("success"); }
 
-	if(handle == NULL) mediainfo_dbg("NULL!!!!!");
+	if(handle == NULL) media_svc_debug("NULL!!!!!");
 	test_query((sqlite3 *)handle);
 
 	err = media_svc_disconnect(handle);
 	if( err < 0 ) {
-		mediainfo_dbg("Error");
+		media_svc_debug("Error");
 		return;
 	}
 
-	mediainfo_dbg("test_connect_disconn success");
+	media_svc_debug("test_connect_disconn success");
 
 	return;
 }
@@ -913,7 +913,7 @@ int test_query(sqlite3* handle)
 	memset(query_string, 0, sizeof(query_string) );
 
 	if( handle == NULL ) {
-		mediainfo_dbg( "handle is NULL" );
+		media_svc_debug( "handle is NULL" );
 		return -1;
 	}
 
@@ -923,25 +923,25 @@ int test_query(sqlite3* handle)
 
 	if (SQLITE_OK != err) 
 	{
-		 mediainfo_dbg ("prepare error [%s]\n", sqlite3_errmsg(handle));
-		 mediainfo_dbg ("query string is %s\n", query_string);
+		 media_svc_debug ("prepare error [%s]\n", sqlite3_errmsg(handle));
+		 media_svc_debug ("query string is %s\n", query_string);
 		 return -1;
 	}
 	err = sqlite3_step(stmt);	
 	if (err != SQLITE_ROW) 
 	{
-		 mediainfo_dbg ("end of row [%s]\n", sqlite3_errmsg(handle));
-		 mediainfo_dbg ("query string is %s\n", query_string);
+		 media_svc_debug ("end of row [%s]\n", sqlite3_errmsg(handle));
+		 media_svc_debug ("query string is %s\n", query_string);
 		 sqlite3_finalize(stmt);
 	 	 return -1;
 	}
 
-	mediainfo_dbg("ID: %d", sqlite3_column_int (stmt, 0));
-	mediainfo_dbg("Display name: %s", (const char*)sqlite3_column_text (stmt, 2));
+	media_svc_debug("ID: %d", sqlite3_column_int (stmt, 0));
+	media_svc_debug("Display name: %s", (const char*)sqlite3_column_text (stmt, 2));
 
 	if(err < 0)
 	{
-		mediainfo_dbg ("mb-svc load data failed");
+		media_svc_debug ("mb-svc load data failed");
 		sqlite3_finalize(stmt);
 		return -1;
 	}

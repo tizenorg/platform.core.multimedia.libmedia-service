@@ -33,6 +33,7 @@ int (*svc_check_item)			(const char *file_path, const char * mime_type, char ** 
 int (*svc_connect)				(void ** handle, char ** err_msg);
 int (*svc_disconnect)			(void * handle, char ** err_msg);
 int (*svc_check_item_exist)		(void* handle, const char *file_path, int storage_type, char ** err_msg);
+int (*svc_insert_item_immediately)	(void* handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg);
 
 int __load_functions()
 {
@@ -47,10 +48,12 @@ int __load_functions()
 	svc_connect			= dlsym (funcHandle, "connect");
 	svc_disconnect		= dlsym (funcHandle, "disconnect");
 	svc_check_item_exist	= dlsym (funcHandle, "check_item_exist");
+	svc_insert_item_immediately	= dlsym (funcHandle, "insert_item_immediately");
 
 	if ( !svc_check_item ||
 		 !svc_connect ||
 		 !svc_disconnect ||
+		 !svc_insert_item_immediately ||
 		 !svc_check_item_exist) {
 		fprintf(stderr,"error: %s\n", dlerror());
 		return -1;
@@ -76,11 +79,15 @@ int main()
 	int ret = 0;
 	MediaSvcHandle * db_handle = NULL;
 	char * err_msg = NULL;
+	char path[1024] = {0,};
+	char type[1024] = {0,};
 
 	ret = __load_functions();
 	if(ret < 0) {
 		msg_print(__LINE__, "__load_functions error");
 		return -1;
+	} else {
+		msg_print(__LINE__, "__load_functions success");
 	}
 
 	//check_item ================================================
@@ -94,6 +101,8 @@ int main()
 		}
 		__unload_functions();
 		return -1;
+	} else {
+		msg_print(__LINE__, "svc_check_item success");
 	}
 
 	//db open ==================================================
@@ -107,10 +116,26 @@ int main()
 		}
 		__unload_functions();
 		return -1;
+	} else {
+		msg_print(__LINE__, "svc_connect success");
 	}
 
+#if 1
+	ret = media_svc_create_table(db_handle);
+	if (ret < 0) {
+		msg_print(__LINE__, "table already exists");
+	} else {
+		msg_print(__LINE__, "table create success");
+	}
+#endif
+
+	while (1) {
+
+	printf("Enter path and mimetype ( ex. /opt/media/a.jpg image ) : ");
+	scanf("%s %s", path, type);
+
 	//check_item_exist ============================================
-	ret = svc_check_item_exist(db_handle, "/opt/media/Music/Over the horizon.mp3", 0, &err_msg);
+	ret = svc_check_item_exist(db_handle, path, 0, &err_msg);
 	if(ret < 0) {
 		msg_print(__LINE__, "svc_check_item_exist error");
 		if(err_msg != NULL) {
@@ -118,8 +143,33 @@ int main()
 			free(err_msg);
 			err_msg = NULL;
 		}
-		__unload_functions();
-		return -1;
+		//__unload_functions();
+		//return -1;
+	} else {
+		msg_print(__LINE__, "svc_check_item_exist success");
+	}
+
+	// svc_check_item_exist ============================================
+	ret = svc_insert_item_immediately(db_handle, path, 0, type, &err_msg);
+	if(ret < 0) {
+		msg_print(__LINE__, "svc_insert_item_immediately error");
+		if(err_msg != NULL) {
+			printf("err_msg[%s]\n", err_msg);
+			free(err_msg);
+			err_msg = NULL;
+		}
+		//__unload_functions();
+		//return -1;
+	} else {
+		msg_print(__LINE__, "svc_insert_item_immediately success");
+	}
+	} // End of While
+
+	ret = media_svc_insert_folder(db_handle, 0,  path);
+	if(ret < 0) {
+		msg_print(__LINE__, "media_svc_insert_folder error ");
+	} else {
+		msg_print(__LINE__, "media_svc_insert_folder success");
 	}
 
 	//db close ==================================================
@@ -133,6 +183,8 @@ int main()
 		}
 		__unload_functions();
 		return -1;
+	} else {
+		msg_print(__LINE__, "svc_disconnect success");
 	}
 
 	__unload_functions();

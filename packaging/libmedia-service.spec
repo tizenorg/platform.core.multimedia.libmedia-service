@@ -1,7 +1,8 @@
+#sbs-git:slp/pkgs/l/libmedia-service libmedia-service 0.1.101 9a5b1f60f91231fdd7bf8d0ba935602f03425400
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications.
-Version: 0.2.0
-Release:    6
+Version: 0.1.121
+Release:    1
 Group:      System/Libraries
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
@@ -32,7 +33,7 @@ BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  pkgconfig(db-util)
 BuildRequires:  pkgconfig(mm-fileinfo)
 BuildRequires:  pkgconfig(media-thumbnail)
-BuildRequires:  pkgconfig(drm-service)
+BuildRequires:  pkgconfig(drm-client)
 BuildRequires:  pkgconfig(aul)
 
 %description
@@ -50,9 +51,9 @@ Media information service library for multimedia applications. (development file
 %prep
 %setup -q 
 
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 
 %build
+cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 make %{?jobs:-j%jobs}
 
 %install
@@ -60,7 +61,6 @@ rm -rf %{buildroot}
 %make_install
 
 %post -p /sbin/ldconfig
-
 %postun -p /sbin/ldconfig
 
 %files
@@ -74,6 +74,9 @@ rm -rf %{buildroot}
 %{_libdir}/libmedia-svc-plugin.so
 %{_libdir}/libmedia-svc-plugin.so.1
 %{_libdir}/libmedia-svc-plugin.so.1.0.0
+%{_libdir}/libmedia-content-plugin.so
+%{_libdir}/libmedia-content-plugin.so.1
+%{_libdir}/libmedia-content-plugin.so.1.0.0
 
 %files devel
 %{_libdir}/pkgconfig/libmedia-service.pc

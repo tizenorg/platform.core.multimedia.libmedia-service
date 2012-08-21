@@ -45,7 +45,7 @@
 
 #define MEDIA_INFO_ERROR_INVALID_PARAMETER			-1			/**< Invalid parameter */
 #define MEDIA_INFO_ERROR_INVALID_MEDIA				-2			/**< Invalid media */
-#define MEDIA_INFO_ERROR_INVALID_FILE_FORMAT		-3			/**< Invalid file format */
+#define MEDIA_INFO_ERROR_INVALID_FILE_FORMAT			-3			/**< Invalid file format */
 #define MEDIA_INFO_ERROR_INVALID_PATH				-4			/**< Invalid file path */
 #define MEDIA_INFO_ERROR_OUT_OF_MEMORY				-5			/**< Out of memory */
 #define MEDIA_INFO_ERROR_OUT_OF_STORAGE				-6			/**< Out of storage */
@@ -67,12 +67,13 @@
 #define MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN		-105		/**< DB table open error */
 #define MEDIA_INFO_ERROR_DATABASE_INVALID			-106		/**< DB invalid error */
 #define MEDIA_INFO_ERROR_DATABASE_INTERNAL			-107		/**< DB internal error */
+#define MEDIA_INFO_ERROR_DATABASE_NO_RECORD		-108		/**< Item not found in DB */
 
 #define MEDIA_INFO_ERROR_SOCKET_CONN					-201		/**< Socket connect error */
 #define MEDIA_INFO_ERROR_SOCKET_MSG					-202		/**< Socket message error */
 #define MEDIA_INFO_ERROR_SOCKET_SEND					-203		/**< Socket send error */
 #define MEDIA_INFO_ERROR_SOCKET_RECEIVE				-204		/**< Socket receive error */
-#define MEDIA_INFO_ERROR_SOCKET_RECEIVE_TIMEOUT	-205		/**< Socket time out */
+#define MEDIA_INFO_ERROR_SOCKET_RECEIVE_TIMEOUT		-205		/**< Socket time out */
 
 #define MEDIA_INFO_ERROR_INTERNAL						-998		/**< Internal error */
 #define MEDIA_INFO_ERROR_UNKNOWN					-999		/**< Unknown error */

@@ -182,6 +182,19 @@ typedef enum {
 	MINFO_SEARCH_MAX = 0x00000008,   		/**< maximum */
 } minfo_search_field_t;
 
+
+typedef enum {
+    MINFO_ORIENT_NOT_AVAILABLE=0,
+    MINFO_ORIENT_NORMAL  =1,
+    MINFO_ORIENT_HFLIP   =2,
+    MINFO_ORIENT_ROT_180 =3,
+    MINFO_ORIENT_VFLIP   =4,
+    MINFO_ORIENT_TRANSPOSE   =5,
+    MINFO_ORIENT_ROT_90  =6,
+    MINFO_ORIENT_TRANSVERSE  =7,
+    MINFO_ORIENT_ROT_270 =8
+} minfo_exif_orientation_t;
+
 /**
 * @struct minfo_item_filter
 * This structure defines filter of minfo item.

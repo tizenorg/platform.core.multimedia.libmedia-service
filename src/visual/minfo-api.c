@@ -24,7 +24,7 @@
 #include "visual-svc-types.h"
 #include "visual-svc.h"
 #include "visual-svc-error.h"
-#include "media-svc-db.h"
+#include "visual-svc-db.h"
 #include "media-svc-api.h"
 #include "visual-svc-util.h"
 #include "media-svc-thumb.h"
@@ -35,7 +35,7 @@
 #include "minfo-meta.h"
 #include "minfo-bookmark.h"
 #include "minfo-streaming.h"
-#include "media-svc-db-util.h"
+#include "visual-svc-db-util.h"
 
 static __thread int g_trans_valid_cnt = 1;
 static __thread int g_cur_trans_valid_cnt = 0;
@@ -1955,6 +1955,37 @@ int minfo_update_media_date(MediaSvcHandle *mb_svc_handle, const char *media_id,
 	return MB_SVC_ERROR_NONE;
 }
 
+int minfo_update_media_orientation(MediaSvcHandle *mb_svc_handle, const char *media_id, minfo_exif_orientation_t orientation)
+{
+	int ret = -1;
+
+	if (mb_svc_handle == NULL) {
+		mb_svc_debug("media service handle is NULL");
+		return MB_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (media_id == NULL) {
+		mb_svc_debug("media_id is NULL");
+		return MB_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	if((orientation < MINFO_ORIENT_NOT_AVAILABLE) || (orientation > MINFO_ORIENT_ROT_270)) {
+		mb_svc_debug("invalid orientation value");
+		return MB_SVC_ERROR_INVALID_PARAMETER;
+	}
+
+	mb_svc_debug("minfo_update_media_orientation: %s", media_id);
+	mb_svc_debug("minfo_update_media_orientation: %d", orientation);
+
+	ret = mb_svc_update_orientation_by_id(mb_svc_handle, media_id, orientation);
+	if (ret < 0) {
+		mb_svc_debug("mb_svc_update_orientation_by_id failed\n");
+		return ret;
+	}
+
+	return MB_SVC_ERROR_NONE;
+}
+
 EXPORT_API int minfo_cp_media(MediaSvcHandle *mb_svc_handle, const char *src_media_id, const char *dst_cluster_id)
 {
 	int ret = -1;
@@ -3040,6 +3071,7 @@ minfo_set_item_valid_end(MediaSvcHandle *mb_svc_handle)
 		}
 	}
 
+	mb_svc_init_last_updated_folder_uuid();
 	g_cur_trans_valid_cnt = 0;
 	g_trans_valid_cnt = 1;
 

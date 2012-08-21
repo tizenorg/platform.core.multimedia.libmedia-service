@@ -30,4 +30,24 @@
 
 typedef void MediaSvcHandle;		/**< Handle */
 
+/**
+ * Type definition for storage type
+ */
+typedef enum{
+	MEDIA_SVC_STORAGE_INTERNAL,			/**< Internal storage*/
+	MEDIA_SVC_STORAGE_EXTERNAL,			/**< External storage*/
+	MEDIA_SVC_STORAGE_MAX,				/**< Invalid storage*/
+}media_svc_storage_type_e;
+
+/**
+ * Type definition for content type
+ */
+typedef enum{
+	MEDIA_SVC_MEDIA_TYPE_IMAGE	= 0,	/**< Image Content*/
+	MEDIA_SVC_MEDIA_TYPE_VIDEO	= 1,	/**< Video Content*/
+	MEDIA_SVC_MEDIA_TYPE_SOUND	= 2,	/**< Sound Content like Ringtone*/
+	MEDIA_SVC_MEDIA_TYPE_MUSIC	= 3,	/**< Music Content like mp3*/
+	MEDIA_SVC_MEDIA_TYPE_OTHER	= 4,	/**< Invalid Content*/
+}media_svc_media_type_e;
+
 #endif /*_MEDIA_SVC_TYPES_H_*/

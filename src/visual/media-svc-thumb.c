@@ -47,7 +47,7 @@
 #include <mm_file.h>
 #include <mm_util_imgp.h>
 #include <mm_util_jpeg.h>
-#include <drm-service.h>
+#include <drm_client.h>
 #include <Evas.h>
 #include <Ecore_Evas.h>
 #include <string.h>
@@ -329,39 +329,6 @@ int
 mb_svc_drm_get_buffer(const char *file_full_path, unsigned char **buffer,
 		      int *size)
 {
-	DRM_RESULT res;
-	DRM_FILE_HANDLE hDrmFile = NULL;
-
-	mb_svc_debug("mb_svc_drm_get_buffer\n");
-
-	if (file_full_path == NULL || buffer == NULL || size == NULL) {
-		mb_svc_debug
-		    ("file_full_path==NULL || buffer==NULL || size==NULL");
-		return MB_SVC_ERROR_INVALID_PARAMETER;
-	}
-
-	res =
-	    drm_svc_open_file(file_full_path, DRM_PERMISSION_DISPLAY,
-			      &hDrmFile);
-	if (res == DRM_RESULT_SUCCESS) {
-		drm_file_attribute_t drm_attr;
-		/* get attribute to get file size  */
-		drm_svc_get_fileattribute(file_full_path, &drm_attr);
-		/* read drm file  */
-		if (drm_attr.size < 2 * 1024 * 1024) {
-			*buffer = (unsigned char *)malloc(drm_attr.size);
-			if (*buffer) {
-				drm_svc_read_file(hDrmFile, *buffer,
-						  drm_attr.size,
-						  (unsigned int *)size);
-			}
-			mb_svc_debug
-			    ("mb_svc_drm_get_buffer : buffer=%p, size=%d",
-			     *buffer, drm_attr.size);
-		}
-		drm_svc_close_file(hDrmFile);
-		return 1;
-	}
 	return 0;
 }
 
@@ -2491,7 +2458,15 @@ mb_svc_image_create_thumb(const char *file_full_path, char *thumb_hash_path,
 	thumb_info.file_full_path = file_full_path;
 	thumb_info.thumb_hash_path = thumb_hash_path;
 	thumb_info.content_type = MINFO_ITEM_IMAGE;
-	thumb_info.is_drm = (drm_svc_is_drm_file(file_full_path) == DRM_TRUE);
+
+	drm_bool_type_e drm_type;
+	err = drm_is_drm_file(file_full_path, &drm_type);
+	if (err < 0) {
+		mb_svc_debug("drm_is_drm_file falied : %d", err);
+		drm_type = DRM_FALSE;
+	}
+
+	thumb_info.is_drm = (drm_type == DRM_TRUE);
 
 	err =
 	    __mb_svc_thumb_save(thumb, thumb_info, max_thumb_length,
@@ -2572,7 +2547,16 @@ mb_svc_image_create_thumb_new(const char *file_full_path, char *thumb_hash_path,
 	thumb_info.file_full_path = file_full_path;
 	thumb_info.thumb_hash_path = thumb_hash_path;
 	thumb_info.content_type = MINFO_ITEM_IMAGE;
-	thumb_info.is_drm = (drm_svc_is_drm_file(file_full_path) == DRM_TRUE);
+
+	drm_bool_type_e drm_type;
+	err = drm_is_drm_file(file_full_path, &drm_type);
+	if (err < 0) {
+		mb_svc_debug("drm_is_drm_file falied : %d", err);
+		drm_type = DRM_FALSE;
+	}
+
+	thumb_info.is_drm = (drm_type == DRM_TRUE);
+
 
 	err = __mb_svc_thumb_save_new(thumb, thumb_info, max_thumb_length);
 	if (err < 0) {
@@ -2991,7 +2975,15 @@ mb_svc_video_create_thumb(const char *file_full_path, char *thumb_hash_path,
 		return MB_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	thumb_info.is_drm = (drm_svc_is_drm_file(file_full_path) == DRM_TRUE);
+	drm_bool_type_e drm_type;
+	err = drm_is_drm_file(file_full_path, &drm_type);
+	if (err < 0) {
+		mb_svc_debug("drm_is_drm_file falied : %d", err);
+		drm_type = DRM_FALSE;
+	}
+
+	thumb_info.is_drm = (drm_type == DRM_TRUE);
+
 	err = mm_file_create_content_attrs(&content, file_full_path);
 
 	if (err < 0) {

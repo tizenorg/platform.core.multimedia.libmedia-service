@@ -8,7 +8,7 @@ TARGET = plugin_test
 TARGET : $(OBJS)
 	$(CC) -o $(TARGET) $(OBJS) -ldl `pkg-config $(LIBS) --cflags --libs` -g
 $(OBJS) : $(SRCS)
-	$(CC) -c $(SRCS) `pkg-config $(LIBS) --cflags --libs` -g
+	$(CC) -c $(SRCS) -I../../include -L../../cmake_build_tmp `pkg-config $(LIBS) --cflags --libs` -g
 clean :
 	rm $(TARGET)
 	rm $(OBJS)

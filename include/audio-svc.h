@@ -1258,7 +1258,7 @@ void test_audio_svc_list_by_search(MediaSvcHandle *db_handle)
 		err = audio_svc_list_by_search(db_handle, audio_handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
 
 		if (err != AUDIO_SVC_ERROR_NONE) {
-			mediainfo_dbg("Fail to get items : %d", err);
+			printf("Fail to get items : %d", err);
 			return err;
 		}
 		
@@ -3509,7 +3509,7 @@ void test_audio_svc_list_by_search(MediaSvcHandle *db_handle)
 		err = audio_svc_list_by_search(db_handle, audio_handle, AUDIO_SVC_ORDER_BY_TITLE_ASC, offset, count, AUDIO_SVC_SEARCH_TITLE, str, strlen(str), AUDIO_SVC_SEARCH_ALBUM, str, strlen(str), AUDIO_SVC_SEARCH_ARTIST, str, strlen(str), -1);
 
 		if (err != AUDIO_SVC_ERROR_NONE) {
-			mediainfo_dbg("Fail to get items : %d", err);
+			printf("Fail to get items : %d", err);
 			return err;
 		}
 		

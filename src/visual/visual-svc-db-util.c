@@ -26,7 +26,7 @@
 #include <sqlite3.h>
 #include "media-svc-util.h"
 #include "visual-svc-util.h"
-#include "media-svc-db-util.h"
+#include "visual-svc-db-util.h"
 #include "visual-svc-debug.h"
 #include "visual-svc-error.h"
 

@@ -20,7 +20,7 @@
  */
 #include <glib.h>
 #include <glib-object.h>
-#include <drm-service.h>
+#include <drm_client.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <string.h>
@@ -28,10 +28,10 @@
 #include "media-svc-debug.h"
 #include "media-svc-api.h"
 #include "media-svc-thumb.h"
-#include "media-svc-db-util.h"
+#include "visual-svc-db-util.h"
 #include "visual-svc-debug.h"
 #include "visual-svc-util.h"
-#include "media-svc-db.h"
+#include "visual-svc-db.h"
 #include "media-svc-util.h"
 #include "media-svc-types.h"
 #include "visual-svc-error.h"
@@ -224,7 +224,15 @@ mb_svc_insert_file_batch(MediaSvcHandle *mb_svc_handle, const char *file_full_pa
 	    ("ready get file date for insert file info into media table\n");
 	media_record.modified_date =
 	    _mb_svc_get_file_dir_modified_date(file_full_path);
-	is_drm = (drm_svc_is_drm_file(file_full_path) == DRM_TRUE);
+
+	drm_bool_type_e drm_type;
+	ret = drm_is_drm_file(file_full_path, &drm_type);
+	if (ret < 0) {
+		mb_svc_debug("drm_is_drm_file falied : %d", ret);
+		drm_type = DRM_FALSE;
+	}
+
+	is_drm = (drm_type == DRM_TRUE);
 
 	ret = _mb_svc_thumb_generate_hash_name(file_full_path,
 										media_record.thumbnail_path,
@@ -428,7 +436,15 @@ mb_svc_insert_file(MediaSvcHandle *mb_svc_handle, const char *file_full_path, mi
 	    ("ready get file date for insert file info into media table\n");
 	media_record.modified_date =
 	    _mb_svc_get_file_dir_modified_date(file_full_path);
-	is_drm = (drm_svc_is_drm_file(file_full_path) == DRM_TRUE);
+
+	drm_bool_type_e drm_type;
+	ret = drm_is_drm_file(file_full_path, &drm_type);
+	if (ret < 0) {
+		mb_svc_debug("drm_is_drm_file falied : %d", ret);
+		drm_type = DRM_FALSE;
+	}
+
+	is_drm = (drm_type == DRM_TRUE);
 
 	/* 4. if it's image file, insert into image_meta table */
 	if (media_record.content_type == MINFO_ITEM_IMAGE)	{ /* it's image file, insert into image_meta table */

@@ -1157,9 +1157,44 @@ minfo_update_media_favorite(MediaSvcHandle *mb_svc_handle, const char *media_id,
  * @endcode
  */
 
-int  
+int
 minfo_update_media_date(MediaSvcHandle *mb_svc_handle, const char *media_id, time_t modified_date);
 
+/**
+ * minfo_update_media_orientation
+ * This function updates orientation of image file in 'image_meta' table. This function actually call the Sqlite3 UPDATE.
+ * In Gallery application or ug-imageviewer, user could want to set orientation of an image, so he/she could call this API to do it.
+ * @return  This function returns zero(MB_SVC_ERROR_BASE) on success, or negative value with error code.
+ * @param	mb_svc_handle	[in]	the handle of DB
+ * @param	media_id		[in]	Unique id of the media file
+ * @param	orientation		[in]	orientation to modify, which is a type of int
+ * @return	This function returns 0 on success, or negative value with error code.
+ * @remarks	None.
+ * @see     None.
+ * @pre		None
+ * @post	None
+ * @par example
+ * @code
+
+	#include <media-svc.h>
+
+	void test_minfo_update_media_orientation(MediaSvcHandle *mb_svc_handle)
+	{
+		int ret = -1;
+		const char *media_id = "b6a4f4ac-26ea-458c-a228-9aef7f70349d";
+		minfo_exif_orientation_t orientation = MINFO_ORIENT_ROT_90;
+
+		//update an image's orientation
+		ret = minfo_update_media_orientation(mb_svc_handle, media_id, orientation);
+		if( ret < 0) {
+			printf("minfo_update_media_orientation failed\n");
+			return;
+		}
+	}
+ * @endcode
+ */
+int
+minfo_update_media_orientation(MediaSvcHandle *mb_svc_handle, const char *media_id, minfo_exif_orientation_t orientation);
 
 /**
  * minfo_add_cluster

@@ -27,7 +27,7 @@
 
 #include <vconf.h>
 #include <vconf-keys.h>
-#include <drm-service.h>
+#include <drm_client.h>
 #include <string.h>
 #include <aul/aul.h>
 #include <sys/stat.h>
@@ -269,27 +269,43 @@ bool _mb_svc_glist_free(GList **glist, bool is_free_element)
 int _mb_svc_get_file_type(const char *file_full_path)
 {
 	int ret = 0;
+	drm_bool_type_e drm_type;
+	drm_file_type_e drm_file_type;
 	char mimetype[255];
 
 	if (file_full_path == NULL)
 		return MB_SVC_ERROR_INVALID_PARAMETER;
 
-	if (drm_svc_is_drm_file(file_full_path) == DRM_TRUE) {
-		DRM_FILE_TYPE drm_type = DRM_FILE_TYPE_NONE;
-		drm_type = drm_svc_get_drm_type(file_full_path);
-		if (drm_type == DRM_FILE_TYPE_NONE) {
+	ret = drm_is_drm_file(file_full_path, &drm_type);
+	if (ret < 0) {
+		mb_svc_debug("drm_is_drm_file falied : %d", ret);
+		drm_type = DRM_FALSE;
+	}
+
+	if (drm_type == DRM_TRUE) {
+		drm_file_type = DRM_TYPE_UNDEFINED;
+
+		ret = drm_get_file_type(file_full_path, &drm_file_type);
+		if (ret < 0) {
+			mb_svc_debug("drm_get_file_type falied : %d", ret);
+			return MINFO_ITEM_NONE;
+		}
+
+		if (drm_file_type == DRM_TYPE_UNDEFINED) {
 			return MINFO_ITEM_NONE;
 		} 
 		else {
-			drm_content_info_t contentInfo = { 0 };
+			drm_content_info_s contentInfo;
+			memset(&contentInfo, 0x00, sizeof(drm_content_info_s));
 
-			ret = drm_svc_get_content_info(file_full_path, &contentInfo);
-			if (ret != DRM_RESULT_SUCCESS) {
-				mb_svc_debug("drm_svc_get_content_info() fails. ");
+			ret = drm_get_content_info(file_full_path, &contentInfo);
+			if (ret != DRM_RETURN_SUCCESS) {
+				mb_svc_debug("drm_get_content_info() fails. : %d", ret);
 				return MINFO_ITEM_NONE;
 			}
+			mb_svc_debug("DRM mime type: %s", contentInfo.mime_type);
 
-			strncpy(mimetype, contentInfo.contentType, sizeof(mimetype));
+			strncpy(mimetype, contentInfo.mime_type, sizeof(mimetype));
 		}
 	} else {
 		/* get content type and mime type from file. */

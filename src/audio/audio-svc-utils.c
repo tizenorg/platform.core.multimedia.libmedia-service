@@ -42,8 +42,7 @@
 #include <dirent.h>
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <drm-service-types.h>
-#include <drm-service.h>
+#include <drm_client.h>
 #include <mm_file.h>
 #include "audio-svc-debug.h"
 #include "audio-svc-error.h"
@@ -51,6 +50,7 @@
 #include "audio-svc.h"
 #include "audio-svc-types-priv.h"
 #include "media-svc-hash.h"
+#include "media-svc-util.h"
 
 #define AUDIO_SVC_PARENTAL_RATING_LEN		20
 #define AUDIO_SVC_FILE_EXT_LEN_MAX				6			/**<  Maximum file ext lenth*/
@@ -141,6 +141,7 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 	MMHandleType tag = 0;
 	char *p = NULL;
 	void *image = NULL;
+	int ret = 0;
 	int size = -1;
 	int extracted_field = AUDIO_SVC_EXTRACTED_FIELD_NONE;
 	int mmf_error = -1;
@@ -157,10 +158,114 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 	_strncpy_safe(item->pathname, path, sizeof(item->pathname));
 	item->storage_type = storage_type;
 
-	if (drm_svc_is_drm_file(item->pathname)) {
-		bool invalid_file = FALSE;
+	drm_bool_type_e drm_type;
 
-		DRM_FILE_TYPE type = drm_svc_get_drm_type(item->pathname);
+	ret = drm_is_drm_file(item->pathname, &drm_type);
+	if (ret < 0) {
+		audio_svc_error("drm_is_drm_file falied : %d", ret);
+		drm_type = DRM_FALSE;
+	}
+
+	if (drm_type) {
+		bool invalid_file = FALSE;
+		drm_file_type_e drm_file_type;
+		drm_permission_type_e drm_perm_type = DRM_PERMISSION_TYPE_PLAY;
+		drm_content_info_s contentInfo;
+		drm_license_status_e license_status;
+		memset(&contentInfo, 0x00, sizeof(drm_content_info_s));
+
+		ret = drm_get_file_type(item->pathname, &drm_file_type);
+		if (ret < 0) {
+			audio_svc_error("drm_get_file_type falied : %d", ret);
+			drm_file_type = DRM_TYPE_UNDEFINED;
+			invalid_file = TRUE;
+		}
+
+		ret = drm_get_content_info(item->pathname, &contentInfo);
+		if (ret != DRM_RETURN_SUCCESS) {
+			audio_svc_error("drm_get_content_info() fails. : %d", ret);
+			invalid_file = TRUE;
+		}
+
+		ret = drm_get_license_status(item->pathname, drm_perm_type, &license_status);
+		if (ret != DRM_RETURN_SUCCESS) {
+			audio_svc_error("drm_get_license_status() fails. : %d", ret);
+			invalid_file = TRUE;
+		}
+
+		if ((!invalid_file) && (license_status != DRM_LICENSE_STATUS_VALID)) {
+			invalid_file = TRUE;
+			if (drm_file_type == DRM_TYPE_OMA_V1) {
+
+				if (strlen(contentInfo.title) > 0) {
+					_strncpy_safe(item->audio.title, contentInfo.title, sizeof(item->audio.title));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_TITLE;
+				}
+
+				if (strlen(contentInfo.description) > 0) {
+					_strncpy_safe(item->audio.description, contentInfo.description, sizeof(item->audio.description));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_DESC;
+				}
+			} else if (drm_file_type == DRM_TYPE_OMA_V2) {
+				if (strlen(contentInfo.title) > 0) {
+					_strncpy_safe(item->audio.title, contentInfo.title, sizeof(item->audio.title));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_TITLE;
+				}
+
+				if (strlen(contentInfo.description) > 0) {
+					_strncpy_safe(item->audio.description, contentInfo.description, sizeof(item->audio.description));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_DESC;
+				}
+
+				if (strlen(contentInfo.copyright) > 0) {
+					_strncpy_safe(item->audio.copyright, contentInfo.copyright, sizeof(item->audio.copyright));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_COPYRIGHT;
+				}
+				if (strlen(contentInfo.author) > 0) {
+					_strncpy_safe(item->audio.author, contentInfo.author, sizeof(item->audio.author));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_AUTHOR;
+				}
+				if (strlen(contentInfo.author) > 0) {
+					_strncpy_safe(item->audio.artist, contentInfo.author, sizeof(item->audio.artist));
+					extracted_field |= AUDIO_SVC_EXTRACTED_FIELD_ARTIST;
+				}
+
+			}
+		}
+
+		if (invalid_file) {
+			if (!(extracted_field & AUDIO_SVC_EXTRACTED_FIELD_TITLE)) {
+				title = _audio_svc_get_title_from_filepath(item->pathname);
+				if (title) {
+					_strncpy_safe(item->audio.title, title, sizeof(item->audio.title));
+					SAFE_FREE(title);
+				} else {
+					audio_svc_error("Can't extract title from filepath");
+					_strncpy_safe(item->audio.title, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.title));
+				}
+			}
+
+			if (!(extracted_field & AUDIO_SVC_EXTRACTED_FIELD_DESC)) {
+				_strncpy_safe(item->audio.description, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.description));
+			}
+			if (!(extracted_field & AUDIO_SVC_EXTRACTED_FIELD_AUTHOR)) {
+				_strncpy_safe(item->audio.author, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.author));
+			}
+			if (!(extracted_field & AUDIO_SVC_EXTRACTED_FIELD_ARTIST)) {
+				_strncpy_safe(item->audio.description, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.description));
+			}
+			if (!(extracted_field & AUDIO_SVC_EXTRACTED_FIELD_COPYRIGHT)) {
+				_strncpy_safe(item->audio.copyright, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.copyright));
+			}
+
+			_strncpy_safe(item->audio.album, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.album));
+			_strncpy_safe(item->audio.genre, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.genre));
+			_strncpy_safe(item->audio.year, AUDIO_SVC_TAG_UNKNOWN, sizeof(item->audio.year));
+
+			return AUDIO_SVC_ERROR_NONE;
+		}
+
+#if 0
 
 		if (type == DRM_FILE_TYPE_OMA) {
 			drm_dcf_header_t header_info;
@@ -386,6 +491,7 @@ int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, con
 			
 			return AUDIO_SVC_ERROR_NONE;
 		}
+#endif
 	}
 
 	mmf_error = mm_file_create_content_attrs(&content, item->pathname);
@@ -659,11 +765,55 @@ bool _audio_svc_possible_to_extract_title_from_file(const char *path)
 	int size = 0;
 	char *p = NULL;
 	char *err_attr_name = NULL;
+	drm_bool_type_e drm_type;
+	drm_file_type_e drm_file_type;
+	drm_permission_type_e drm_perm_type = DRM_PERMISSION_TYPE_PLAY;
+	drm_license_status_e license_status;
 
-	if (drm_svc_is_drm_file(path)) {
-		DRM_FILE_TYPE type = drm_svc_get_drm_type(path);
+	err = drm_is_drm_file(path, &drm_type);
+	if (err < 0) {
+		audio_svc_error("drm_is_drm_file falied : %d", err);
+		drm_type = DRM_FALSE;
+	}
 
-		if (type == DRM_FILE_TYPE_OMA) {
+	if (drm_type == DRM_TRUE) {
+		bool ret = FALSE;
+		err = drm_get_file_type(path, &drm_file_type);
+		if (err < 0) {
+			audio_svc_error("drm_get_file_type falied : %d", err);
+			drm_file_type = DRM_TYPE_UNDEFINED;
+		}
+
+		if (drm_file_type == DRM_TYPE_OMA_V1) {
+			err = drm_get_license_status(path, drm_perm_type, &license_status);
+			if (err != DRM_RETURN_SUCCESS) {
+				audio_svc_error("drm_get_license_status() fails. : %d", err);
+
+				ret = FALSE;
+			} else {
+				if (license_status != DRM_LICENSE_STATUS_VALID) {
+					audio_svc_debug("no valid ro. can't extract meta data");
+					ret = FALSE;
+				} else {
+					ret = TRUE;
+				}
+			}
+
+		} else if (drm_file_type == DRM_TYPE_OMA_V2) {
+
+			drm_content_info_s contentInfo;
+			memset(&contentInfo, 0x00, sizeof(drm_content_info_s));
+
+			ret = drm_get_content_info(path, &contentInfo);
+			if (err != DRM_RETURN_SUCCESS) {
+				audio_svc_error("drm_get_content_info() fails. : %d", err);
+				ret = FALSE;
+			} else {
+				ret = TRUE;
+			}
+
+#if 0
+		if (drm_file_type == DRM_FILE_TYPE_OMA) {
 			drm_dcf_header_t header_info;
 			bool ret = FALSE;
 			memset(&header_info, 0, sizeof(drm_dcf_header_t));
@@ -696,15 +846,28 @@ bool _audio_svc_possible_to_extract_title_from_file(const char *path)
 				drm_svc_free_dcf_header_info(&header_info);
 				return ret;
 			}
-		} else if (type == DRM_FILE_TYPE_PLAYREADY) {
+#endif
+		} else if (drm_file_type == DRM_TYPE_PLAYREADY) {
 			audio_svc_debug("drm type is PLAYREADY");
-			if (drm_svc_has_valid_ro(path, DRM_PERMISSION_PLAY) != DRM_RESULT_SUCCESS) {
-				audio_svc_debug("no valid ro. can't extract meta data");
+
+			err = drm_get_license_status(path, drm_perm_type, &license_status);
+			if (err != DRM_RETURN_SUCCESS) {
+				audio_svc_error("drm_get_license_status() fails. : %d", ret);
+					ret = FALSE;
+			} else {
+				if (license_status != DRM_LICENSE_STATUS_VALID) {
+					audio_svc_debug("no valid ro. can't extract meta data");
+					ret = FALSE;
+				} else {
+					ret = TRUE;
+				}
 			}
 		} else {
 			audio_svc_error("Not supported DRM type");
 			return FALSE;
 		}
+
+		return ret;
 	}
 
 	err = mm_file_create_tag_attrs(&tag, path);
@@ -874,24 +1037,27 @@ bool _audio_svc_get_thumbnail_path(audio_svc_storage_type_e storage_type, char *
 
 int _audio_svc_get_drm_mime_type(const char *path, char *mime_type)
 {
-	drm_content_info_t contentInfo;
+	int ret = 0;
+	drm_content_info_s contentInfo;
+	char mimetype[AUDIO_SVC_METADATA_LEN_MAX] = {0,};
 
 	if (path == NULL) {
 		audio_svc_error("path is NULL");
 		return AUDIO_SVC_ERROR_INVALID_PARAMETER;
 	}
 
-	if (drm_svc_get_content_info(path, &contentInfo) == DRM_RESULT_SUCCESS) {
-		if (strlen(contentInfo.contentType) == 0) {
-			audio_svc_error("contentType is NULL");
-			return AUDIO_SVC_ERROR_INVALID_MEDIA;
-		} else {
-			snprintf(mime_type, sizeof(contentInfo.contentType), "%s", (char *)contentInfo.contentType);
-		}
-	} else {
-		audio_svc_error("Error in drm_service");
+	memset(&contentInfo, 0x00, sizeof(drm_content_info_s));
+
+	ret = drm_get_content_info(path, &contentInfo);
+	if (ret != DRM_RETURN_SUCCESS) {
+		audio_svc_error("drm_get_content_info() fails. : %d", ret);
 		return AUDIO_SVC_ERROR_INVALID_MEDIA;
 	}
+
+	audio_svc_debug("DRM mime type: %s", contentInfo.mime_type);
+
+	strncpy(mimetype, contentInfo.mime_type, sizeof(mimetype) - 1);
+	mimetype[sizeof(mimetype) - 1] = '\0';
 	
 	return AUDIO_SVC_ERROR_NONE;
 }
@@ -907,7 +1073,7 @@ char *_year_2_str(int year)
 	}
 	return ret;
 }
-
+#if 0
 void _strncpy_safe(char *x_dst, const char *x_src, int max_len)
 {
 	if (!x_src || strlen(x_src) == 0) {
@@ -923,7 +1089,7 @@ void _strncpy_safe(char *x_dst, const char *x_src, int max_len)
     strncpy(x_dst, x_src, max_len-1);
 	x_dst[max_len-1] = '\0';
 }
-
+#endif
 void _strlcat_safe(char *x_dst, char *x_src, int max_len)
 {
 	if (!x_src || strlen(x_src) == 0) {

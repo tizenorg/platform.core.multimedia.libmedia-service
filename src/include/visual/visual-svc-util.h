@@ -30,7 +30,7 @@
 
 /**
 * @ingroup MEDIA-SVC
-* @defgroup	MEDIA_SVC_UTIL error code table
+* @defgroup	VISUAL_SVC_UTIL error code table
 * @{
 */
 

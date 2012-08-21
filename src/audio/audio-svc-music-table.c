@@ -35,7 +35,6 @@
 #include "audio-svc-debug.h"
 #include "audio-svc-types-priv.h"
 #include "audio-svc-utils.h"
-#include <drm-service.h>
 #include "audio-svc-db-utils.h"
 
 

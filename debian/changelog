@@ -1,58 +1,988 @@
-libmedia-service (0.2.0-6) unstable; urgency=low
+libmedia-service (0.1.121) unstable; urgency=low
 
-  * Fix build errors
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-6
+  * insert Content info to DB even though fail extract metadata information
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.121
 
- -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 21 Mar 2012 16:35:00 +0900
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 17 Aug 2012 10:57:03 +0900
 
-libmedia-service (0.2.0-5) unstable; urgency=low
+libmedia-service (0.1.120) unstable; urgency=low
 
-  * Fix build errors
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-5
+  * Fix a crash because of data type
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.120
 
- -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 21 Mar 2012 16:30:00 +0900
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 14 Aug 2012 19:00:00 +0900
 
-libmedia-service (0.2.0-4) unstable; urgency=low
+libmedia-service (0.1.119) unstable; urgency=low
 
-  * Push for tizen 1.0 release
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-4
+  * Remove drm-trusted dependancy
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.119
 
- -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 19 Mar 2012 18:30:00 +0900
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 14 Aug 2012 19:00:00 +0900
 
-libmedia-service (0.2.0-3) unstable; urgency=low
+libmedia-service (0.1.118) unstable; urgency=low
+
+  * Change type of size to long long
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.118
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 13 Aug 2012 19:00:00 +0900
+
+libmedia-service (0.1.117) unstable; urgency=low
+
+  * Fix a bug when extracting width and height in video
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.117
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 10 Aug 2012 18:00:00 +0900
+
+libmedia-service (0.1.116) unstable; urgency=low
+
+  * Use new api thumbnail_request_from_db_with_size when insert items
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.116
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 31 Jul 2012 18:00:00 +0900
+
+libmedia-service (0.1.115) unstable; urgency=low
+
+  * Doesnt do rollback when a query fails in batch jobs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.115
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 30 Jul 2012 18:00:00 +0900
+
+libmedia-service (0.1.114) unstable; urgency=low
+
+  * Modify packaging file to make stripped lib
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.114
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 9 Jul 2012 18:00:00 +0900
+
+libmedia-service (0.1.113) unstable; urgency=low
+
+  * Create new api media_svc_rename_folder
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.113
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 6 Jul 2012 19:00:00 +0900
+
+libmedia-service (0.1.112) unstable; urgency=low
+
+  * bug fix of get thumbnail path
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.112
+
+ -- root <backto.kim@samsung.com>  Thu, 05 Jul 2012 18:04:07 +0900
+
+libmedia-service (0.1.111) unstable; urgency=low
+
+  * separate plug-in for old and new DB 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.111
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Thu, 28 Jun 2012 19:15:05 +0900
+
+libmedia-service (0.1.110) unstable; urgency=low
+
+  * make added time value to time_t
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.110
+
+ -- root <backto.kim@samsung.com>  Wed, 20 Jun 2012 11:53:33 +0900
+
+libmedia-service (0.1.109) unstable; urgency=low
+
+  * enable other type support
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.109
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Mon, 04 Jun 2012 16:45:52 +0900
+
+libmedia-service (0.1.108) unstable; urgency=low
+
+  * Remove hiding field in new media db
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.108
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 1 Jun 2012 15:00:00 +0900
+
+libmedia-service (0.1.107) unstable; urgency=low
+
+  * Update sql query
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.107
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 25 May 2012 15:00:00 +0900
+
+libmedia-service (0.1.106) unstable; urgency=low
+
+  * Fix a bug that doesn't finalize a statement
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.106
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 22 May 2012 20:00:00 +0900
+
+libmedia-service (0.1.105) unstable; urgency=low
+
+  * Change DRM apis
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.105
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 22 May 2012 18:00:00 +0900
+
+libmedia-service (0.1.104) unstable; urgency=low
+
+  * Enable new media-svc apis in plugin
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.104
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 21 May 2012 18:00:00 +0900
+
+libmedia-service (0.1.103) unstable; urgency=low
+
+  * Add refresh API
+  * Git : slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.103
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 16 May 2012 14:53:36 +0900
+
+libmedia-service (0.1.102) unstable; urgency=low
+
+  * Add a new api minfo_update_media_orientation
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.102
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 14 May 2012 18:00:00 +0900
+
+libmedia-service (0.1.101) unstable; urgency=low
+
+  * bug fix of stat
+  * Git : slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.101
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 16 Mar 2012 14:01:32 +0900
+
+libmedia-service (0.1.100) unstable; urgency=low
+
+  * add file_name field to support BADA
+  * Git : slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.100
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Tue, 13 Mar 2012 11:08:21 +0900
+
+libmedia-service (0.1.99) unstable; urgency=low
+
+  * Update spec file for OBS build
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.99
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 9 Mar 2012 18:00:00 +0900
+
+libmedia-service (0.1.98) unstable; urgency=low
+
+  * Rollback to enable to exctract thumbnail when bulk-insert
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.98
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 5 Mar 2012 14:00:00 +0900
+
+libmedia-service (0.1.97) unstable; urgency=low
+
+  * bug fix of memory free
+  * Git : slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.97
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 02 Mar 2012 17:42:33 +0900
+
+libmedia-service (0.1.96) unstable; urgency=low
+
+  * The api update_begin starts to call thumbnail_request_extract_all_thumbs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.96
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 29 Feb 2012 18:00:00 +0900
+
+libmedia-service (0.1.95) unstable; urgency=low
+
+  * Reduce buffer size of stack
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.95
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 20 Feb 2011 20:00:00 +0900
+
+libmedia-service (0.1.94) unstable; urgency=low
+
+  * get Album info also when get list item.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.94
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 17 Feb 2012 17:22:01 +0900
+
+libmedia-service (0.1.93) unstable; urgency=low
+
+  * Add a routine to extract thumbnail when adding visual items
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.93
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 15 Feb 2011 18:00:00 +0900
+
+libmedia-service (0.1.92) unstable; urgency=low
+
+  * code clean up.
+  * Update TC
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.92
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 10 Feb 2012 17:34:35 +0900
+
+libmedia-service (0.1.91) unstable; urgency=low
+
+  * Fix a bug
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.91
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 6 Feb 2011 18:00:00 +0900
+
+libmedia-service (0.1.90) unstable; urgency=low
+
+  * Enable plugin
+  * New api : minfo_get_all_item_count
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.90
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 3 Feb 2011 11:00:00 +0900
+
+libmedia-service (0.1.89) unstable; urgency=low
+
+  * Fix a bug to get visual media list
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.89
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 1 Feb 2011 11:00:00 +0900
+
+libmedia-service (0.1.88) unstable; urgency=low
+
+  * Change to latest source from rollback
+  * Add new api minfo_get_all_item_conut
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.88
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 30 Jan 2011 23:00:00 +0900
+
+libmedia-service (0.1.87) unstable; urgency=low
+
+  * Rollback to 0.1.85
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.87
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 30 Jan 2011 23:00:00 +0900
+
+libmedia-service (0.1.86) unstable; urgency=low
+
+  * Add DB field : size in visual_media, genre in video_meta
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.86
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 30 Jan 2011 23:00:00 +0900
+
+libmedia-service (0.1.85) unstable; urgency=low
 
   * Change that makes user managing db handle
-  * Add DB field : size in visual_media, genre in video_meta
-  * Code cleanup and fix some bugs
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-3
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.85
 
- -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 10 Feb 2012 17:30:00 +0900
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 18 Jan 2011 17:00:00 +0900
 
-libmedia-service (0.2.0-2) unstable; urgency=low
+libmedia-service (0.1.84) unstable; urgency=low
 
-  * Remove libmedia-thumbnail dependancy
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-2
+  * Remove a dependancy of libmedia-thumbnail
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.84
 
- -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 5 Jan 2012 18:30:00 +0900
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 5 Jan 2011 18:30:00 +0900
 
-libmedia-service (0.2.0-1) unstable; urgency=low
+libmedia-service (0.1.83) unstable; urgency=low
 
-  * Remove md5 codes
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-1
+  * Fix dependancy
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.83
 
- -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 3 Jan 2012 18:30:00 +0900
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 4 Jan 2011 16:30:00 +0900
 
-libmedia-service (0.2.0-0) unstable; urgency=low
+libmedia-service (0.1.82) unstable; urgency=low
 
-  * Initial Release
-  * Git : pkgs/l/libmedia-service
-  * Tag : libmedia-service_0.2.0-0
+  * Remove md5 codes 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.82
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 3 Jan 2011 18:30:00 +0900
+
+libmedia-service (0.1.81) unstable; urgency=low
+
+  * Arrange MD5 algorithm opensource
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.81
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 28 Dec 2011 18:30:00 +0900
+
+libmedia-service (0.1.80) unstable; urgency=low
+
+  * some APIs are not deprecated.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.80
 
  -- Haejeong Kim <backto.kim@samsung.com>  Wed, 07 Dec 2011 12:35:23 +0900
 
+libmedia-service (0.1.79) unstable; urgency=low
+
+  * code cleanup.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-service
+  * Tag : libmedia-service_0.1.79
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 07 Dec 2011 11:00:14 +0900
+
+libmedia-service (0.1.78) unstable; urgency=low
+
+  * Change the name of this pkg from libmedia-info to libmedia-service
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-service_0.1.78
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Tue, 29 Nov 2011 18:30:00 +0900
+
+libmedia-info (0.1.77) unstable; urgency=low
+
+  * mark deprecated functions : mediainfo_register_file
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.77
+
+ -- Yong Yeon Kim <yy9875.kim@samsung.com>  Wed, 30 Nov 2011 16:33:07 +0900
+
+libmedia-info (0.1.76) unstable; urgency=low
+
+  * Fix a bug for deleting invalid items
+  * code clean up
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.76
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 29 Nov 2011 18:30:00 +0900
+
+libmedia-info (0.1.75) unstable; urgency=low
+
+  * code clean up.
+  * fix thumbnail bug when adding bulk insertion
+  * modify code to same folrder but different web_album_id can be added to DB 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.75
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Thu, 24 Nov 2011 10:43:43 +0900
+
+libmedia-info (0.1.74) unstable; urgency=low
+
+  * code clean up. remove unused code and files.
+  * register busy_handler 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.74
+
+ -- backto.kim <backto.kim@samsung.com>  Tue, 22 Nov 2011 17:47:39 +0900
+
+libmedia-info (0.1.73) unstable; urgency=low
+
+  * bug fix. disable album_id
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.73
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 16 Nov 2011 11:00:37 +0900
+
+libmedia-info (0.1.72) unstable; urgency=low
+
+  * modify insert_item to reduce db commit time.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.72
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 11 Nov 2011 14:38:24 +0900
+
+libmedia-info (0.1.71) unstable; urgency=low
+
+  * Fix CQ defects
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.71
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 10 Nov 2011 14:30:00 +0900
+
+libmedia-info (0.1.70) unstable; urgency=low
+
+  * Fix prevents defects
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.70
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 7 Nov 2011 18:30:00 +0900
+
+libmedia-info (0.1.69) unstable; urgency=low
+
+  * sorting case insenstive
+  * bug fix of add folder info
+  * remove unused API
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.69
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Mon, 07 Nov 2011 16:45:49 +0900
+
+libmedia-info (0.1.68) unstable; urgency=low
+
+  * Fix a bug in mb_svc_get_media_id_by_http_url 
+  * The length of path buffer is changed
+  * Sorting with case independent
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.68
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 3 Nov 2011 18:30:00 +0900
+
+libmedia-info (0.1.67) unstable; urgency=low
+
+  * Fix a bug in video bookmark 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.67
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 3 Nov 2011 10:30:00 +0900
+
+libmedia-info (0.1.66) unstable; urgency=low
+
+  * Apply UUID 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.66
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 2 Nov 2011 19:30:00 +0900
+
+libmedia-info (0.1.65) unstable; urgency=low
+
+  * modify albumart image type. (png to proper img type)
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.65
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Mon, 24 Oct 2011 11:05:49 +0900
+
+libmedia-info (0.1.64) unstable; urgency=low
+
+  * add timeout to socket
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.64
+
+ -- Yong Yeon Kim <yy9875.kim@samsung.com>  Wed, 19 Oct 2011 16:48:55 +0900
+
+libmedia-info (0.1.63) unstable; urgency=low
+
+  * change way to IPC of register file from DBUS to UDP
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.63
+
+ -- Yong Yeon Kim <yy9875.kim@samsung.com>  Wed, 19 Oct 2011 11:18:13 +0900
+
+libmedia-info (0.1.62) unstable; urgency=low
+
+  * Fix a problem when moving items
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.62
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 12 Oct 2011 19:30:00 +0900
+
+libmedia-info (0.1.61) unstable; urgency=low
+
+  * Remove code to create thumbnail
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.61
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 12 Oct 2011 12:30:00 +0900
+
+libmedia-info (0.1.60) unstable; urgency=low
+
+  * Fix a critical bug when inserting items
+  * modify audio_svc_move_item to reduce db commit time
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.60
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 11 Oct 2011 18:30:00 +0900
+
+libmedia-info (0.1.59) unstable; urgency=low
+
+  * Fix some bugs and prevent defects
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.59
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 10 Oct 2011 17:30:00 +0900
+
+libmedia-info (0.1.58) unstable; urgency=low
+
+  * Fix some bugs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.58
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 7 Aug 2011 12:30:00 +0900
+
+libmedia-info (0.1.57) unstable; urgency=low
+
+  * Fix the defect H0100134184
+  * New api minfo_update_image_meta_info_int and minfo_update_media_thumb
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.57
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 4 Aug 2011 15:30:00 +0900
+
+libmedia-info (0.1.56) unstable; urgency=low
+
+  * Disable SPLUSA feature
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.56
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 28 Sep 2011 10:59:39 +0900
+
+libmedia-info (0.1.55) unstable; urgency=low
+
+  * Change an option when opening files 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.55
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 23 Aug 2011 17:00:00 +0900
+
+libmedia-info (0.1.54) unstable; urgency=low
+
+  * Fix a bug when querying a string including escape character
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.54
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 23 Aug 2011 17:00:00 +0900
+
+libmedia-info (0.1.53) unstable; urgency=low
+
+  * add code to get favourite value 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.53
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Fri, 23 Sep 2011 10:17:49 +0900
+
+libmedia-info (0.1.52) unstable; urgency=low
+
+  * Fix minor bug when saving thumbnail of video
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.52
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 21 Aug 2011 12:00:00 +0900
+
+libmedia-info (0.1.51) unstable; urgency=low
+
+  * Fix defects when saving thumbnail of video
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.51
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 21 Aug 2011 12:00:00 +0900
+
+libmedia-info (0.1.50) unstable; urgency=low
+
+  * add favourite field in audio_media table 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.50
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Tue, 20 Sep 2011 09:24:39 +0900
+
+libmedia-info (0.1.49) unstable; urgency=low
+
+  * Change not to resize if it's small jpeg when making thumbs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.49
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 19 Aug 2011 12:00:00 +0900
+
+libmedia-info (0.1.48) unstable; urgency=low
+
+  * Fix a bug rotation in thumb
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.48
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 17 Aug 2011 17:00:00 +0900
+
+libmedia-info (0.1.47) unstable; urgency=low
+
+  * Fix a minor bug in audio_svc_list_by_search
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.47
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 16 Aug 2011 17:00:00 +0900
+
+libmedia-info (0.1.46) unstable; urgency=low
+
+  * Fix some bugs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.46
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 15 Aug 2011 20:00:00 +0900
+
+libmedia-info (0.1.45) unstable; urgency=low
+
+  * Rotate thumbnails according to its orientation
+  * Improve the logic of handling exif info
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.45
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 15 Aug 2011 19:00:00 +0900
+
+libmedia-info (0.1.44) unstable; urgency=low
+
+  * Fix bugs when making thumb
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.44
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 15 Aug 2011 15:00:00 +0900
+
+libmedia-info (0.1.43) unstable; urgency=low
+
+  * Codes to decide if the DRM file is image or video
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.43
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 14 Aug 2011 19:00:00 +0900
+
+libmedia-info (0.1.42) unstable; urgency=low
+
+  * Fix a bug when writing thumb file
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.42
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 09 Aug 2011 11:00:00 +0900
+
+libmedia-info (0.1.41) unstable; urgency=low
+
+  * Remove gdk dependency in control file
+  * Check width and height when extracting thumb in exif
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.41
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 08 Aug 2011 15:00:00 +0900
+
+libmedia-info (0.1.40) unstable; urgency=low
+
+  * Remove gdk dependency
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.40
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 07 Aug 2011 18:00:00 +0900
+
+libmedia-info (0.1.39) unstable; urgency=low
+
+  * Update music mime and file register code 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.39
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 07 Sep 2011 08:47:28 +0900
+
+libmedia-info (0.1.38) unstable; urgency=low
+
+  * Improve minfo_delete_invalid_media_records
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.38
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 05 Aug 2011 18:00:00 +0900
+
+libmedia-info (0.1.37) unstable; urgency=low
+
+  * DB schema changed.
+  * query for getting artist is changed. Since UX change 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.37
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Mon, 05 Sep 2011 14:18:23 +0900
+
+libmedia-info (0.1.36) unstable; urgency=low
+
+  * Improve minfo_set_db_valid api
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.36
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 29 Aug 2011 15:00:00 +0900
+
+libmedia-info (0.1.35) unstable; urgency=low
+
+  * Add a busy handler to sqlite
+  * Add new api mediainfo_register_file 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.35
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 24 Aug 2011 19:00:00 +0900
+
+libmedia-info (0.1.34) unstable; urgency=low
+
+  * Change the directory name from /mnt/mmc to /opt/storage/sdcard
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.34
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 17 Aug 2011 15:00:00 +0900
+
+libmedia-info (0.1.33) unstable; urgency=low
+
+  * Change the maximum of resolution to be able to get thumbnail to 3000x3000
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.33
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 4 Aug 2011 19:00:00 +0900
+
+libmedia-info (0.1.32) unstable; urgency=low
+
+  * Change the maximum of resolution to be able to get thumbnail
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.32
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 2 Aug 2011 11:00:00 +0900
+
+libmedia-info (0.1.31) unstable; urgency=low
+
+  * Make it atomic to manage db handlers
+  * Modify to make ecore evas
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.31
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 29 Jul 2011 17:00:00 +0900
+
+libmedia-info (0.1.30) unstable; urgency=low
+
+  * Add new api for search
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.30
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 28 Jul 2010 20:00:00 +0900
+
+libmedia-info (0.1.29) unstable; urgency=low
+
+  * Fix a bug of positioning when getting list 
+  * Fix defects from prevent and memory leak
+  * Modify the path of default thumbnail
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.29
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 22 Jul 2010 18:00:00 +0900
+
+libmedia-info (0.1.28) unstable; urgency=low
+
+  * Fix defects from prevent and memory leak
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.28
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 11 Jul 2010 18:00:00 +0900
+
+libmedia-info (0.1.27) unstable; urgency=low
+
+  * Enable to extract thumbnails using evas
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.27
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 5 Jul 2010 18:00:00 +0900
+
+libmedia-info (0.1.26) unstable; urgency=low
+
+  * Fix the crash in media server and CQ H0100128875
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.26
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 1 Jul 2010 18:00:00 +0900
+
+libmedia-info (0.1.25) unstable; urgency=low
+
+  * Fix the api minfo_update_cluster_name
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.25
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 29 Jun 2010 18:00:00 +0900
+
+libmedia-info (0.1.24) unstable; urgency=low
+
+  * Added new api minfo_add_web_media_with_type
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.24
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 17 Jun 2010 16:00:00 +0900
+
+libmedia-info (0.1.23) unstable; urgency=low
+
+  * Added codes to use transaction when writing DB
+  * Fixed a problem of web media and get_list of locked folder
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.23
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 13 Jun 2010 18:00:00 +0900
+
+libmedia-info (0.1.22) unstable; urgency=low
+
+  * Change the way to decide mime type 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.22
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 13 Jun 2010 18:00:00 +0900
+
+libmedia-info (0.1.21) unstable; urgency=low
+
+  * Fix a problem of positioning in minfo_get_item_list
+  * Fix a problem of minfo_delete_media_id
+  * Prevent thumbnail extraction of high resolution jpeg files
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.21
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Fri, 10 Jun 2010 18:00:00 +0900
+
+libmedia-info (0.1.20) unstable; urgency=low
+
+  * Fix a problem of getting count apis
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.20
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 9 Jun 2010 12:00:00 +0900
+
+libmedia-info (0.1.19) unstable; urgency=low
+
+  * Add new apis - minfo_get_media_count_by_tagname, minfo_get_media_list_by_tagname_with_filter
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.19
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 8 Jun 2010 14:00:00 +0900
+
+libmedia-info (0.1.18) unstable; urgency=low
+
+  * Fix problems in minfo_update_cluster_name
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.18
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 2 Jun 2010 15:00:00 +0900
+
+libmedia-info (0.1.17) unstable; urgency=low
+
+  * Fix problems in minfo_get_media_list
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.17
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Tue, 31 May 2010 17:00:00 +0900
+
+libmedia-info (0.1.16) unstable; urgency=low
+
+  * Fix a crash in gallery
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.16
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 25 May 2010 17:00:00 +0900
+
+libmedia-info (0.1.15) unstable; urgency=low
+
+  * New codes to extract new meta info
+  * Changes in minfo_get_thumb_path according to new policy
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.15
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 25 May 2010 15:00:00 +0900
+
+libmedia-info (0.1.14) unstable; urgency=low
+
+  * Fix a bug in minfo_delete_media_id 
+  * Fix prevent defects
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.14
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 23 May 2010 16:00:00 +0900
+
+libmedia-info (0.1.13) unstable; urgency=low
+
+  * Fix myfiles problem
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.13
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 19 May 2010 19:00:00 +0900
+
+libmedia-info (0.1.12) unstable; urgency=low
+
+  * Call g_type_init
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.12
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 18 May 2010 12:00:00 +0900
+
+libmedia-info (0.1.11) unstable; urgency=low
+
+  * Control DB handles in each thread for audio-svc.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.11
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 17 May 2010 15:00:00 +0900
+
+libmedia-info (0.1.10) unstable; urgency=low
+
+  * Control DB handles in each thread. 
+  * Change from sprintf to snprintf
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.10
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 16 May 2010 16:00:00 +0900
+
+libmedia-info (0.1.9) unstable; urgency=low
+
+  * Rollback media-svc APIs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.9
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 11 May 2010 19:00:00 +0900
+
+libmedia-info (0.1.8) unstable; urgency=low
+
+  * remove media-svc APIs
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.8
+
+ -- Yong Yeon Kim <yy9875.kim@samsung.com>  Fri, 06 May 2011 18:26:36 +0900
+
+libmedia-info (0.1.7) unstable; urgency=low
+
+  * enable SPLUSA and modify TC
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.7
+
+ -- Yong Yeon Kim <yy9875.kim@samsung.com>  Fri, 06 May 2011 17:27:04 +0900
+
+libmedia-info (0.1.4) unstable; urgency=low
+
+  * enable SPLUSA and modify TC
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.4
+
+ -- Haejeong Kim <backto.kim@samsung.com>  Wed, 04 May 2011 08:59:32 +0900
+
+libmedia-info (0.1.3) unstable; urgency=low
+
+  * Modify parameter of audio_svc_delete_invalid_items
+  * Add new apis minfo_update_media_date, minfo_get_item_by_http_url
+  * Add new attributes for image and video meta structures 
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.3
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 2 May 2010 17:00:00 +0900
+
+libmedia-info (0.1.2) unstable; urgency=low
+
+  * Add new attributes for media tag structures.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.2
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Mon, 2 May 2010 15:50:00 +0900
+
+libmedia-info (0.1.1) unstable; urgency=low
+
+  * Modification for review.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.1
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Thu, 28 Apr 2010 15:50:00 +0900
+
+libmedia-info (0.1.0) unstable; urgency=low
+
+  * Initial Release.
+  * New DB schema for visual and audio media contents.
+  * Git : 165.213.180.234:slp/pkgs/l/libmedia-info
+  * Tag : libmedia-info_0.1.0
+
+ -- Hyunjun Ko <zzoon.ko@samsung.com>  Wed, 27 Apr 2010 15:50:00 +0900

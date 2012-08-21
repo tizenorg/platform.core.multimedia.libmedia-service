@@ -22,7 +22,7 @@
 /** 
  * This file defines synchronize apis for phone explorer.
  *
- * @file       	media-svc-db.h
+ * @file       	visual-svc-db.h
  * @author 		Hyunjun Ko <zzoon.ko@samsung.com>
  * @version 	1.0
  * @brief     	This file defines in-house apis for media service.
@@ -593,6 +593,9 @@ int
 mb_svc_set_media_records_as_valid(MediaSvcHandle *mb_svc_handle, const minfo_store_type storage_type, int valid);
 
 int
+mb_svc_update_orientation_by_id(MediaSvcHandle *mb_svc_handle, const char *media_id, int orientation);
+
+int
 mb_svc_update_album_lock_status(MediaSvcHandle *mb_svc_handle, const char *folder_id, int lock, minfo_store_type storage_type );
 
 int
@@ -603,6 +606,8 @@ mb_svc_update_record_folder_path(MediaSvcHandle *mb_svc_handle, char* old_path, 
 
 int
 mb_svc_update_folder_modified_date(MediaSvcHandle *mb_svc_handle, char* path, int date);
+
+void mb_svc_init_last_updated_folder_uuid();
 
 int
 mb_svc_set_folder_as_valid_sql_add(const char *folder_id, int valid);

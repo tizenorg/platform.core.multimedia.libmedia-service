@@ -55,7 +55,7 @@
 	((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
 
 char * _year_2_str(int year);
-void _strncpy_safe(char *x_dst, const char *x_src, int max_len);
+//void _strncpy_safe(char *x_dst, const char *x_src, int max_len);
 void _strlcat_safe(char *x_dst, char *x_src, int max_len);
 void _audio_svc_get_parental_rating(const char *path, char *parental_rating);
 int _audio_svc_extract_metadata_audio(audio_svc_storage_type_e storage_type, const char *path, audio_svc_audio_item_s *item);

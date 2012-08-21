@@ -26,8 +26,6 @@
 #include "audio-svc.h"
 #include "visual-svc.h"
 
-//#define NEW_MEDIA_SVC
-
 #define MEDIA_SVC_PLUGIN_ERROR_NONE		0
 #define MEDIA_SVC_PLUGIN_ERROR			-1
 
@@ -237,8 +235,6 @@ static void __set_error_message(int err_type, char ** err_msg)
 
 int check_item(const char *file_path, const char * mime_type, char ** err_msg)
 {
-	int content_type = 0;
-
 	if (!STRING_VALID(file_path)) {
 		__set_error_message(ERR_FILE_PATH, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -249,15 +245,6 @@ int check_item(const char *file_path, const char * mime_type, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	content_type = __get_content_type(file_path, mime_type);
-
-#ifndef NEW_MEDIA_SVC
-	if(content_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
-		__set_error_message(ERR_NOT_MEDIAFILE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;		//not media file
-	}
-	else
-#endif
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
@@ -310,29 +297,9 @@ int check_item_exist(void* handle, const char *file_path, int storage_type, char
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-#ifndef NEW_MEDIA_SVC
-	ret = audio_svc_check_item_exist(handle, file_path);
-	if(ret == 0)
+	ret = media_svc_check_item_exist_by_path(handle, file_path);
+	if(ret == MEDIA_INFO_ERROR_NONE)
 		return MEDIA_SVC_PLUGIN_ERROR_NONE;	//exist
-
-	ret = minfo_check_item_exist(handle, file_path);
-	if(ret == 0)
-		return MEDIA_SVC_PLUGIN_ERROR_NONE;	//exist
-#else
-	ret = audio_svc_check_item_exist(handle, file_path);
-	if(ret == 0) {
-		ret = media_svc_check_item_exist_by_path(handle, file_path);
-		if(ret == MEDIA_INFO_ERROR_NONE)
-			return MEDIA_SVC_PLUGIN_ERROR_NONE;	//exist
-	}
-
-	ret = minfo_check_item_exist(handle, file_path);
-	if(ret == 0) {
-		ret = media_svc_check_item_exist_by_path(handle, file_path);
-		if(ret == MEDIA_INFO_ERROR_NONE)
-			return MEDIA_SVC_PLUGIN_ERROR_NONE;	//exist
-	}
-#endif
 
 	__set_error_message(ERR_CHECK_ITEM, err_msg);
 
@@ -348,25 +315,11 @@ int insert_item_begin(void * handle, int item_cnt, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_insert_item_start(handle, item_cnt);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	ret = minfo_add_media_start(handle, item_cnt);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_insert_item_begin(handle, item_cnt);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -380,25 +333,11 @@ int insert_item_end(void * handle, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_insert_item_end(handle);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	ret = minfo_add_media_end(handle);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_insert_item_end(handle);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -429,42 +368,7 @@ int insert_item(void * handle, const char *file_path, int storage_type, const ch
 
 	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
 
-	if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND || content_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)	{
-
-		if(storage_type == MEDIA_SVC_STORAGE_INTERNAL) {
-
-			if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND)
-				ret = audio_svc_insert_item(handle, AUDIO_SVC_STORAGE_PHONE, file_path, AUDIO_SVC_CATEGORY_SOUND);
-			else
-				ret = audio_svc_insert_item(handle, AUDIO_SVC_STORAGE_PHONE, file_path, AUDIO_SVC_CATEGORY_MUSIC);
-
-		} else if (storage_type == MEDIA_SVC_STORAGE_EXTERNAL) {
-
-			if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND)
-				ret = audio_svc_insert_item(handle, AUDIO_SVC_STORAGE_MMC, file_path, AUDIO_SVC_CATEGORY_SOUND);
-			else
-				ret = audio_svc_insert_item(handle, AUDIO_SVC_STORAGE_MMC, file_path, AUDIO_SVC_CATEGORY_MUSIC);
-
-		}
-
-	} else if (content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || content_type == MEDIA_SVC_MEDIA_TYPE_VIDEO) {
-
-		if(content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE)
-			ret = minfo_add_media_batch(handle, file_path, MINFO_ITEM_IMAGE);
-		else
-			ret = minfo_add_media_batch(handle, file_path, MINFO_ITEM_VIDEO);
-
-	} else {
-#ifndef NEW_MEDIA_SVC
-		__set_error_message(ERR_NOT_MEDIAFILE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-#endif
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, mime_type, content_type);
-#endif
-
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -499,40 +403,7 @@ int insert_item_immediately(void * handle, const char *file_path, int storage_ty
 
 	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
 
-	if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND || content_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)	{
-
-		if(storage_type == 0) {
-
-			if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND)
-				ret = audio_svc_insert_item_immediately(handle, AUDIO_SVC_STORAGE_PHONE, file_path, AUDIO_SVC_CATEGORY_SOUND);
-			else
-				ret = audio_svc_insert_item_immediately(handle, AUDIO_SVC_STORAGE_PHONE, file_path, AUDIO_SVC_CATEGORY_MUSIC);
-
-		} else if (storage_type == 1) {
-
-			if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND)
-				ret = audio_svc_insert_item_immediately(handle, AUDIO_SVC_STORAGE_MMC, file_path, AUDIO_SVC_CATEGORY_SOUND);
-			else
-				ret = audio_svc_insert_item_immediately(handle, AUDIO_SVC_STORAGE_MMC, file_path, AUDIO_SVC_CATEGORY_MUSIC);
-
-		}
-
-	} else if (content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || content_type == MEDIA_SVC_MEDIA_TYPE_VIDEO) {
-
-		if(content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE)
-			ret = minfo_add_media(handle, file_path, MINFO_ITEM_IMAGE);
-		else
-			ret = minfo_add_media(handle, file_path, MINFO_ITEM_VIDEO);
-
-	} else {
-#ifndef NEW_MEDIA_SVC
-		__set_error_message(ERR_NOT_MEDIAFILE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-#endif
-	}
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_insert_item_immediately(handle, storage_type, file_path, mime_type, content_type);
-#endif
 
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
@@ -541,7 +412,6 @@ int insert_item_immediately(void * handle, const char *file_path, int storage_ty
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
-
 
 int move_item_begin(void * handle, int item_cnt, char ** err_msg)
 {
@@ -552,25 +422,11 @@ int move_item_begin(void * handle, int item_cnt, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_move_item_start(handle, item_cnt);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	ret = minfo_move_media_start(handle, item_cnt);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_move_item_begin(handle, item_cnt);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -584,25 +440,11 @@ int move_item_end(void * handle, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_move_item_end(handle);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	ret = minfo_move_media_end(handle);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_move_item_end(handle);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -631,38 +473,11 @@ int move_item(void * handle, const char *src_path, int src_storage_type, const c
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	media_svc_media_type_e content_type = __get_content_type(src_path, mime_type);
-
-	if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND || content_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)	{
-
-		ret = audio_svc_move_item(handle, src_storage_type, src_path, dest_storage_type, dest_path);
-
-	} else if (content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || content_type == MEDIA_SVC_MEDIA_TYPE_VIDEO) {
-
-		if(content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE)
-			ret = minfo_move_media(handle, src_path, dest_path, MINFO_ITEM_IMAGE);
-		else
-			ret = minfo_move_media(handle, src_path, dest_path, MINFO_ITEM_VIDEO);
-
-	} else {
-#ifndef NEW_MEDIA_SVC
-		__set_error_message(ERR_NOT_MEDIAFILE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-#endif
-	}
-
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_move_item(handle, src_storage_type, src_path, dest_storage_type, dest_path);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -681,41 +496,11 @@ int set_all_storage_items_validity(void * handle, int storage_type, int validity
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if(storage_type == MEDIA_SVC_STORAGE_INTERNAL) {
-		ret = audio_svc_set_db_valid(handle, AUDIO_SVC_STORAGE_PHONE, validity);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-		ret = minfo_set_db_valid(handle, MINFO_PHONE, validity);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-	} else if(storage_type == MEDIA_SVC_STORAGE_EXTERNAL) {
-
-		ret = audio_svc_set_db_valid(handle, AUDIO_SVC_STORAGE_MMC, validity);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-		ret = minfo_set_db_valid(handle, MINFO_MMC, validity);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_set_all_storage_items_validity(handle, storage_type, validity);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -729,25 +514,11 @@ int set_item_validity_begin(void * handle, int item_cnt, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_set_item_valid_start(handle, item_cnt);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	ret = minfo_set_item_valid_start(handle, item_cnt);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_set_item_validity_begin(handle, item_cnt);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -761,25 +532,11 @@ int set_item_validity_end(void * handle, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_set_item_valid_end(handle);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	ret = minfo_set_item_valid_end(handle);
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_set_item_validity_end(handle);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -808,39 +565,12 @@ int set_item_validity(void * handle, const char *file_path, int storage_type, co
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
-
-	if(content_type == MEDIA_SVC_MEDIA_TYPE_SOUND || content_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)	{
-
-		ret = audio_svc_set_item_valid(handle, file_path, validity);
-
-	} else if (content_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || content_type == MEDIA_SVC_MEDIA_TYPE_VIDEO) {
-
-			if(storage_type == MEDIA_SVC_STORAGE_INTERNAL)
-				ret = minfo_set_item_valid(handle, MINFO_PHONE, file_path, validity);
-			else if(storage_type == MEDIA_SVC_STORAGE_EXTERNAL)
-				ret = minfo_set_item_valid(handle, MINFO_MMC, file_path, validity);
-
-	} else {
-#ifndef NEW_MEDIA_SVC
-		__set_error_message(ERR_NOT_MEDIAFILE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-#endif
-	}
-
-	if(ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_set_item_validity(handle, file_path, validity);
 
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -864,31 +594,6 @@ int delete_item(void * handle, const char *file_path, int storage_type, char ** 
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = audio_svc_check_item_exist(handle, file_path);
-	if(ret == 0) {		/*audio file*/
-		ret = audio_svc_delete_item_by_path(handle, file_path);
-
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-//		} else
-//			return MEDIA_SVC_PLUGIN_ERROR_NONE;
-	}
-
-	ret = minfo_check_item_exist(handle, file_path);
-	if(ret == 0) {		/*visual file*/
-		ret = minfo_delete_media(handle, file_path);
-
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-//		else
-//			return MEDIA_SVC_PLUGIN_ERROR_NONE;
-	} 
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_check_item_exist_by_path(handle, file_path);
 	if(ret == 0) {
 		ret = media_svc_delete_item_by_path(handle, file_path);
@@ -900,7 +605,6 @@ int delete_item(void * handle, const char *file_path, int storage_type, char ** 
 		else
 			return MEDIA_SVC_PLUGIN_ERROR_NONE;
 	}
-#endif
 
 	__set_error_message(ERR_CHECK_ITEM, err_msg);	//not exist in DB so can't delete item.
 	return MEDIA_SVC_PLUGIN_ERROR;
@@ -920,41 +624,11 @@ int delete_all_items_in_storage(void * handle, int storage_type, char ** err_msg
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if(storage_type == MEDIA_SVC_STORAGE_INTERNAL) {
-
-		ret = audio_svc_delete_all(handle, AUDIO_SVC_STORAGE_PHONE);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-		ret = minfo_delete_all_media_records(handle, MINFO_PHONE);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-	} else if(storage_type == MEDIA_SVC_STORAGE_EXTERNAL) {
-
-		ret = audio_svc_delete_all(handle,AUDIO_SVC_STORAGE_MMC);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-		ret = minfo_delete_all_media_records(handle, MINFO_MMC);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-	}
-
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_delete_all_items_in_storage(handle, storage_type);
 	if(ret < 0) {
 			__set_error_message(ret, err_msg);
 			return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -973,41 +647,11 @@ int delete_all_invalid_items_in_storage(void * handle, int storage_type, char **
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if(storage_type == MEDIA_SVC_STORAGE_INTERNAL) {
-
-		ret =  audio_svc_delete_invalid_items(handle,AUDIO_SVC_STORAGE_PHONE);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-		ret = minfo_delete_invalid_media_records(handle, MINFO_PHONE);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-	} else if(storage_type == MEDIA_SVC_STORAGE_EXTERNAL) {
-
-		ret =  audio_svc_delete_invalid_items(handle,AUDIO_SVC_STORAGE_MMC);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-
-		ret = minfo_delete_invalid_media_records(handle, MINFO_MMC);
-		if(ret < 0) {
-			__set_error_message(ret, err_msg);
-			return MEDIA_SVC_PLUGIN_ERROR;
-		}
-	}
-#ifdef NEW_MEDIA_SVC
 	ret = media_svc_delete_invalid_items_in_storage(handle, storage_type);
 	if(ret < 0) {
 			__set_error_message(ret, err_msg);
 			return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
@@ -1034,7 +678,6 @@ int delete_all_items(void * handle, char ** err_msg)
 
 int refresh_item(void * handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg)
 {
-#ifdef NEW_MEDIA_SVC
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
 	if(handle == NULL) {
@@ -1065,7 +708,7 @@ int refresh_item(void * handle, const char *file_path, int storage_type, const c
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
-#endif
+
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
