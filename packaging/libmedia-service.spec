@@ -1,8 +1,7 @@
-#sbs-git:slp/pkgs/l/libmedia-service libmedia-service 0.1.101 9a5b1f60f91231fdd7bf8d0ba935602f03425400
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications.
 Version: 0.1.121
-Release:    1
+Release:    2
 Group:      System/Libraries
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz

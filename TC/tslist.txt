@@ -1,2 +1,0 @@
-utc/audio/tslist
-utc/visual/tslist
