@@ -62,7 +62,7 @@ extern "C" {
 #define MEDIA_SVC_THUMB_INTERNAL_PATH 		MEDIA_SVC_THUMB_PATH_PREFIX"/phone"	/**<  Phone thumbnail path*/
 #define MEDIA_SVC_THUMB_EXTERNAL_PATH 		MEDIA_SVC_THUMB_PATH_PREFIX"/mmc"		/**<  MMC thumbnail path*/
 
-#define MEDIA_SVC_DEFAULT_GPS_VALUE			1000.00			/**<  Default GPS Value*/
+#define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
 #define THUMB_EXT 	"jpg"
 
 #define MEDIA_SVC_PATH_PHONE				"/opt/media"
@@ -170,8 +170,8 @@ typedef struct {
  */
 typedef struct {
 	char	*	media_uuid;					/**< Unique ID of item */
-	char	*	path;						/**< Full path and file name of media file */
-	char	*	file_name;					/**< Full path and file name of media file */
+	char	*	path;						/**< Full path of media file */
+	char	*	file_name;					/**< File name of media file. Display name */
 	int		media_type;					/**< Type of media file : internal/external */
 	char	*	mime_type;					/**< Full path and file name of media file */
 	unsigned long long	size;							/**< size */

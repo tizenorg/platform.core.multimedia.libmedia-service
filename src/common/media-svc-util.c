@@ -394,7 +394,7 @@ char *_media_svc_get_title_from_filepath (const char *path)
 	}
 
 	filename = g_path_get_basename(path);
-	if ((filename == NULL) || (strlen(filename) < 1)) {
+	if (!STRING_VALID(filename)) {
 		media_svc_error("wrong file name");
 		SAFE_FREE(filename);
 		return NULL;
@@ -606,6 +606,7 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	content_info->last_played_time= 0;
 	content_info->last_played_position= 0;
 	content_info->favourate= 0;
+	content_info->media_meta.rating = 0;
 
 	return MEDIA_INFO_ERROR_NONE;
 }
@@ -878,12 +879,12 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			if (!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) {
 				title = _media_svc_get_title_from_filepath(path);
 				if (title) {
-					__media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
+					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
 					SAFE_FREE(title);
 					media_svc_retv_del_if(ret < 0, ret, content_info);
 				} else {
-					media_svc_error("Can't extract title from filepath");
-					__media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+					media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
 					media_svc_retv_del_if(ret < 0, ret, content_info);
 				}
 			}
@@ -936,8 +937,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					media_svc_retv_del_if(ret < 0, ret, content_info);
 					//_strncpy_safe(content_info->media_meta.title, title, sizeof(content_info->media_meta.title));
 				} else {
-					media_svc_error("Can't extract title from filepath");
-					return MEDIA_INFO_ERROR_INTERNAL;
+					media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+					media_svc_retv_del_if(ret < 0, ret, content_info);
 				}
 
 /*
@@ -1126,8 +1128,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					media_svc_retv_del_if(ret < 0, ret, content_info);
 
 				} else {
-					media_svc_error("Can't extract title from filepath");
-					return MEDIA_INFO_ERROR_INTERNAL;
+					media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+					media_svc_retv_del_if(ret < 0, ret, content_info);
 				}
 
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN);
@@ -1199,8 +1202,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					media_svc_retv_del_if(ret < 0, ret, content_info);
 					//_strncpy_safe(content_info->media_meta.title, title, sizeof(content_info->media_meta.title));
 				} else {
-					media_svc_error("Can't extract title from filepath");
-					return MEDIA_INFO_ERROR_INTERNAL;
+					media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+					media_svc_retv_del_if(ret < 0, ret, content_info);
 				}
 
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN);
@@ -1232,8 +1236,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				media_svc_retv_del_if(ret < 0, ret, content_info);
 				//_strncpy_safe(content_info->media_meta.title, title, sizeof(content_info->media_meta.title));
 			} else {
-				media_svc_error("Can't extract title from filepath");
-				return MEDIA_INFO_ERROR_INTERNAL;
+				media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+				media_svc_retv_del_if(ret < 0, ret, content_info);
 			}
 
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN);
@@ -1395,8 +1400,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				SAFE_FREE(title);
 				media_svc_retv_del_if(ret < 0, ret, content_info);
 			} else {
-				media_svc_error("Can't extract title from filepath");
-				return MEDIA_INFO_ERROR_INTERNAL;
+				media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+				media_svc_retv_del_if(ret < 0, ret, content_info);
 			}
 		}
 
@@ -1653,8 +1659,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			SAFE_FREE(title);
 			media_svc_retv_del_if(ret < 0, ret, content_info);
 		} else {
-			media_svc_error("Can't extract title from filepath");
-			return MEDIA_INFO_ERROR_INTERNAL;
+			media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+			media_svc_retv_del_if(ret < 0, ret, content_info);
 		}
 
 		/* in case of file size 0, MMFW Can't parsting tag info but add it to Music DB. */
@@ -1748,7 +1755,7 @@ void _media_svc_destroy_content_info(media_svc_content_info_s *content_info)
 
 int _media_svc_get_store_type_by_path(const char *path, media_svc_storage_type_e *storage_type)
 {
-	if(path != NULL && strlen(path) > 0)
+	if(STRING_VALID(path))
 	{
 		if(strncmp(path, MEDIA_SVC_PATH_PHONE, strlen(MEDIA_SVC_PATH_PHONE)) == 0)
 		{
