@@ -29,7 +29,7 @@
 #include "media-svc-db-utils.h"
 #include "media-svc-media-folder.h"
 #include "media-svc-album.h"
-
+#include "media-svc-noti.h"
 
 static __thread int g_media_svc_item_validity_data_cnt = 1;
 static __thread int g_media_svc_item_validity_cur_data_cnt = 0;
@@ -40,8 +40,8 @@ static __thread int g_media_svc_move_item_cur_data_cnt = 0;
 static __thread int g_media_svc_insert_item_data_cnt = 1;
 static __thread int g_media_svc_insert_item_cur_data_cnt = 0;
 
-
-
+/* Flag for items to be published by notification */
+static __thread int g_insert_with_noti = FALSE;
 
 int media_svc_connect(MediaSvcHandle **handle)
 {
@@ -153,15 +153,16 @@ int media_svc_get_mime_type(const char *path, char *mimetype)
 	if (_media_svc_is_drm_file(path)) {
 		ret =  _media_svc_get_mime_in_drm_info(path, mimetype);
 		if (ret != MEDIA_INFO_ERROR_NONE) {
-			media_svc_error("Fail to get mime");
+			media_svc_error("Fail to get mime in DRM");
+		} else {
 			return ret;
 		}
-	} else {
-		/*in case of normal files */
-		if (aul_get_mime_from_file(path, mimetype, 255) < 0) {
-			media_svc_error("aul_get_mime_from_file fail");
-			return MEDIA_INFO_ERROR_INVALID_MEDIA;
-		}
+	}
+
+	/*in case of normal files or failure to get mime in drm */
+	if (aul_get_mime_from_file(path, mimetype, 255) < 0) {
+		media_svc_error("aul_get_mime_from_file fail");
+		return MEDIA_INFO_ERROR_INVALID_MEDIA;
 	}
 
 	return MEDIA_INFO_ERROR_NONE;
@@ -213,7 +214,7 @@ int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *path)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int media_svc_insert_item_begin(MediaSvcHandle *handle, int data_cnt)
+int media_svc_insert_item_begin(MediaSvcHandle *handle, int data_cnt, int with_noti, int from_pid)
 {
 	sqlite3 * db_handle = (sqlite3 *)handle;
 
@@ -224,6 +225,17 @@ int media_svc_insert_item_begin(MediaSvcHandle *handle, int data_cnt)
 
 	g_media_svc_insert_item_data_cnt  = data_cnt;
 	g_media_svc_insert_item_cur_data_cnt  = 0;
+
+	/* Prepare for making noti item list */
+	if (with_noti) {
+		media_svc_debug("making noti list from pid[%d]", from_pid);
+		if (_media_svc_create_noti_list(data_cnt) != MEDIA_INFO_ERROR_NONE) {
+			return MEDIA_INFO_ERROR_OUT_OF_MEMORY;
+		}
+
+		_media_svc_set_noti_from_pid(from_pid);
+		g_insert_with_noti = TRUE;
+	}
 
 	return MEDIA_INFO_ERROR_NONE;
 }
@@ -240,6 +252,13 @@ int media_svc_insert_item_end(MediaSvcHandle *handle)
 	if (g_media_svc_insert_item_cur_data_cnt  > 0) {
 
 		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_INSERT_ITEM);
+		if (g_insert_with_noti) {
+			media_svc_debug("sending noti list");
+			_media_svc_publish_noti_list(g_media_svc_insert_item_cur_data_cnt);
+			_media_svc_destroy_noti_list(g_media_svc_insert_item_cur_data_cnt);
+			g_insert_with_noti = FALSE;
+			_media_svc_set_noti_from_pid(-1);
+		}
 	}
 
 	g_media_svc_insert_item_data_cnt  = 1;
@@ -249,7 +268,7 @@ int media_svc_insert_item_end(MediaSvcHandle *handle)
 }
 
 int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type,
-			  const char *path, const char *mime_type, media_svc_media_type_e media_type)
+			  const char *path, const char *mime_type, media_svc_media_type_e media_type, int is_burst)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	sqlite3 * db_handle = (sqlite3 *)handle;
@@ -297,23 +316,42 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 
 	if (g_media_svc_insert_item_data_cnt == 1) {
 
-		ret = _media_svc_insert_item_with_data(db_handle, &content_info, FALSE);
+		ret = _media_svc_insert_item_with_data(db_handle, &content_info, is_burst, FALSE);
 		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti)
+			_media_svc_insert_item_to_noti_list(&content_info, g_media_svc_insert_item_cur_data_cnt++);
 
 	} else if(g_media_svc_insert_item_cur_data_cnt  < (g_media_svc_insert_item_data_cnt  - 1)) {
 
-		ret = _media_svc_insert_item_with_data(db_handle, &content_info, TRUE);
+		ret = _media_svc_insert_item_with_data(db_handle, &content_info, is_burst, TRUE);
 		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti)
+			_media_svc_insert_item_to_noti_list(&content_info, g_media_svc_insert_item_cur_data_cnt);
 
 		g_media_svc_insert_item_cur_data_cnt ++;
 
 	} else if (g_media_svc_insert_item_cur_data_cnt  == (g_media_svc_insert_item_data_cnt  - 1)) {
 
-		ret = _media_svc_insert_item_with_data(db_handle, &content_info, TRUE);
+		ret = _media_svc_insert_item_with_data(db_handle, &content_info, is_burst, TRUE);
 		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti)
+			_media_svc_insert_item_to_noti_list(&content_info, g_media_svc_insert_item_cur_data_cnt);
 
 		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_INSERT_ITEM);
 		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti) {
+			_media_svc_publish_noti_list(g_media_svc_insert_item_cur_data_cnt + 1);
+			_media_svc_destroy_noti_list(g_media_svc_insert_item_cur_data_cnt + 1);
+
+			/* Recreate noti list */
+			if (_media_svc_create_noti_list(g_media_svc_insert_item_data_cnt) != MEDIA_INFO_ERROR_NONE) {
+				return MEDIA_INFO_ERROR_OUT_OF_MEMORY;
+			}
+		}
 
 		g_media_svc_insert_item_cur_data_cnt = 0;
 
@@ -386,6 +424,8 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 			media_svc_error("thumbnail_request_from_db failed: %d", ret);
 		} else {
 			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
+			ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
+			media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
 		}
 
 		if (content_info.media_meta.width <= 0)
@@ -393,12 +433,14 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 
 		if (content_info.media_meta.height <= 0)
 			content_info.media_meta.height = height;
-
-		ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
-		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
 	}
 #endif
-	ret = _media_svc_insert_item_with_data(db_handle, &content_info, FALSE);
+	ret = _media_svc_insert_item_with_data(db_handle, &content_info, FALSE, FALSE);
+
+	if (ret == MEDIA_INFO_ERROR_NONE) {
+		media_svc_debug("Insertion is successful. Sending noti for this");
+		_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_INSERT, content_info.path, content_info.media_type, content_info.media_uuid, content_info.mime_type);
+	}
 
 	_media_svc_destroy_content_info(&content_info);
 	return ret;
@@ -541,6 +583,17 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 		}
 		SAFE_FREE(file_name);
 		media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+
+		media_svc_debug("Move is successful. Sending noti for this");
+
+		/* Get notification info */
+		media_svc_noti_item *noti_item = NULL;
+		ret = _media_svc_get_noti_info(handle, dest_path, MS_MEDIA_ITEM_FILE, &noti_item);
+		media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+
+		/* Send notification for move */
+		_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_UPDATE, src_path, media_type, noti_item->media_uuid, noti_item->mime_type);
+		_media_svc_destroy_noti_item(noti_item);
 
 		/*update folder modified_time*/
 		folder_path = g_path_get_dirname(dest_path);
@@ -695,19 +748,44 @@ int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 	media_svc_retvm_if(db_handle == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MEDIA_INFO_ERROR_INVALID_PARAMETER, "path is NULL");
 
-	/*Get thumbnail path to delete*/
-	ret = _media_svc_get_thumbnail_path_by_path(db_handle, path, thumb_path);
-	media_svc_retv_if((ret != MEDIA_INFO_ERROR_NONE) && (ret != MEDIA_INFO_ERROR_DATABASE_NO_RECORD), ret);
+	int media_type = -1;
+	ret = _media_svc_get_media_type_by_path(db_handle, path, &media_type);
+	media_svc_retv_if((ret != MEDIA_INFO_ERROR_NONE), ret);
+
+	if((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) ||(media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
+		/*Get thumbnail path to delete*/
+		ret = _media_svc_get_thumbnail_path_by_path(db_handle, path, thumb_path);
+		media_svc_retv_if((ret != MEDIA_INFO_ERROR_NONE) && (ret != MEDIA_INFO_ERROR_DATABASE_NO_RECORD), ret);
+	} else if ((media_type == MEDIA_SVC_MEDIA_TYPE_SOUND) ||(media_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)) {
+		int count = 0;
+		ret = _media_svc_get_media_count_with_album_id_by_path(db_handle, path, &count);
+		media_svc_retv_if((ret != MEDIA_INFO_ERROR_NONE), ret);
+
+		if (count == 1) {
+			/*Get thumbnail path to delete*/
+			ret = _media_svc_get_thumbnail_path_by_path(db_handle, path, thumb_path);
+			media_svc_retv_if((ret != MEDIA_INFO_ERROR_NONE) && (ret != MEDIA_INFO_ERROR_DATABASE_NO_RECORD), ret);
+		}
+	}
+
+	/* Get notification info */
+	media_svc_noti_item *noti_item = NULL;
+	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	/*Delete item*/
 	ret = _media_svc_delete_item_by_path(db_handle, path);
 	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
+	/* Send notification */
+	media_svc_debug("Deletion is successful. Sending noti for this");
+	_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_DELETE, path, media_type, noti_item->media_uuid, noti_item->mime_type);
+	_media_svc_destroy_noti_item(noti_item);
+
 	/*Delete thumbnail*/
 	if (strlen(thumb_path) > 0) {
 		if (_media_svc_remove_file(thumb_path) == FALSE) {
 			media_svc_error("fail to remove thumbnail file.");
-			return MEDIA_INFO_ERROR_INTERNAL;
 		}
 	}
 
@@ -818,6 +896,11 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 
 	media_svc_debug("storage[%d], path[%s], media_type[%d]", storage_type, path, media_type);
 
+	/* Get notification info */
+	media_svc_noti_item *noti_item = NULL;
+	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+
 	media_svc_content_info_s content_info;
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
@@ -859,6 +942,8 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 			media_svc_error("thumbnail_request_from_db failed: %d", ret);
 		} else {
 			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
+			ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
+			media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
 		}
 
 		if (content_info.media_meta.width <= 0)
@@ -866,12 +951,15 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 
 		if (content_info.media_meta.height <= 0)
 			content_info.media_meta.height = height;
-
-		ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
-		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
 	}
 #endif
 	ret = _media_svc_update_item_with_data(db_handle, &content_info);
+
+	if (ret == MEDIA_INFO_ERROR_NONE) {
+		media_svc_debug("Update is successful. Sending noti for this");
+		_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_UPDATE, content_info.path, media_type, noti_item->media_uuid, noti_item->mime_type);
+		_media_svc_destroy_noti_item(noti_item);
+	}
 
 	_media_svc_destroy_content_info(&content_info);
 
@@ -888,6 +976,11 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 	media_svc_retvm_if(dst_path == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "dst_path is NULL");
 
 	media_svc_debug("Src path : %s,  Dst Path : %s", src_path, dst_path);
+
+	/* Get notification info */
+	media_svc_noti_item *noti_item = NULL;
+	ret = _media_svc_get_noti_info(handle, src_path, MS_MEDIA_ITEM_DIRECTORY, &noti_item);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	ret = _media_svc_sql_begin_trans(handle);
 	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
@@ -967,6 +1060,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 
 		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0))) {
 			strncpy(media_uuid,	(const char *)sqlite3_column_text(sql_stmt, 0), sizeof(media_uuid));
+			media_uuid[sizeof(media_uuid) - 1] = '\0';
 		} else {
 			media_svc_error("media UUID is NULL");
 			return MEDIA_INFO_ERROR_DATABASE_INVALID;
@@ -974,6 +1068,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 
 		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1))) {
 			strncpy(media_path,	(const char *)sqlite3_column_text(sql_stmt, 1), sizeof(media_path));
+			media_path[sizeof(media_path) - 1] = '\0';
 		} else {
 			media_svc_error("media path is NULL");
 			return MEDIA_INFO_ERROR_DATABASE_INVALID;
@@ -981,6 +1076,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 
 		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 2))) {
 			strncpy(media_thumb_path,	(const char *)sqlite3_column_text(sql_stmt, 2), sizeof(media_thumb_path));
+			media_thumb_path[sizeof(media_thumb_path) - 1] = '\0';
 		} else {
 			media_svc_debug("media thumb path doesn't exist in DB");
 			no_thumb = TRUE;
@@ -1069,6 +1165,10 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 		return ret;
 	}
 
+	media_svc_debug("Folder update is successful. Sending noti for this");
+	_media_svc_publish_noti(MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, src_path, -1, noti_item->media_uuid, NULL);
+	_media_svc_destroy_noti_item(noti_item);
+
 	return MEDIA_INFO_ERROR_NONE;
 }
 
@@ -1081,4 +1181,22 @@ int media_svc_request_update_db(const char *db_query)
 	ret = _media_svc_request_update_db(db_query);
 
 	return _media_svc_error_convert(ret);
+}
+
+int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(!STRING_VALID(dir_path), MEDIA_INFO_ERROR_INVALID_PARAMETER, "dir_path is NULL");
+
+	/* Get notification info */
+	media_svc_noti_item *noti_item = NULL;
+	ret = _media_svc_get_noti_info(db_handle, dir_path, MS_MEDIA_ITEM_DIRECTORY, &noti_item);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+
+	ret = _media_svc_publish_noti(MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, dir_path, -1, noti_item->media_uuid, NULL);
+	_media_svc_destroy_noti_item(noti_item);
+
+	return ret;
 }

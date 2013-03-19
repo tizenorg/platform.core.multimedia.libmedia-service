@@ -25,6 +25,7 @@ SET(SRCS
 	src/common/media-svc-db-utils.c
 	src/common/media-svc-util.c
 	src/common/media-svc-debug.c
+	src/common/media-svc-noti.c
 	)
 
 SET(HASH_SRCS
@@ -87,6 +88,8 @@ ADD_DEFINITIONS("-D_FILE_OFFSET_BITS=64")
 SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -Wl,--hash-style=both")
 CONFIGURE_FILE(libmedia-service.pc.in libmedia-service.pc @ONLY)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/libmedia-service.pc DESTINATION lib/pkgconfig)
+
+ADD_SUBDIRECTORY(test)
 
 LINK_DIRECTORIES(lib)
 

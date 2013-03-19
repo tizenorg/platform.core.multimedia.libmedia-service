@@ -26,7 +26,6 @@
 
 #include "media-svc-types.h"
 #include "media-svc-error.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -190,11 +189,11 @@ int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *path)
 
 int media_svc_insert_folder(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path);
 
-int media_svc_insert_item_begin(MediaSvcHandle *handle, int data_cnt);
+int media_svc_insert_item_begin(MediaSvcHandle *handle, int with_noti, int data_cnt, int from_pid);
 
 int media_svc_insert_item_end(MediaSvcHandle *handle);
 
-int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type);
+int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type, int is_burst);
 
 int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type);
 
@@ -233,6 +232,8 @@ int media_svc_get_storage_type(const char *path, media_svc_storage_type_e *stora
 int media_svc_get_mime_type(const char *path, char *mimetype);
 
 int media_svc_get_media_type(const char *path, const char *mime_type, media_svc_media_type_e *media_type);
+
+int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path);
 
 /** @} */
 

@@ -713,7 +713,8 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 		if (strlen(description_buf) == 0) {
 			//media_svc_debug("Use 'No description'");
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
-			media_svc_error("strcpy error");
+			if(ret != MEDIA_INFO_ERROR_NONE)
+				media_svc_error("strcpy error");
 		} else {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, description_buf);
 			if(ret != MEDIA_INFO_ERROR_NONE)
@@ -854,7 +855,6 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		}
 
 		if ((!invalid_file) && (license_status != DRM_LICENSE_STATUS_VALID)) {
-			invalid_file = TRUE;
 			if (drm_file_type == DRM_TYPE_OMA_V1) {
 
 				if (strlen(contentInfo.title) > 0) {
@@ -920,6 +920,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			}
 
 			return MEDIA_INFO_ERROR_NONE;
+		}
+		else {
+			media_svc_debug("Some Not OMA Content's metadata is not incrypted so fileinfo can extracted metadata");
 		}
 	}
 
@@ -1050,10 +1053,13 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.genre, metadata.subBox.genre.str);
 					media_svc_retv_del_if(ret < 0, ret, content_info);
 
-					media_svc_debug("genre : %s", content_info->media_meta.genre);
-					if ((strcasecmp("Ringtone", metadata.subBox.genre.str) == 0) | (strcasecmp("Alert tone", metadata.subBox.genre.str) == 0)) {
+					//media_svc_debug("genre : %s", content_info->media_meta.genre);
+					/* If genre is Ringtone, it's categorized as sound. But this logic is commented */
+					/*
+					if ((strcasecmp("Ringtone", metadata.subBox.genre.str) == 0) | (strcasecmp("Alert tone", metadata.subBox.genre.str) == 0)) {		
 						content_info->media_type = MEDIA_SVC_MEDIA_TYPE_SOUND;
 					}
+					*/
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_GENRE;
 				}
 
@@ -1391,9 +1397,12 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				media_svc_error("strcpy error");
 
 			//media_svc_debug("genre : %s", content_info->media_meta.genre);
+			/* If genre is Ringtone, it's categorized as sound. But this logic is commented */
+			/*
 			if ((strcasecmp("Ringtone", p) == 0) | (strcasecmp("Alert tone", p) == 0)) {
 				content_info->media_type = MEDIA_SVC_MEDIA_TYPE_SOUND;
 			}
+			*/
 		} else {
 			SAFE_FREE(err_attr_name);
 			//media_svc_debug("genre - unknown");
@@ -1865,20 +1874,37 @@ int _media_svc_get_mime_in_drm_info(const char *path, char *mime)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	drm_content_info_s contentInfo;
+	drm_file_type_e file_type = DRM_TYPE_UNDEFINED;
 
 	if (path == NULL || mime == NULL)
 		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 
-	memset(&contentInfo,0x0,sizeof(drm_content_info_s));
-	ret = drm_get_content_info(path, &contentInfo);
+	ret = drm_get_file_type(path, &file_type);
 	if (ret != DRM_RETURN_SUCCESS) {
-		media_svc_error("drm_svc_get_content_info() fails. ");
+		media_svc_error("drm_get_file_type() failed : %d", ret);
 		return MEDIA_INFO_ERROR_INVALID_MEDIA;
-	}
+	} else {
+		if (file_type == DRM_TYPE_OMA_V1
+		|| file_type == DRM_TYPE_OMA_V2
+		|| file_type == DRM_TYPE_OMA_PD) {
+			memset(&contentInfo,0x0,sizeof(drm_content_info_s));
+			ret = drm_get_content_info(path, &contentInfo);
+			if (ret != DRM_RETURN_SUCCESS) {
+				media_svc_error("drm_svc_get_content_info() fails :%d ", ret);
+				return MEDIA_INFO_ERROR_INVALID_MEDIA;
+			}
 
-	strncpy(mime, contentInfo.mime_type, MEDIA_SVC_METADATA_LEN_MAX);
-	media_svc_debug("DRM contentType : %s", contentInfo.mime_type);
-	//media_svc_debug("DRM mime : %s", mime);
+			if (STRING_VALID(contentInfo.mime_type)) {
+				strncpy(mime, contentInfo.mime_type, MEDIA_SVC_METADATA_LEN_MAX);
+				media_svc_debug("DRM contentType : %s", contentInfo.mime_type);
+			} else {
+				return MEDIA_INFO_ERROR_INVALID_MEDIA;
+			}
+		} else {
+			media_svc_error("THIS IS DRM BUT YOU SHOULD USE API OF AUL LIBRARY");
+			return MEDIA_INFO_ERROR_INVALID_MEDIA;
+		}
+	}
 
 	return MEDIA_INFO_ERROR_NONE;
 }

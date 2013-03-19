@@ -136,6 +136,7 @@ int _media_svc_create_media_table(sqlite3 *db_handle)
 				height				INTEGER DEFAULT -1, \
 				datetaken			TEXT, \
 				orientation			INTEGER DEFAULT -1, \
+				burst_id			TEXT, \
 				played_count			INTEGER DEFAULT 0, \
 				last_played_time		INTEGER DEFAULT 0, \
 				last_played_position	INTEGER DEFAULT 0, \
@@ -241,7 +242,8 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle)
 	/*Create playlist table*/
 	sql = sqlite3_mprintf("CREATE TABLE IF NOT EXISTS %s (\
 				playlist_id		INTEGER PRIMARY KEY AUTOINCREMENT, \
-				name			TEXT NOT NULL UNIQUE\
+				name			TEXT NOT NULL UNIQUE,\
+				thumbnail_path 	TEXT\
 				);",
 				MEDIA_SVC_DB_TABLE_PLAYLIST);
 

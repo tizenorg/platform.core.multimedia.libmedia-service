@@ -26,12 +26,14 @@
 #include <stdbool.h>
 #include "media-svc-types.h"
 #include "media-svc-env.h"
+#include "media-svc-noti.h"
 
 int _media_svc_count_record_with_path(sqlite3 *handle, const char *path, int *count);
-int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *content_info, bool stack_query);
+int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *content_info, int is_burst, bool stack_query);
 int _media_svc_update_item_with_data(sqlite3 *handle, media_svc_content_info_s *content_info);
 int _media_svc_get_thumbnail_path_by_path(sqlite3 *handle, const char *path, char *thumbnail_path);
 int _media_svc_get_media_type_by_path(sqlite3 *handle, const char *path, int *media_type);
+int _media_svc_get_burst_id(sqlite3 *handle, int *id);
 int _media_svc_delete_item_by_path(sqlite3 *handle, const char *path);
 int _media_svc_truncate_table(sqlite3 *handle, media_svc_storage_type_e storage_type);
 int _media_svc_delete_invalid_items(sqlite3 *handle, media_svc_storage_type_e storage_type);
@@ -44,5 +46,6 @@ int _media_svc_update_item_by_path(sqlite3 *handle, const char *src_path, media_
 int _media_svc_list_query_do(sqlite3 *handle, media_svc_query_type_e query_type);
 int _media_svc_get_media_id_by_path(sqlite3 *handle, const char *path, char *media_uuid, int max_length);
 int _media_svc_update_thumbnail_path(sqlite3 *handle, const char *path, const char *thumb_path);
+int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item, media_svc_noti_item **item);
 
 #endif /*_MEDIA_SVC_MEDIA_H_*/

@@ -75,6 +75,8 @@
 #define MEDIA_INFO_ERROR_SOCKET_RECEIVE				-204		/**< Socket receive error */
 #define MEDIA_INFO_ERROR_SOCKET_RECEIVE_TIMEOUT		-205		/**< Socket time out */
 
+#define MEDIA_INFO_ERROR_SEND_NOTI_FAIL				-301		/**< Sending Notifications fail */
+
 #define MEDIA_INFO_ERROR_INTERNAL						-998		/**< Internal error */
 #define MEDIA_INFO_ERROR_UNKNOWN					-999		/**< Unknown error */
 #define MEDIA_INFO_ERROR_NOT_IMPLEMENTED			-200		/**< Not implemented */

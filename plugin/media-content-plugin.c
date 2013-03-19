@@ -317,7 +317,7 @@ int check_item_exist(void* handle, const char *file_path, int storage_type, char
 	return MEDIA_SVC_PLUGIN_ERROR;		//not exist
 }
 
-int insert_item_begin(void * handle, int item_cnt, char ** err_msg)
+int insert_item_begin(void * handle, int item_cnt, int with_noti, int from_pid, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -326,7 +326,7 @@ int insert_item_begin(void * handle, int item_cnt, char ** err_msg)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = media_svc_insert_item_begin(handle, item_cnt);
+	ret = media_svc_insert_item_begin(handle, item_cnt, with_noti, from_pid);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -379,7 +379,7 @@ int insert_item(void * handle, const char *file_path, int storage_type, const ch
 
 	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
 
-	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, mime_type, content_type);
+	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, mime_type, content_type, FALSE);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -416,6 +416,41 @@ int insert_item_immediately(void * handle, const char *file_path, int storage_ty
 
 	ret = media_svc_insert_item_immediately(handle, storage_type, file_path, mime_type, content_type);
 
+	if(ret < 0) {
+		__set_error_message(ret, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
+
+int insert_burst_item(void * handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	if(handle == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	if (!STRING_VALID(file_path)) {
+		__set_error_message(ERR_FILE_PATH, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	if (!STRING_VALID(mime_type)) {
+		__set_error_message(ERR_MIME_TYPE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	if(!STORAGE_VALID(storage_type)) {
+		__set_error_message(ERR_STORAGE_TYPE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
+
+	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, mime_type, content_type, TRUE);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -780,6 +815,24 @@ int update_end(void)
 
 	ret = thumbnail_request_extract_all_thumbs();
 	if (ret < 0) {
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
+
+int send_dir_update_noti(void * handle, const char *dir_path, char **err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	if (!STRING_VALID(dir_path)) {
+		__set_error_message(ERR_FOLDER_PATH, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_send_dir_update_noti(handle, dir_path);
+	if (ret < 0) {
+		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 

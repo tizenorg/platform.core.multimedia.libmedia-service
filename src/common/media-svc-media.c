@@ -26,6 +26,7 @@
 #include "media-svc-debug.h"
 #include "media-svc-util.h"
 #include "media-svc-db-utils.h"
+#include "media-svc-noti.h"
 
 typedef struct{
 	char thumbnail_path[MEDIA_SVC_PATHNAME_SIZE];
@@ -163,25 +164,39 @@ int _media_svc_count_record_with_path(sqlite3 *handle, const char *path, int *co
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *content_info, bool stack_query)
+int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *content_info, int is_burst, bool stack_query)
 {
 	media_svc_debug("");
 	int err = -1;
+	char *burst_id = NULL;
 
 	char * db_fields = "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, folder_uuid, \
 					thumbnail_path, title, album_id, album, artist, genre, composer, year, recorded_date, copyright, track_num, description,\
 					bitrate, samplerate, channel, duration, longitude, latitude, altitude, width, height, datetaken, orientation,\
-					rating, is_drm, storage_type";
+					rating, is_drm, storage_type, burst_id";
 
 	/* This sql is due to sqlite3_mprintf's wrong operation when using floating point in the text format */
 	/* This code will be removed when sqlite3_mprintf works clearly */
 	char *test_sql = sqlite3_mprintf("%f, %f, %f", content_info->media_meta.longitude, content_info->media_meta.latitude, content_info->media_meta.altitude);
 	sqlite3_free(test_sql);
 
+	if (is_burst) {
+		int burst_id_int = 0;
+		err = _media_svc_get_burst_id(handle, &burst_id_int);
+		if (err < 0) {
+			burst_id = NULL;
+		}
+
+		if (burst_id_int > 0) {
+			media_svc_debug("Burst id : %d", burst_id_int);
+			burst_id = sqlite3_mprintf("%d", burst_id_int);
+		}
+	}
+
 	char *sql = sqlite3_mprintf("INSERT INTO %s (%s) VALUES (%Q, %Q, %Q, %d, %Q, %lld, %d, %d, %Q, \
 													%Q, %Q, %d, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, \
 													%d, %d, %d, %d, %.2f, %.2f, %.2f, %d, %d, %Q, %d, \
-													%d, %d, %d);",
+													%d, %d, %d, %Q);",
 		MEDIA_SVC_DB_TABLE_MEDIA, db_fields,
 		content_info->media_uuid,
 		content_info->path,
@@ -217,7 +232,11 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->media_meta.orientation,
 		content_info->media_meta.rating,
 		content_info->is_drm,
-		content_info->storage_type);
+		content_info->storage_type,
+		burst_id);
+
+	if (burst_id) sqlite3_free(burst_id);
+	burst_id = NULL;
 
 	if(!stack_query) {
 		err = _media_svc_sql_query(handle, sql);
@@ -663,5 +682,76 @@ int _media_svc_get_media_id_by_path(sqlite3 *handle, const char *path, char *med
 	SQLITE3_FINALIZE(sql_stmt);
 
 	return MEDIA_INFO_ERROR_NONE;
+}
 
+int _media_svc_get_burst_id(sqlite3 *handle, int *id)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	int cur_id = -1;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = sqlite3_mprintf("SELECT max(CAST(burst_id AS INTEGER)) FROM %s", MEDIA_SVC_DB_TABLE_MEDIA);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("error when _media_svc_get_burst_id. err = [%d]", ret);
+		return ret;
+	}
+
+	cur_id = sqlite3_column_int(sql_stmt, 0);
+	*id = ++cur_id;
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return MEDIA_INFO_ERROR_NONE;
+}
+
+int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item, media_svc_noti_item **item)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = NULL;
+
+	if (item == NULL) {
+		media_svc_error("_media_svc_get_noti_info failed");
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+	}
+
+	if (update_item == MS_MEDIA_ITEM_FILE) {
+		sql = sqlite3_mprintf("SELECT media_uuid, media_type, mime_type FROM %s", MEDIA_SVC_DB_TABLE_MEDIA);
+	} else if (update_item == MS_MEDIA_ITEM_DIRECTORY) {
+		sql = sqlite3_mprintf("SELECT folder_uuid FROM %s", MEDIA_SVC_DB_TABLE_FOLDER);
+	} else {
+		media_svc_error("_media_svc_get_noti_info failed : update item");
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+	}
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("error when _media_svc_get_noti_info. err = [%d]", ret);
+		return ret;
+	}
+
+	*item = calloc(1, sizeof(media_svc_noti_item));
+	if (*item == NULL) {
+		media_svc_error("_media_svc_get_noti_info failed : calloc");
+		return MEDIA_INFO_ERROR_OUT_OF_MEMORY;
+	}
+
+	if (update_item == MS_MEDIA_ITEM_FILE) {
+		if (sqlite3_column_text(sql_stmt, 0))
+			(*item)->media_uuid = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
+
+		(*item)->media_type = sqlite3_column_int(sql_stmt, 1);
+
+		if (sqlite3_column_text(sql_stmt, 2))
+			(*item)->mime_type = strdup((const char *)sqlite3_column_text(sql_stmt, 2));
+	} else if (update_item == MS_MEDIA_ITEM_DIRECTORY) {
+		if (sqlite3_column_text(sql_stmt, 0))
+			(*item)->media_uuid = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
+	}
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return MEDIA_INFO_ERROR_NONE;
 }

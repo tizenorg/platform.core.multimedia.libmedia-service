@@ -122,3 +122,32 @@ int _media_svc_append_album(sqlite3 *handle, const char *album, const char *arti
 
 	return MEDIA_INFO_ERROR_NONE;
 }
+
+int _media_svc_get_media_count_with_album_id_by_path(sqlite3 *handle, const char *path, int *count)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = NULL;
+
+	media_svc_retvm_if(path == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "path is NULL");
+
+	sql = sqlite3_mprintf("select count(media_uuid) from %s INNER JOIN (select album_id from %s where path=%Q and album_id > 0) as album ON album.album_id=media.album_id;", MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, path);
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		if(ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD) {
+			media_svc_debug("there is no media in relted to this media's album.");
+		}
+		else {
+			media_svc_error("error when _media_svc_get_media_count_with_album_id_by_path. err = [%d]", ret);
+		}
+		return ret;
+	}
+
+	*count = sqlite3_column_int(sql_stmt, 0);
+	media_svc_debug("Media count : %d", *count);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return ret;
+}
