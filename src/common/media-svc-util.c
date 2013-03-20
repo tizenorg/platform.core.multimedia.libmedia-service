@@ -30,7 +30,7 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <errno.h>
-#include <drm_client.h>
+#include <aul/aul.h>
 #include <mm_file.h>
 #include <mm_error.h>
 #include <libexif/exif-data.h>
@@ -543,13 +543,14 @@ int _media_svc_get_file_time(const char *full_path)
 }
 
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_storage_type_e storage_type,
-			  const char *path, const char *mime_type, media_svc_media_type_e media_type, bool refresh)
+			  const char *path, media_svc_media_type_e *media_type, bool refresh, drm_content_info_s **drm_contentInfo)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * media_uuid = NULL;
 	char * file_name = NULL;
 	struct stat st;
-	drm_bool_type_e drm_type;
+	drm_bool_type_e drm_type = DRM_FALSE;
+	char mime_type[256] = {0};
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->path, path);
 	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
@@ -602,7 +603,6 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 		return MEDIA_INFO_ERROR_NONE;
 	}
 
-	content_info->media_type = media_type;
 	content_info->storage_type = storage_type;
 	time(&content_info->added_time);
 
@@ -612,21 +612,35 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_uuid, media_uuid);
 	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
-	ret = __media_svc_malloc_and_strncpy(&content_info->mime_type, mime_type);
-	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
-
 	file_name = g_path_get_basename(path);
 	ret = __media_svc_malloc_and_strncpy(&content_info->file_name, file_name);
 	SAFE_FREE(file_name);
 	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
-	ret = drm_is_drm_file(content_info->path, &drm_type);
+	/* if the file is DRM file, drm_type value is DRM_TRUE(1).
+	if drm_contentinfo is not NULL, the file is OMA DRM.*/
+	ret = _media_svc_get_mime_type(path, mime_type, &drm_type, drm_contentInfo);
 	if (ret < 0) {
-		media_svc_error("drm_is_drm_file falied : %d", ret);
-		drm_type = DRM_FALSE;
+		media_svc_error("media_svc_get_mime_type failed : %d (%s)", ret, path);
+		return MEDIA_INFO_ERROR_INVALID_PATH;
 	}
 
+	media_svc_error("mime [%s]", mime_type);
 	content_info->is_drm = drm_type;
+
+	ret = _media_svc_get_media_type(path, mime_type, media_type);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+	if ((*media_type < MEDIA_SVC_MEDIA_TYPE_IMAGE) || (*media_type > MEDIA_SVC_MEDIA_TYPE_OTHER)) {
+		media_svc_error("invalid media_type condition[%d]", *media_type);
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+	}
+
+	ret = __media_svc_malloc_and_strncpy(&content_info->mime_type, mime_type);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
+
+	media_svc_debug("storage[%d], path[%s], media_type[%d]", storage_type, path, *media_type);
+
+	content_info->media_type = *media_type;
 
 	content_info->played_count = 0;
 	content_info->last_played_time= 0;
@@ -800,7 +814,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type)
+int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo)
 {
 	MMHandleType content = 0;
 	MMHandleType tag = 0;
@@ -817,86 +831,61 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	int album_id = 0;
 	double gps_value = 0.0;
 	int ret = MEDIA_INFO_ERROR_NONE;
-	drm_bool_type_e drm_type;
 	char *path = content_info->path;
 
-	ret = drm_is_drm_file(path, &drm_type);
-	if (ret < 0) {
-		media_svc_error("drm_is_drm_file falied : %d", ret);
-		drm_type = DRM_FALSE;
-	}
-
 	/*To do - code for DRM content*/
-	if (drm_type) {
-		bool invalid_file = FALSE;
+	if (content_info->is_drm) {
 		drm_file_type_e drm_file_type;
-		drm_permission_type_e drm_perm_type = DRM_PERMISSION_TYPE_PLAY;
-		drm_content_info_s contentInfo;
-		drm_license_status_e license_status;
-		memset(&contentInfo, 0x00, sizeof(drm_content_info_s));
 
 		ret = drm_get_file_type(path, &drm_file_type);
 		if (ret < 0) {
 			media_svc_error("drm_get_file_type falied : %d", ret);
 			drm_file_type = DRM_TYPE_UNDEFINED;
-			invalid_file = TRUE;
 		}
 
-		ret = drm_get_content_info(path, &contentInfo);
-		if (ret != DRM_RETURN_SUCCESS) {
-			media_svc_error("drm_get_content_info() fails. : %d", ret);
-			invalid_file = TRUE;
-		}
-
-		ret = drm_get_license_status(path, drm_perm_type, &license_status);
-		if (ret != DRM_RETURN_SUCCESS) {
-			media_svc_error("drm_get_license_status() fails. : %d", ret);
-			invalid_file = TRUE;
-		}
-
-		if ((!invalid_file) && (license_status != DRM_LICENSE_STATUS_VALID)) {
+		/* if drm_contentinfo is not NULL, the file is OMA DRM.*/
+		if (drm_contentInfo != NULL) {
 			if (drm_file_type == DRM_TYPE_OMA_V1) {
-
-				if (strlen(contentInfo.title) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, contentInfo.title);
+				if (strlen(drm_contentInfo->title) > 0) {
+					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, drm_contentInfo->title);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
 				}
 
-				if (strlen(contentInfo.description) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, contentInfo.description);
+				if (strlen(drm_contentInfo->description) > 0) {
+					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, drm_contentInfo->description);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_DESC;
 				}
 			} else if (drm_file_type == DRM_TYPE_OMA_V2) {
-				if (strlen(contentInfo.title) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, contentInfo.title);
+				if (strlen(drm_contentInfo->title) > 0) {
+					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, drm_contentInfo->title);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
 				}
 
-				if (strlen(contentInfo.description) > 0) {
-					ret =  __media_svc_malloc_and_strncpy(&content_info->media_meta.description, contentInfo.description);
+				if (strlen(drm_contentInfo->description) > 0) {
+					ret =  __media_svc_malloc_and_strncpy(&content_info->media_meta.description, drm_contentInfo->description);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_DESC;
 				}
 
-				if (strlen(contentInfo.copyright) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.copyright, contentInfo.copyright);
+				if (strlen(drm_contentInfo->copyright) > 0) {
+					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.copyright, drm_contentInfo->copyright);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_COPYRIGHT;
 				}
 
-				if (strlen(contentInfo.author) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.composer, contentInfo.author);
+				if (strlen(drm_contentInfo->author) > 0) {
+					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.composer, drm_contentInfo->author);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, contentInfo.author);
+					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, drm_contentInfo->author);
 					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 
@@ -904,9 +893,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_ARTIST;
 				}
 			}
-		}
 
-		if (invalid_file) {
 			if (!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) {
 				title = _media_svc_get_title_from_filepath(path);
 				if (title) {
@@ -920,8 +907,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			}
 
 			return MEDIA_INFO_ERROR_NONE;
-		}
-		else {
+		} else {
 			media_svc_debug("Some Not OMA Content's metadata is not incrypted so fileinfo can extracted metadata");
 		}
 	}
@@ -1056,7 +1042,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					//media_svc_debug("genre : %s", content_info->media_meta.genre);
 					/* If genre is Ringtone, it's categorized as sound. But this logic is commented */
 					/*
-					if ((strcasecmp("Ringtone", metadata.subBox.genre.str) == 0) | (strcasecmp("Alert tone", metadata.subBox.genre.str) == 0)) {		
+					if ((strcasecmp("Ringtone", metadata.subBox.genre.str) == 0) | (strcasecmp("Alert tone", metadata.subBox.genre.str) == 0)) {
 						content_info->media_type = MEDIA_SVC_MEDIA_TYPE_SOUND;
 					}
 					*/
@@ -1870,10 +1856,9 @@ bool _media_svc_is_drm_file(const char *path)
 	return FALSE;
 }
 
-int _media_svc_get_mime_in_drm_info(const char *path, char *mime)
+int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_info_s **drm_contentInfo)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
-	drm_content_info_s contentInfo;
 	drm_file_type_e file_type = DRM_TYPE_UNDEFINED;
 
 	if (path == NULL || mime == NULL)
@@ -1887,21 +1872,27 @@ int _media_svc_get_mime_in_drm_info(const char *path, char *mime)
 		if (file_type == DRM_TYPE_OMA_V1
 		|| file_type == DRM_TYPE_OMA_V2
 		|| file_type == DRM_TYPE_OMA_PD) {
-			memset(&contentInfo,0x0,sizeof(drm_content_info_s));
-			ret = drm_get_content_info(path, &contentInfo);
+			*drm_contentInfo = malloc(sizeof(drm_content_info_s));
+			memset(*drm_contentInfo,0x0,sizeof(drm_content_info_s));
+			ret = drm_get_content_info(path, *drm_contentInfo);
 			if (ret != DRM_RETURN_SUCCESS) {
 				media_svc_error("drm_svc_get_content_info() fails :%d ", ret);
+				free(*drm_contentInfo);
+				*drm_contentInfo = NULL;
 				return MEDIA_INFO_ERROR_INVALID_MEDIA;
 			}
 
-			if (STRING_VALID(contentInfo.mime_type)) {
-				strncpy(mime, contentInfo.mime_type, MEDIA_SVC_METADATA_LEN_MAX);
-				media_svc_debug("DRM contentType : %s", contentInfo.mime_type);
+			if (STRING_VALID((*drm_contentInfo)->mime_type)) {
+				strncpy(mime,(*drm_contentInfo)->mime_type, MEDIA_SVC_METADATA_LEN_MAX);
+				media_svc_debug("DRM contentType : %s",(*drm_contentInfo)->mime_type);
 			} else {
+				free(*drm_contentInfo);
+				*drm_contentInfo = NULL;
 				return MEDIA_INFO_ERROR_INVALID_MEDIA;
 			}
 		} else {
 			media_svc_error("THIS IS DRM BUT YOU SHOULD USE API OF AUL LIBRARY");
+			*drm_contentInfo = NULL;
 			return MEDIA_INFO_ERROR_INVALID_MEDIA;
 		}
 	}
@@ -1977,3 +1968,56 @@ int _media_svc_get_content_type_from_mime(const char * path, const char * mimety
 
 	return err;
 }
+
+/*
+drm_contentifo is not NULL, if the file is OMA DRM.
+If the file is not OMA DRM, drm_contentinfo must be NULL.
+*/
+int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *is_drm, drm_content_info_s **drm_contentInfo)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+
+	if (path == NULL)
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+
+	/* In case of drm file. */
+	if (_media_svc_is_drm_file(path)) {
+		*is_drm = DRM_TRUE;
+		ret =  _media_svc_get_mime_in_drm_info(path, mimetype, drm_contentInfo);
+		if (ret == MEDIA_INFO_ERROR_NONE) {
+			return ret;
+		}
+	}
+
+	/*in case of normal files or failure to get mime in drm */
+	if (aul_get_mime_from_file(path, mimetype, 255) < 0) {
+		media_svc_error("aul_get_mime_from_file fail");
+		return MEDIA_INFO_ERROR_INVALID_MEDIA;
+	}
+
+	return MEDIA_INFO_ERROR_NONE;
+}
+
+int _media_svc_get_media_type(const char *path, const char *mime_type, media_svc_media_type_e *media_type)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	int category = 0;
+
+	media_svc_media_type_e type;
+
+	ret = _media_svc_get_content_type_from_mime(path, mime_type, &category);
+	if (ret < 0) {
+		media_svc_error("_media_svc_get_content_type_from_mime failed : %d", ret);
+	}
+
+	if (category & MEDIA_SVC_CATEGORY_SOUND)		type = MEDIA_SVC_MEDIA_TYPE_SOUND;
+	else if (category & MEDIA_SVC_CATEGORY_MUSIC)	type = MEDIA_SVC_MEDIA_TYPE_MUSIC;
+	else if (category & MEDIA_SVC_CATEGORY_IMAGE)	type = MEDIA_SVC_MEDIA_TYPE_IMAGE;
+	else if (category & MEDIA_SVC_CATEGORY_VIDEO)	type = MEDIA_SVC_MEDIA_TYPE_VIDEO;
+	else	type = MEDIA_SVC_MEDIA_TYPE_OTHER;
+
+	*media_type = type;
+
+	return ret;
+}
+

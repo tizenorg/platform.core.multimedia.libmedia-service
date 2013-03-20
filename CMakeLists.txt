@@ -89,7 +89,7 @@ SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -Wl,--hash-style=both")
 CONFIGURE_FILE(libmedia-service.pc.in libmedia-service.pc @ONLY)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/libmedia-service.pc DESTINATION lib/pkgconfig)
 
-ADD_SUBDIRECTORY(test)
+#ADD_SUBDIRECTORY(test)
 
 LINK_DIRECTORIES(lib)
 

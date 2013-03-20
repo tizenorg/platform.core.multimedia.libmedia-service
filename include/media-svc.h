@@ -193,9 +193,9 @@ int media_svc_insert_item_begin(MediaSvcHandle *handle, int with_noti, int data_
 
 int media_svc_insert_item_end(MediaSvcHandle *handle);
 
-int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type, int is_burst);
+int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, int is_burst);
 
-int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, const char *mime_type, media_svc_media_type_e media_type);
+int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path);
 
 int media_svc_move_item_begin(MediaSvcHandle *handle, int data_cnt);
 
@@ -221,7 +221,7 @@ int media_svc_set_all_storage_items_validity(MediaSvcHandle *handle, media_svc_s
 
 int media_svc_set_folder_items_validity(MediaSvcHandle *handle, const char *folder_path, int validity, int recursive);
 
-int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, media_svc_media_type_e media_type);
+int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path);
 
 int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const char *dst_path);
 

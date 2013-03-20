@@ -112,98 +112,7 @@ static const char sound_mime_table[SOUND_MIME_NUM][MIME_LENGTH] = {
 	"x-smaf",
 };
 
-static int __get_content_type_from_mime(const char * path, const char * mimetype, int * category);
-static int __get_content_type(const char * file_path, const char * mime_type);
 static void __set_error_message(int err_type, char ** err_msg);
-
-static int __get_content_type_from_mime(const char * path, const char * mimetype, int * category)
-{
-	int i = 0;
-	int err = 0;
-
-	*category = MS_CATEGORY_UNKNOWN;
-
-	//MS_DBG("mime type : %s", mimetype);
-
-	/*categorize from mimetype */
-	for (i = 0; i < CONTENT_TYPE_NUM; i++) {
-		if (strstr(mimetype, content_category[i].content_type) != NULL) {
-			*category = (*category | content_category[i].category_by_mime);
-			break;
-		}
-	}
-
-	/*in application type, exitst sound file ex) x-smafs */
-	if (*category & MS_CATEGORY_ETC) {
-		int prefix_len = strlen(content_category[0].content_type);
-
-		for (i = 0; i < SOUND_MIME_NUM; i++) {
-			if (strstr(mimetype + prefix_len, sound_mime_table[i]) != NULL) {
-				*category ^= MS_CATEGORY_ETC;
-				*category |= MS_CATEGORY_SOUND;
-				break;
-			}
-		}
-	}
-
-	/*check music file in soun files. */
-	if (*category & MS_CATEGORY_SOUND) {
-		int prefix_len = strlen(content_category[0].content_type) + 1;
-
-		//MS_DBG("mime_type : %s", mimetype + prefix_len);
-
-		for (i = 0; i < MUSIC_MIME_NUM; i++) {
-			if (strcmp(mimetype + prefix_len, music_mime_table[i]) == 0) {
-				*category ^= MS_CATEGORY_SOUND;
-				*category |= MS_CATEGORY_MUSIC;
-				break;
-			}
-		}
-
-		/*m3u file is playlist but mime type is "audio/x-mpegurl". but It has to be classified into MS_CATEGORY_ETC since playlist is not a sound track*/
-		if(strncasecmp(mimetype, "audio/x-mpegurl", strlen("audio/x-mpegurl")) == 0) {
-			*category ^= MS_CATEGORY_SOUND;
-			*category |= MS_CATEGORY_ETC;
-		}
-	} else if (*category & MS_CATEGORY_VIDEO) {
-		/*some video files don't have video stream. in this case it is categorize as music. */
-		/*"3gp" and "mp4" must check video stream and then categorize in directly. */
-		char file_ext[10] = {0};
-		memset(file_ext, 0, sizeof(file_ext));
-		if((_media_svc_get_file_ext(path, file_ext)) && strlen(file_ext) > 0) {
-			if ((strncasecmp(file_ext, _3GP_FILE, 4) == 0) || (strncasecmp(file_ext, _MP4_FILE, 5) == 0)) {
-				int audio = 0;
-				int video = 0;
-
-				err = mm_file_get_stream_info(path, &audio, &video);
-				if (err == 0) {
-					if (audio > 0 && video == 0) {
-						*category ^= MS_CATEGORY_VIDEO;
-						*category |= MS_CATEGORY_MUSIC;
-					}
-				}
-			}
-		}
-	}
-
-	//MS_DBG("category_from_ext : %d", *category);
-
-	return err;
-}
-
-static int __get_content_type(const char * file_path, const char * mime_type)
-{
-	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
-	int category = 0;
-
-	ret = __get_content_type_from_mime(file_path, mime_type, &category);
-
-	if (category & MS_CATEGORY_SOUND)		return MEDIA_SVC_MEDIA_TYPE_SOUND;
-	else if (category & MS_CATEGORY_MUSIC)	return MEDIA_SVC_MEDIA_TYPE_MUSIC;
-	else if (category & MS_CATEGORY_IMAGE)	return MEDIA_SVC_MEDIA_TYPE_IMAGE;
-	else if (category & MS_CATEGORY_VIDEO)	return MEDIA_SVC_MEDIA_TYPE_VIDEO;
-	else	return MEDIA_SVC_MEDIA_TYPE_OTHER;
-}
 
 static void __set_error_message(int err_type, char ** err_msg)
 {
@@ -244,15 +153,10 @@ static void __set_error_message(int err_type, char ** err_msg)
 	return;
 }
 
-int check_item(const char *file_path, const char * mime_type, char ** err_msg)
+int check_item(const char *file_path, char ** err_msg)
 {
 	if (!STRING_VALID(file_path)) {
 		__set_error_message(ERR_FILE_PATH, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
@@ -353,7 +257,7 @@ int insert_item_end(void * handle, char ** err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int insert_item(void * handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg)
+int insert_item(void * handle, const char *file_path, int storage_type, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -367,19 +271,12 @@ int insert_item(void * handle, const char *file_path, int storage_type, const ch
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
 	if(!STORAGE_VALID(storage_type)) {
 		__set_error_message(ERR_STORAGE_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
-
-	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, mime_type, content_type, FALSE);
+	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, FALSE);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -388,7 +285,7 @@ int insert_item(void * handle, const char *file_path, int storage_type, const ch
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int insert_item_immediately(void * handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg)
+int insert_item_immediately(void * handle, const char *file_path, int storage_type, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -402,20 +299,12 @@ int insert_item_immediately(void * handle, const char *file_path, int storage_ty
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
 	if(!STORAGE_VALID(storage_type)) {
 		__set_error_message(ERR_STORAGE_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
-
-	ret = media_svc_insert_item_immediately(handle, storage_type, file_path, mime_type, content_type);
-
+	ret = media_svc_insert_item_immediately(handle, storage_type, file_path);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -424,7 +313,7 @@ int insert_item_immediately(void * handle, const char *file_path, int storage_ty
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int insert_burst_item(void * handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg)
+int insert_burst_item(void * handle, const char *file_path, int storage_type, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -438,19 +327,12 @@ int insert_burst_item(void * handle, const char *file_path, int storage_type, co
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
 	if(!STORAGE_VALID(storage_type)) {
 		__set_error_message(ERR_STORAGE_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
-
-	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, mime_type, content_type, TRUE);
+	ret = media_svc_insert_item_bulk(handle, storage_type, file_path, TRUE);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -495,7 +377,7 @@ int move_item_end(void * handle, char ** err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int move_item(void * handle, const char *src_path, int src_storage_type, const char *dest_path, int dest_storage_type, const char * mime_type, char ** err_msg)
+int move_item(void * handle, const char *src_path, int src_storage_type, const char *dest_path, int dest_storage_type, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -506,11 +388,6 @@ int move_item(void * handle, const char *src_path, int src_storage_type, const c
 
 	if ((!STRING_VALID(src_path)) || (!STRING_VALID(dest_path))) {
 		__set_error_message(ERR_FILE_PATH, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
@@ -610,7 +487,7 @@ int set_item_validity_end(void * handle, char ** err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int set_item_validity(void * handle, const char *file_path, int storage_type, const char * mime_type, int validity, char ** err_msg)
+int set_item_validity(void * handle, const char *file_path, int storage_type, int validity, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -621,11 +498,6 @@ int set_item_validity(void * handle, const char *file_path, int storage_type, co
 
 	if (!STRING_VALID(file_path)) {
 		__set_error_message(ERR_FILE_PATH, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
@@ -768,7 +640,7 @@ int delete_all_items(void * handle, char ** err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int refresh_item(void * handle, const char *file_path, int storage_type, const char * mime_type, char ** err_msg)
+int refresh_item(void * handle, const char *file_path, int storage_type, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -782,20 +654,12 @@ int refresh_item(void * handle, const char *file_path, int storage_type, const c
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	if (!STRING_VALID(mime_type)) {
-		__set_error_message(ERR_MIME_TYPE, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
-	}
-
 	if(!STORAGE_VALID(storage_type)) {
 		__set_error_message(ERR_STORAGE_TYPE, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	media_svc_media_type_e content_type = __get_content_type(file_path, mime_type);
-
-	ret = media_svc_refresh_item(handle, storage_type, file_path, content_type);
-
+	ret = media_svc_refresh_item(handle, storage_type, file_path);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;

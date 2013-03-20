@@ -63,25 +63,11 @@ gboolean _send_noti_batch_operations(gpointer data)
     /* 1. media_svc_insert_item_immediately */
     char *path = "/opt/usr/media/test/image1.jpg";
 
-	media_svc_media_type_e media_type;
 	media_svc_storage_type_e storage_type;
-	char mime_type[255] = {0, };
 
 	ret = media_svc_get_storage_type(path, &storage_type);
 	if (ret < MEDIA_INFO_ERROR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
-        return FALSE;
-	}
-
-	ret = media_svc_get_mime_type(path, mime_type);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
-		media_svc_error("media_svc_get_mime_type failed : %d (%s)", ret, path);
-        return FALSE;
-	}
-
-	ret = media_svc_get_media_type(path, mime_type, &media_type);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
-		media_svc_error("media_svc_get_media_type failed : %d (%s)", ret, path);
         return FALSE;
 	}
 
@@ -95,7 +81,7 @@ gboolean _send_noti_batch_operations(gpointer data)
 		snprintf(filepath, sizeof(filepath), "%s%d.jpg", "/opt/usr/media/test/image", i+1);
 		media_svc_debug("File : %s\n", filepath);
 		file_list[i] = strdup(filepath);
-		ret = media_svc_insert_item_bulk(g_db_handle, storage_type, file_list[i], mime_type, media_type, FALSE);
+		ret = media_svc_insert_item_bulk(g_db_handle, storage_type, file_list[i], FALSE);
 		if (ret != 0) {
 			media_svc_error("media_svc_insert_item_bulk[%d] failed", i);
 		} else {
@@ -111,96 +97,81 @@ gboolean _send_noti_batch_operations(gpointer data)
 
 gboolean _send_noti_operations(gpointer data)
 {
-    int ret = MEDIA_INFO_ERROR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 
-    /* First of all, noti subscription */
-    char *user_str = strdup("hi");
-    media_db_update_subscribe(_noti_cb, (void*)user_str);
+	/* First of all, noti subscription */
+	char *user_str = strdup("hi");
+	media_db_update_subscribe(_noti_cb, (void*)user_str);
 
-    /* 1. media_svc_insert_item_immediately */
-    char *path = "/opt/usr/media/test/image1.jpg";
-
-	media_svc_media_type_e media_type;
+	/* 1. media_svc_insert_item_immediately */
+	char *path = "/opt/usr/media/test/image1.jpg";
 	media_svc_storage_type_e storage_type;
-	char mime_type[255] = {0, };
 
 	ret = media_svc_get_storage_type(path, &storage_type);
 	if (ret < MEDIA_INFO_ERROR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
-        return FALSE;
+		return FALSE;
 	}
 
-	ret = media_svc_get_mime_type(path, mime_type);
+	ret = media_svc_insert_item_immediately(g_db_handle, storage_type, path);
 	if (ret < MEDIA_INFO_ERROR_NONE) {
-		media_svc_error("media_svc_get_mime_type failed : %d (%s)", ret, path);
-        return FALSE;
+		media_svc_error("media_svc_insert_item_immediately failed : %d", ret);
+		return FALSE;
 	}
 
-	ret = media_svc_get_media_type(path, mime_type, &media_type);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
-		media_svc_error("media_svc_get_media_type failed : %d (%s)", ret, path);
-        return FALSE;
-	}
-
-    ret = media_svc_insert_item_immediately(g_db_handle, storage_type, path, mime_type, media_type);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_insert_item_immediately failed : %d", ret);
-        return FALSE;
-    }
-
-    media_svc_debug("media_svc_insert_item_immediately success");
+	media_svc_debug("media_svc_insert_item_immediately success");
 
 	/* 2. media_svc_refresh_item */
-    ret = media_svc_refresh_item(g_db_handle, storage_type, path, media_type);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_refresh_item failed : %d", ret);
-        return FALSE;
-    }
-    media_svc_debug("media_svc_refresh_item success");
+	ret = media_svc_refresh_item(g_db_handle, storage_type, path);
+	if (ret < MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("media_svc_refresh_item failed : %d", ret);
+		return FALSE;
+	}
+	media_svc_debug("media_svc_refresh_item success");
 
 	/* 2. media_svc_move_item */
 	const char *dst_path = "/opt/usr/media/test/image11.jpg";
-    ret = media_svc_move_item(g_db_handle, storage_type, path, storage_type, dst_path);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_move_item failed : %d", ret);
-        return FALSE;
-    }
-    media_svc_debug("media_svc_move_item success");
+	ret = media_svc_move_item(g_db_handle, storage_type, path, storage_type, dst_path);
+	if (ret < MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("media_svc_move_item failed : %d", ret);
+		return FALSE;
+	}
+	media_svc_debug("media_svc_move_item success");
 
-    ret = media_svc_move_item(g_db_handle, storage_type, dst_path, storage_type, path);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_move_item failed : %d", ret);
-        return FALSE;
-    }
-    media_svc_debug("media_svc_move_item success");
+	ret = media_svc_move_item(g_db_handle, storage_type, dst_path, storage_type, path);
+	if (ret < MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("media_svc_move_item failed : %d", ret);
+		return FALSE;
+	}
+	media_svc_debug("media_svc_move_item success");
 
 	/* 4. media_svc_delete_item_by_path */
 	ret = media_svc_delete_item_by_path(g_db_handle, path);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_delete_item_by_path failed : %d", ret);
-        return FALSE;
-    }
-    media_svc_debug("media_svc_delete_item_by_path success");
+	if (ret < MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("media_svc_delete_item_by_path failed : %d", ret);
+		return FALSE;
+	}
+	media_svc_debug("media_svc_delete_item_by_path success");
 
 	/* Rename folder */
 	const char *src_folder_path = "/opt/usr/media/test";
 	const char *dst_folder_path = "/opt/usr/media/test_test";
 	ret = media_svc_rename_folder(g_db_handle, src_folder_path, dst_folder_path);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_rename_folder failed : %d", ret);
-        return FALSE;
-    }
-    media_svc_debug("media_svc_rename_folder success");
+	if (ret < MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("media_svc_rename_folder failed : %d", ret);
+		return FALSE;
+	}
+	media_svc_debug("media_svc_rename_folder success");
 
 	/* Rename folder again */
 	ret = media_svc_rename_folder(g_db_handle, dst_folder_path, src_folder_path);
-    if (ret < MEDIA_INFO_ERROR_NONE) {
-        media_svc_error("media_svc_rename_folder failed : %d", ret);
-        return FALSE;
-    }
-    media_svc_debug("media_svc_rename_folder success");
+	if (ret < MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("media_svc_rename_folder failed : %d", ret);
+		return FALSE;
+	}
+	media_svc_debug("media_svc_rename_folder success");
 
-    return FALSE;
+	return FALSE;
 }
 
 int test_noti()

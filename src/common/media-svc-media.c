@@ -191,6 +191,28 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 			media_svc_debug("Burst id : %d", burst_id_int);
 			burst_id = sqlite3_mprintf("%d", burst_id_int);
 		}
+
+		/* Get thumbnail for burst shot */
+		char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
+		int width = 0;
+		int height = 0;
+
+		err = thumbnail_request_from_db_with_size(content_info->path, thumb_path, sizeof(thumb_path), &width, &height);
+		if (err < 0) {
+			media_svc_error("thumbnail_request_from_db failed: %d", err);
+		} else {
+			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
+			err = __media_svc_malloc_and_strncpy(&(content_info->thumbnail_path), thumb_path);
+			if (err < 0) {
+				content_info->thumbnail_path = NULL;
+			}
+		}
+
+		if (content_info->media_meta.width <= 0)
+			content_info->media_meta.width = width;
+
+		if (content_info->media_meta.height <= 0)
+			content_info->media_meta.height = height;
 	}
 
 	char *sql = sqlite3_mprintf("INSERT INTO %s (%s) VALUES (%Q, %Q, %Q, %d, %Q, %lld, %d, %d, %Q, \
