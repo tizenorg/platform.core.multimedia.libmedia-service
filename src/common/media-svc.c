@@ -735,7 +735,12 @@ int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 
 	/*Delete item*/
 	ret = _media_svc_delete_item_by_path(db_handle, path);
-	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("_media_svc_delete_item_by_path failed : %d", ret);
+		_media_svc_destroy_noti_item(noti_item);
+
+		return ret;
+	}
 
 	/* Send notification */
 	media_svc_debug("Deletion is successful. Sending noti for this");
@@ -912,10 +917,12 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	if (ret == MEDIA_INFO_ERROR_NONE) {
 		media_svc_debug("Update is successful. Sending noti for this");
 		_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_UPDATE, content_info.path, media_type, noti_item->media_uuid, noti_item->mime_type);
-		_media_svc_destroy_noti_item(noti_item);
+	} else {
+		media_svc_error("_media_svc_update_item_with_data failed : %d", ret);
 	}
 
 	_media_svc_destroy_content_info(&content_info);
+	_media_svc_destroy_noti_item(noti_item);
 
 	return ret;
 }
