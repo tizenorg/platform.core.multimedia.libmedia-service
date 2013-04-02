@@ -833,6 +833,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char *path = content_info->path;
 
+#ifdef __SUPPORT_DRM
 	/*To do - code for DRM content*/
 	if (content_info->is_drm) {
 		drm_file_type_e drm_file_type;
@@ -911,7 +912,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			media_svc_debug("Some Not OMA Content's metadata is not incrypted so fileinfo can extracted metadata");
 		}
 	}
-
+#endif
 #if 0
 	if (drm_svc_is_drm_file(content_info->path)) {
 		bool invalid_file = FALSE;
@@ -1846,18 +1847,20 @@ int _media_svc_error_convert(int error)
 
 bool _media_svc_is_drm_file(const char *path)
 {
+#ifdef __SUPPORT_DRM
 	int ret;
 	drm_bool_type_e is_drm_file = DRM_UNKNOWN;
 
 	ret = drm_is_drm_file(path,&is_drm_file);
 	if(DRM_RETURN_SUCCESS == ret && DRM_TRUE == is_drm_file)
 		return TRUE;
-
+#endif
 	return FALSE;
 }
 
 int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_info_s **drm_contentInfo)
 {
+#ifdef __SUPPORT_DRM
 	int ret = MEDIA_INFO_ERROR_NONE;
 	drm_file_type_e file_type = DRM_TYPE_UNDEFINED;
 
@@ -1898,6 +1901,10 @@ int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_in
 	}
 
 	return MEDIA_INFO_ERROR_NONE;
+#else
+	*drm_contentInfo = NULL;
+	return MEDIA_INFO_ERROR_INVALID_MEDIA;
+#endif
 }
 
 int _media_svc_get_content_type_from_mime(const char * path, const char * mimetype, int * category)
@@ -1980,6 +1987,7 @@ int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *
 	if (path == NULL)
 		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 
+#ifdef __SUPPORT_DRM
 	/* In case of drm file. */
 	if (_media_svc_is_drm_file(path)) {
 		*is_drm = DRM_TRUE;
@@ -1988,6 +1996,10 @@ int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *
 			return ret;
 		}
 	}
+#else
+	*is_drm = DRM_FALSE;
+	*drm_contentInfo = NULL;
+#endif
 
 	/*in case of normal files or failure to get mime in drm */
 	if (aul_get_mime_from_file(path, mimetype, 255) < 0) {
