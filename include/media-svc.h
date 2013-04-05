@@ -235,6 +235,8 @@ int media_svc_get_media_type(const char *path, const char *mime_type, media_svc_
 
 int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path);
 
+int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *folder_path, int *count);
+
 /** @} */
 
 /**

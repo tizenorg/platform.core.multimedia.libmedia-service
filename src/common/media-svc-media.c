@@ -777,3 +777,24 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item,
 
 	return MEDIA_INFO_ERROR_NONE;
 }
+
+int _media_svc_count_invalid_folder_items(sqlite3 *handle, const char *folder_path, int *count)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = sqlite3_mprintf("SELECT count(*) FROM %s WHERE validity=0 AND path LIKE '%q/%%'",
+					MEDIA_SVC_DB_TABLE_MEDIA, folder_path);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("error when __media_svc_count_invalid_folder_records_with_thumbnail. err = [%d]", ret);
+		return ret;
+	}
+
+	*count = sqlite3_column_int(sql_stmt, 0);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return MEDIA_INFO_ERROR_NONE;
+}

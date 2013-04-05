@@ -1161,3 +1161,16 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
 
 	return ret;
 }
+
+int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *folder_path, int *count)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_debug_func();
+
+	media_svc_retvm_if(db_handle == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(folder_path == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "folder_path is NULL");
+	media_svc_retvm_if(count == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "count is NULL");
+
+	return _media_svc_count_invalid_folder_items(db_handle, folder_path, count);
+}

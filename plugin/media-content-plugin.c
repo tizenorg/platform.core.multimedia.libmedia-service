@@ -702,3 +702,31 @@ int send_dir_update_noti(void * handle, const char *dir_path, char **err_msg)
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
+
+int count_delete_items_in_folder(void * handle, const char *folder_path, int *count, char ** err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	if(handle == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	if(count == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	if (!STRING_VALID(folder_path)) {
+		__set_error_message(ERR_FOLDER_PATH, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_count_invalid_items_in_folder(handle, folder_path, count);
+	if(ret < 0) {
+		__set_error_message(ret, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
