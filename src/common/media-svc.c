@@ -384,8 +384,7 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 			media_svc_error("thumbnail_request_from_db failed: %d", ret);
 		} else {
 			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
-			ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
-			media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
+			__media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
 		}
 
 		if (content_info.media_meta.width <= 0)
@@ -901,8 +900,7 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 			media_svc_error("thumbnail_request_from_db failed: %d", ret);
 		} else {
 			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
-			ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
-			media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, &content_info);
+			__media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
 		}
 
 		if (content_info.media_meta.width <= 0)

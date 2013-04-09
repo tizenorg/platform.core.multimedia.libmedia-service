@@ -748,8 +748,14 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 		} else {
 			//media_svc_debug("time  is %s", buf);
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.datetaken, buf);
-			if(ret != MEDIA_INFO_ERROR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE) {
 				media_svc_error("strcpy error");
+			} else {
+				/* This is same as recorded_date */
+				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.recorded_date, buf);
+				if(ret != MEDIA_INFO_ERROR_NONE)
+					media_svc_error("strcpy error");
+			}
 		}
 	}
 
@@ -787,6 +793,19 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	}
 
 	if (ed != NULL) exif_data_unref(ed);
+
+	/* Set filename to title for image media */
+	char *title = NULL;
+	title = _media_svc_get_title_from_filepath(content_info->path);
+	if (title) {
+		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
+		if(ret != MEDIA_INFO_ERROR_NONE)
+			media_svc_error("strcpy error");
+		SAFE_FREE(title);
+	} else {
+		media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+	}
+
 #if 0
 	/* Extracting thumbnail */
 	char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
@@ -1117,8 +1136,14 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_RECDATE, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_DESC)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.recorded_date, p);
-			if(ret != MEDIA_INFO_ERROR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE) {
 				media_svc_error("strcpy error");
+			} else {
+				/* This is same as datetaken */
+				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.datetaken, p);
+				if(ret != MEDIA_INFO_ERROR_NONE)
+					media_svc_error("strcpy error");
+			}
 			//media_svc_debug("Recorded date : %s", content_info->media_meta.recorded_date);
 		} else {
 			SAFE_FREE(err_attr_name);
