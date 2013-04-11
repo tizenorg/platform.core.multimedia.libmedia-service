@@ -62,6 +62,7 @@ extern "C" {
 #define MEDIA_SVC_THUMB_PATH_PREFIX			MEDIA_SVC_MEDIA_PATH"/.thumb"			/**< Thumbnail path prefix*/
 #define MEDIA_SVC_THUMB_INTERNAL_PATH 		MEDIA_SVC_THUMB_PATH_PREFIX"/phone"	/**<  Phone thumbnail path*/
 #define MEDIA_SVC_THUMB_EXTERNAL_PATH 		MEDIA_SVC_THUMB_PATH_PREFIX"/mmc"		/**<  MMC thumbnail path*/
+#define MEDIA_SVC_THUMB_DEFAULT_PATH		MEDIA_SVC_THUMB_PATH_PREFIX"/thumb_default.png" /** default thumbnail */
 
 #define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
 #define THUMB_EXT 	"jpg"

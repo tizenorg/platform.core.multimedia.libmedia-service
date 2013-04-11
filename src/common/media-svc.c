@@ -529,7 +529,12 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 		ret = _media_svc_get_thumbnail_path_by_path(handle, src_path, old_thumb_path);
 		media_svc_retv_if((ret != MEDIA_INFO_ERROR_NONE) && (ret != MEDIA_INFO_ERROR_DATABASE_NO_RECORD), ret);
 
-		_media_svc_get_thumbnail_path(dest_storage, new_thumb_path, dest_path, THUMB_EXT);
+		/* If old thumb path is default or not */
+		if (strncmp(old_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) == 0) {
+			strncpy(new_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(new_thumb_path));
+		} else {
+			_media_svc_get_thumbnail_path(dest_storage, new_thumb_path, dest_path, THUMB_EXT);
+		}
 	}
 
 	if (g_media_svc_move_item_data_cnt == 1) {
@@ -612,9 +617,10 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 
 	/*rename thumbnail file*/
 	if((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) ||(media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
-		if(strlen(old_thumb_path) > 0) {
+		if((strlen(old_thumb_path) > 0) && (strncmp(old_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 			ret = _media_svc_rename_file(old_thumb_path,new_thumb_path);
-			media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+			if (ret < 0)
+				media_svc_error("_media_svc_rename_file failed : %d", ret);
 		}
 	}
 
@@ -747,7 +753,7 @@ int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 	_media_svc_destroy_noti_item(noti_item);
 
 	/*Delete thumbnail*/
-	if (strlen(thumb_path) > 0) {
+	if ((strlen(thumb_path) > 0) && (strncmp(thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 		if (_media_svc_remove_file(thumb_path) == FALSE) {
 			media_svc_error("fail to remove thumbnail file.");
 		}
@@ -871,7 +877,7 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	ret = _media_svc_get_thumbnail_path_by_path(handle, path, thumb_path);
 	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
-	if (g_file_test(thumb_path, G_FILE_TEST_EXISTS)) {
+	if (g_file_test(thumb_path, G_FILE_TEST_EXISTS) && (strncmp(thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 		ret = _media_svc_remove_file(thumb_path);
 		media_svc_retv_if(ret != TRUE, ret);
 	}
@@ -1057,21 +1063,26 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 		media_svc_storage_type_e storage_type;
 
 		if (!no_thumb) {
-			ret = _media_svc_get_store_type_by_path(replaced_path, &storage_type);
-			if (ret < 0) {
-				media_svc_error("_media_svc_get_store_type_by_path failed : %d", ret);
-				SAFE_FREE(replaced_path);
-				_media_svc_sql_rollback_trans(handle);
-				return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
-			}
-
-			ret = _media_svc_get_thumbnail_path(storage_type, media_new_thumb_path, replaced_path, THUMB_EXT);
-			if (ret < 0) {
-				media_svc_error("_media_svc_get_thumbnail_path failed : %d", ret);
-				SAFE_FREE(replaced_path);
-				SQLITE3_FINALIZE(sql_stmt);
-				_media_svc_sql_rollback_trans(handle);
-				return MEDIA_INFO_ERROR_INTERNAL;
+			/* If old thumb path is default or not */
+			if (strncmp(media_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) == 0) {
+				strncpy(media_new_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(media_new_thumb_path));
+			} else {
+				ret = _media_svc_get_store_type_by_path(replaced_path, &storage_type);
+				if (ret < 0) {
+					media_svc_error("_media_svc_get_store_type_by_path failed : %d", ret);
+					SAFE_FREE(replaced_path);
+					_media_svc_sql_rollback_trans(handle);
+					return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
+				}
+	
+				ret = _media_svc_get_thumbnail_path(storage_type, media_new_thumb_path, replaced_path, THUMB_EXT);
+				if (ret < 0) {
+					media_svc_error("_media_svc_get_thumbnail_path failed : %d", ret);
+					SAFE_FREE(replaced_path);
+					SQLITE3_FINALIZE(sql_stmt);
+					_media_svc_sql_rollback_trans(handle);
+					return MEDIA_INFO_ERROR_INTERNAL;
+				}
 			}
 
 			//media_svc_debug("New media thumbnail path : %s", media_new_thumb_path);
@@ -1103,14 +1114,11 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 		}
 
 		/* Rename thumbnail file of file system */
-		if ((!no_thumb) && (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
+		if ((!no_thumb) && (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)
+				&& (strncmp(media_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 			ret = _media_svc_rename_file(media_thumb_path, media_new_thumb_path);
 			if (ret < 0) {
 				media_svc_error("_media_svc_rename_file failed : %d", ret);
-				SQLITE3_FINALIZE(sql_stmt);
-				_media_svc_sql_rollback_trans(handle);
-	
-				return MEDIA_INFO_ERROR_INTERNAL;
 			}
 		}
 	}

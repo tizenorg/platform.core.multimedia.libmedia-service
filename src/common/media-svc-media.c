@@ -448,7 +448,7 @@ int _media_svc_delete_invalid_items(sqlite3 *handle, media_svc_storage_type_e st
 
 	/*Delete thumbnails*/
 	for (idx = 0; idx < invalid_count; idx++) {
-		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
+		if ((strlen(thumbpath_record[idx].thumbnail_path) > 0) && (strncmp(thumbpath_record[idx].thumbnail_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 			if (_media_svc_remove_file(thumbpath_record[idx].thumbnail_path) == FALSE) {
 				media_svc_error("fail to remove thumbnail file.");
 				//SAFE_FREE(thumbpath_record);
@@ -503,7 +503,7 @@ int _media_svc_delete_invalid_folder_items(sqlite3 *handle, const char *folder_p
 
 	/*Delete thumbnails*/
 	for (idx = 0; idx < invalid_count; idx++) {
-		if (strlen(thumbpath_record[idx].thumbnail_path) > 0) {
+		if ((strlen(thumbpath_record[idx].thumbnail_path) > 0) && (strncmp(thumbpath_record[idx].thumbnail_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 			if (_media_svc_remove_file(thumbpath_record[idx].thumbnail_path) == FALSE) {
 				media_svc_error("fail to remove thumbnail file [%s].", thumbpath_record[idx].thumbnail_path);
 				//SAFE_FREE(thumbpath_record);
