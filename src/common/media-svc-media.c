@@ -72,7 +72,7 @@ static int __media_svc_get_invalid_records_with_thumbnail(sqlite3 *handle, media
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
 
-	char *sql = sqlite3_mprintf("select thumbnail_path from %s WHERE validity=0 AND storage_type=%d AND thumbnail_path IS NOT NULL",
+	char *sql = sqlite3_mprintf("SELECT thumbnail_path from (select thumbnail_path, validity from %s WHERE storage_type=%d AND thumbnail_path IS NOT NULL GROUP BY thumbnail_path HAVING count() = 1) WHERE validity=0",
 					MEDIA_SVC_DB_TABLE_MEDIA, storage_type);
 
 	media_svc_debug("[SQL query] : %s", sql);
@@ -124,7 +124,7 @@ static int __media_svc_get_invalid_folder_records_with_thumbnail(sqlite3 *handle
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
 
-	char *sql = sqlite3_mprintf("select thumbnail_path from %s WHERE validity=0 AND path LIKE '%q/%%' AND thumbnail_path IS NOT NULL",
+	char *sql = sqlite3_mprintf("SELECT thumbnail_path from (select thumbnail_path, validity from %s WHERE path LIKE '%q/%%' AND thumbnail_path IS NOT NULL GROUP BY thumbnail_path HAVING count() = 1) WHERE validity=0",
 					MEDIA_SVC_DB_TABLE_MEDIA, folder_path);
 
 	media_svc_debug("[SQL query] : %s", sql);
@@ -789,6 +789,26 @@ int _media_svc_count_invalid_folder_items(sqlite3 *handle, const char *folder_pa
 
 	if (ret != MEDIA_INFO_ERROR_NONE) {
 		media_svc_error("error when __media_svc_count_invalid_folder_records_with_thumbnail. err = [%d]", ret);
+		return ret;
+	}
+
+	*count = sqlite3_column_int(sql_stmt, 0);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return MEDIA_INFO_ERROR_NONE;
+}
+
+int _media_svc_get_thumbnail_count(sqlite3 *handle, const char *thumb_path, int *count)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = sqlite3_mprintf("SELECT count(*) FROM %s WHERE thumbnail_path=%Q", MEDIA_SVC_DB_TABLE_MEDIA, thumb_path);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		media_svc_error("error when _media_svc_get_thumbnail_count. err = [%d]", ret);
 		return ret;
 	}
 

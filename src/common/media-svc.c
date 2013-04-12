@@ -754,8 +754,19 @@ int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path)
 
 	/*Delete thumbnail*/
 	if ((strlen(thumb_path) > 0) && (strncmp(thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
-		if (_media_svc_remove_file(thumb_path) == FALSE) {
-			media_svc_error("fail to remove thumbnail file.");
+		int thumb_count = 1;
+		/* Get count of media, which contains same thumbnail for music */
+		if ((media_type == MEDIA_SVC_MEDIA_TYPE_SOUND) ||(media_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)) {
+			ret = _media_svc_get_thumbnail_count(db_handle, thumb_path, &thumb_count);
+			if (ret < MEDIA_INFO_ERROR_NONE) {
+				media_svc_error("Failed to get thumbnail count : %d", ret);
+			}
+		}
+
+		if (thumb_count == 1) {
+			if (_media_svc_remove_file(thumb_path) == FALSE) {
+				media_svc_error("fail to remove thumbnail file.");
+			}
 		}
 	}
 
