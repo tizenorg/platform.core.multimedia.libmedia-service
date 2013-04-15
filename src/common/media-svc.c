@@ -384,7 +384,10 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 			media_svc_error("thumbnail_request_from_db failed: %d", ret);
 		} else {
 			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
-			__media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
+			ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
+			if (ret < 0) {
+				media_svc_error("__media_svc_malloc_and_strncpy failed : %d", ret);
+			}
 		}
 
 		if (content_info.media_meta.width <= 0)
@@ -871,10 +874,6 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
-	/* Get notification info */
-	media_svc_noti_item *noti_item = NULL;
-	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
-	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	media_svc_content_info_s content_info;
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
@@ -890,7 +889,9 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 
 	if (g_file_test(thumb_path, G_FILE_TEST_EXISTS) && (strncmp(thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 		ret = _media_svc_remove_file(thumb_path);
-		media_svc_retv_if(ret != TRUE, ret);
+		if (ret < MEDIA_INFO_ERROR_NONE) {
+			media_svc_error("_media_svc_remove_file failed : %s", thumb_path);
+		}
 	}
 
 	ret = _media_svc_update_thumbnail_path(handle, path, NULL);
@@ -917,7 +918,10 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 			media_svc_error("thumbnail_request_from_db failed: %d", ret);
 		} else {
 			media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
-			__media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
+			ret = __media_svc_malloc_and_strncpy(&(content_info.thumbnail_path), thumb_path);
+			if (ret < 0) {
+				media_svc_error("__media_svc_malloc_and_strncpy failed : %d", ret);
+			}
 		}
 
 		if (content_info.media_meta.width <= 0)
@@ -928,6 +932,11 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	}
 #endif
 	ret = _media_svc_update_item_with_data(db_handle, &content_info);
+
+	/* Get notification info */
+	media_svc_noti_item *noti_item = NULL;
+	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	if (ret == MEDIA_INFO_ERROR_NONE) {
 		media_svc_debug("Update is successful. Sending noti for this");
