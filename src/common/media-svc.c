@@ -931,12 +931,12 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 			content_info.media_meta.height = height;
 	}
 #endif
-	ret = _media_svc_update_item_with_data(db_handle, &content_info);
-
 	/* Get notification info */
 	media_svc_noti_item *noti_item = NULL;
 	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
 	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+
+	ret = _media_svc_update_item_with_data(db_handle, &content_info);
 
 	if (ret == MEDIA_INFO_ERROR_NONE) {
 		media_svc_debug("Update is successful. Sending noti for this");
