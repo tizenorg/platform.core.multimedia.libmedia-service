@@ -940,7 +940,7 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 
 	if (ret == MEDIA_INFO_ERROR_NONE) {
 		media_svc_debug("Update is successful. Sending noti for this");
-		_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_UPDATE, content_info.path, media_type, noti_item->media_uuid, noti_item->mime_type);
+		_media_svc_publish_noti(MS_MEDIA_ITEM_FILE, MS_MEDIA_ITEM_UPDATE, content_info.path, noti_item->media_type, noti_item->media_uuid, noti_item->mime_type);
 	} else {
 		media_svc_error("_media_svc_update_item_with_data failed : %d", ret);
 	}

@@ -739,9 +739,9 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item,
 	}
 
 	if (update_item == MS_MEDIA_ITEM_FILE) {
-		sql = sqlite3_mprintf("SELECT media_uuid, media_type, mime_type FROM %s", MEDIA_SVC_DB_TABLE_MEDIA);
+		sql = sqlite3_mprintf("SELECT media_uuid, media_type, mime_type FROM %s WHERE path=%Q", MEDIA_SVC_DB_TABLE_MEDIA, path);
 	} else if (update_item == MS_MEDIA_ITEM_DIRECTORY) {
-		sql = sqlite3_mprintf("SELECT folder_uuid FROM %s", MEDIA_SVC_DB_TABLE_FOLDER);
+		sql = sqlite3_mprintf("SELECT folder_uuid FROM %s WHERE path=%Q", MEDIA_SVC_DB_TABLE_FOLDER, path);
 	} else {
 		media_svc_error("_media_svc_get_noti_info failed : update item");
 		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
