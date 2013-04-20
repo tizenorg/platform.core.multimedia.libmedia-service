@@ -732,6 +732,7 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item,
 	int ret = MEDIA_INFO_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
+	int is_root_dir = FALSE;
 
 	if (item == NULL) {
 		media_svc_error("_media_svc_get_noti_info failed");
@@ -750,8 +751,13 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item,
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != MEDIA_INFO_ERROR_NONE) {
-		media_svc_error("error when _media_svc_get_noti_info. err = [%d]", ret);
-		return ret;
+		if (ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD && update_item == MS_MEDIA_ITEM_DIRECTORY) {
+			media_svc_error("This is root directory of media");
+			is_root_dir = TRUE;
+		} else {
+			media_svc_error("error when _media_svc_get_noti_info. err = [%d]", ret);
+			return ret;
+		}
 	}
 
 	*item = calloc(1, sizeof(media_svc_noti_item));
@@ -769,8 +775,12 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item,
 		if (sqlite3_column_text(sql_stmt, 2))
 			(*item)->mime_type = strdup((const char *)sqlite3_column_text(sql_stmt, 2));
 	} else if (update_item == MS_MEDIA_ITEM_DIRECTORY) {
-		if (sqlite3_column_text(sql_stmt, 0))
-			(*item)->media_uuid = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
+		if (is_root_dir) {
+				(*item)->media_uuid = NULL;
+		} else {
+			if (sqlite3_column_text(sql_stmt, 0))
+				(*item)->media_uuid = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
+		}
 	}
 
 	SQLITE3_FINALIZE(sql_stmt);
