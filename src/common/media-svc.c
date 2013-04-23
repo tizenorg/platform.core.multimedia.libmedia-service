@@ -897,14 +897,27 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	ret = _media_svc_update_thumbnail_path(handle, path, NULL);
 	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
+	/* Get notification info */
+	media_svc_noti_item *noti_item = NULL;
+	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+
+	media_type = noti_item->media_type;
+
 	if(media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
 		/*Do nothing.*/
 	} else if(media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 		ret = _media_svc_extract_image_metadata(&content_info, media_type);
-		media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+		if (ret != MEDIA_INFO_ERROR_NONE) {
+			_media_svc_destroy_noti_item(noti_item);
+			return ret;
+		}
 	} else {
 		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, drm_contentInfo);
-		media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+		if (ret != MEDIA_INFO_ERROR_NONE) {
+			_media_svc_destroy_noti_item(noti_item);
+			return ret;
+		}
 	}
 #if 1
 	/* Extracting thumbnail */
@@ -931,11 +944,6 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 			content_info.media_meta.height = height;
 	}
 #endif
-	/* Get notification info */
-	media_svc_noti_item *noti_item = NULL;
-	ret = _media_svc_get_noti_info(handle, path, MS_MEDIA_ITEM_FILE, &noti_item);
-	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
-
 	ret = _media_svc_update_item_with_data(db_handle, &content_info);
 
 	if (ret == MEDIA_INFO_ERROR_NONE) {
