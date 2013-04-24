@@ -753,6 +753,7 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *path, int update_item,
 	if (ret != MEDIA_INFO_ERROR_NONE) {
 		if (ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD && update_item == MS_MEDIA_ITEM_DIRECTORY) {
 			media_svc_error("This is root directory of media");
+			sql_stmt = NULL;
 			is_root_dir = TRUE;
 		} else {
 			media_svc_error("error when _media_svc_get_noti_info. err = [%d]", ret);
