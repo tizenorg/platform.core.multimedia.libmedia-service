@@ -569,10 +569,21 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	content_info->media_meta.latitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
 	content_info->media_meta.altitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
 
-	/* Set default value before extracting meta information */
-	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
+	/* Set filename to title for all media */
+	char *title = NULL;
+	title = _media_svc_get_title_from_filepath(content_info->path);
+	if (title) {
+		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
+		if(ret != MEDIA_INFO_ERROR_NONE)
+			media_svc_error("strcpy error");
+		SAFE_FREE(title);
+	} else {
+		media_svc_error("Can't extract title from filepath [%s]", content_info->path);
+		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
+		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
+	}
 
+	/* Set default value before extracting meta information */
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
 	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
