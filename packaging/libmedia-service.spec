@@ -1,5 +1,5 @@
 Name:       libmedia-service
-Summary:    Media information service library for multimedia applications.
+Summary:    Media information service library for multimedia applications
 Version: 0.2.43
 Release:    3
 Group:      System/Libraries
@@ -23,7 +23,7 @@ BuildRequires:  pkgconfig(drm-client)
 BuildRequires:  pkgconfig(libmedia-utils)
 
 %description
-Media information service library for multimedia applications.
+Media information service library for multimedia applications
 
 %package devel
 Summary:    Media information service library for multimedia applications. (development)
@@ -39,7 +39,7 @@ Media information service library for multimedia applications. (development file
 
 
 %build
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
+%cmake . 
 make %{?jobs:-j%jobs}
 
 %install

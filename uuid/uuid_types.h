@@ -5,22 +5,16 @@
  */
 #if (!defined(_STDINT_H) && !defined(_UUID_STDINT_H))
 #define _UUID_STDINT_H
+#include <sys/types.h>
 
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
 
 #if (4 == 8)
-typedef int		int64_t;
 typedef unsigned int	uint64_t;
 #elif (4 == 8)
-typedef long		int64_t;
 typedef unsigned long	uint64_t;
 #elif (8 == 8)
-#if defined(__GNUC__)
-typedef __signed__ long long 	int64_t;
-#else
-typedef signed long long 	int64_t;
-#endif
 typedef unsigned long long	uint64_t;
 #endif
 
@@ -35,13 +29,10 @@ typedef	unsigned short	uint16_t;
 #endif
 
 #if (4 == 4)
-typedef	int		int32_t;
 typedef	unsigned int	uint32_t;
 #elif (4 == 4)
-typedef	long		int32_t;
 typedef	unsigned long	uint32_t;
 #elif (2 == 4)
-typedef	short		int32_t;
 typedef	unsigned short	uint32_t;
 #else
  ?== error: undefined 32 bit type
