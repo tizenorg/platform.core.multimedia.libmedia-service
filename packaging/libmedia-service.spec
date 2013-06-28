@@ -5,6 +5,7 @@ Release:    3
 Group:      System/Libraries
 License:    Apache License, Version 2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: 	libmedia-service.manifest
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -36,6 +37,7 @@ Media information service library for multimedia applications. (development file
 
 %prep
 %setup -q 
+cp %{SOURCE1001} .
 
 
 %build
@@ -54,7 +56,7 @@ cp -rf %{_builddir}/%{name}-%{version}/LICENSE %{buildroot}/%{_datadir}/license/
 %postun -p /sbin/ldconfig
 
 %files
-%manifest libmedia-service.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libmedia-service.so
 %{_libdir}/libmedia-service.so.1
@@ -69,5 +71,6 @@ cp -rf %{_builddir}/%{name}-%{version}/LICENSE %{buildroot}/%{_datadir}/license/
 %{_datadir}/license/%{name}
 
 %files devel
+%manifest %{name}.manifest
 %{_libdir}/pkgconfig/libmedia-service.pc
 %{_includedir}/media-service/*.h
