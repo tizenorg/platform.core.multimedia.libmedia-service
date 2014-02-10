@@ -61,7 +61,8 @@ gboolean _send_noti_batch_operations(gpointer data)
     media_db_update_subscribe(_noti_cb, (void*)user_str);
 
     /* 1. media_svc_insert_item_immediately */
-    char *path = "/opt/usr/media/test/image1.jpg";
+    char *path;
+    strcpy(path, tzplatform_mkpath(TZ_USER_CONTENT, "test/image1.jpg"));
 
 	media_svc_storage_type_e storage_type;
 
@@ -78,7 +79,7 @@ gboolean _send_noti_batch_operations(gpointer data)
 	//ret = media_svc_insert_item_begin(g_db_handle, 100);
 	for (i = 0; i < 16; i++) {
 		char filepath[255] = {0,};
-		snprintf(filepath, sizeof(filepath), "%s%d.jpg", "/opt/usr/media/test/image", i+1);
+		snprintf(filepath, sizeof(filepath), "%s%d.jpg", tzplatform_mkpath(TZ_USER_CONTENT,"test/image"), i+1);
 		media_svc_debug("File : %s\n", filepath);
 		file_list[i] = strdup(filepath);
 		ret = media_svc_insert_item_bulk(g_db_handle, storage_type, file_list[i], FALSE);
@@ -104,7 +105,8 @@ gboolean _send_noti_operations(gpointer data)
 	media_db_update_subscribe(_noti_cb, (void*)user_str);
 
 	/* 1. media_svc_insert_item_immediately */
-	char *path = "/opt/usr/media/test/image1.jpg";
+	char *path;
+	strcpy(path, tzplatform_mkpath(TZ_USER_CONTENT,"test/image1.jpg"));
 	media_svc_storage_type_e storage_type;
 
 	ret = media_svc_get_storage_type(path, &storage_type);
@@ -130,7 +132,8 @@ gboolean _send_noti_operations(gpointer data)
 	media_svc_debug("media_svc_refresh_item success");
 
 	/* 2. media_svc_move_item */
-	const char *dst_path = "/opt/usr/media/test/image11.jpg";
+	const char *dst_path;
+	strcpy(tzplatform_mkpath(TZ_USER_CONTENT, "test/image11.jpg"));
 	ret = media_svc_move_item(g_db_handle, storage_type, path, storage_type, dst_path);
 	if (ret < MEDIA_INFO_ERROR_NONE) {
 		media_svc_error("media_svc_move_item failed : %d", ret);
@@ -154,8 +157,10 @@ gboolean _send_noti_operations(gpointer data)
 	media_svc_debug("media_svc_delete_item_by_path success");
 
 	/* Rename folder */
-	const char *src_folder_path = "/opt/usr/media/test";
-	const char *dst_folder_path = "/opt/usr/media/test_test";
+	const char *src_folder_path;
+	strcpy(src_folder_path, tzplatform_mkpath(TZ_USER_CONTENT, "test"));
+	const char *dst_folder_path;
+	strcpy(dst_folder_path,tzplatform_mkpath(TZ_USER_CONTENT,"test_test"));
 	ret = media_svc_rename_folder(g_db_handle, src_folder_path, dst_folder_path);
 	if (ret < MEDIA_INFO_ERROR_NONE) {
 		media_svc_error("media_svc_rename_folder failed : %d", ret);
