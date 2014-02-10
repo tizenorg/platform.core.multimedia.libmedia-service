@@ -26,6 +26,7 @@
 
 #include <time.h>
 #include <media-util.h>
+#include <tzplatform_config.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,11 +59,11 @@ extern "C" {
 #define MEDIA_SVC_UUID_SIZE		    				36 						/**< Length of UUID*/
 
 #define MEDIA_SVC_TAG_UNKNOWN				"Unknown"
-#define MEDIA_SVC_MEDIA_PATH				MEDIA_DATA_PATH			/**<  Media path*/
-#define MEDIA_SVC_THUMB_PATH_PREFIX			MEDIA_SVC_MEDIA_PATH"/.thumb"			/**< Thumbnail path prefix*/
-#define MEDIA_SVC_THUMB_INTERNAL_PATH 		MEDIA_SVC_THUMB_PATH_PREFIX"/phone"	/**<  Phone thumbnail path*/
-#define MEDIA_SVC_THUMB_EXTERNAL_PATH 		MEDIA_SVC_THUMB_PATH_PREFIX"/mmc"		/**<  MMC thumbnail path*/
-#define MEDIA_SVC_THUMB_DEFAULT_PATH		MEDIA_SVC_THUMB_PATH_PREFIX"/thumb_default.png" /** default thumbnail */
+#define MEDIA_SVC_MEDIA_PATH				tzplatform_mkpath(TZ_USER_DATA, "file-manager-service")			/**<  Media path*/
+#define MEDIA_SVC_THUMB_PATH_PREFIX			tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb")			/**< Thumbnail path prefix*/
+#define MEDIA_SVC_THUMB_INTERNAL_PATH 		tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb/phone")	/**<  Phone thumbnail path*/
+#define MEDIA_SVC_THUMB_EXTERNAL_PATH 		tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb/mmc")		/**<  MMC thumbnail path*/
+#define MEDIA_SVC_THUMB_DEFAULT_PATH		tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb/thumb_default.png") /** default thumbnail */
 
 #define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
 #define THUMB_EXT 	"jpg"

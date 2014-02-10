@@ -2,7 +2,7 @@ SET(fw_name "media-service")
 SET(fw_test "${fw_name}-test")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(${fw_test} REQUIRED glib-2.0 dlog libmedia-utils)
+pkg_check_modules(${fw_test} REQUIRED glib-2.0 dlog libmedia-utils libtzplatform-config)
 FOREACH(flag ${${fw_test}_CFLAGS})
     SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
 ENDFOREACH(flag)

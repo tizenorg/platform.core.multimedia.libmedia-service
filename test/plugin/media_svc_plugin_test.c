@@ -24,7 +24,10 @@
 #include <dlfcn.h>
 #include <media-svc.h>
 
+#include <tzplatform_config.h>
+
 #define PLUGIN_SO_FILE_NAME  "/usr/lib/libmedia-content-plugin.so"
+#define MEDIA_ROOT_PATH_SDCARD	tzplatform_mkpath(TZ_SYS_STORAGE,"sdcard")
 void *funcHandle = NULL;
 
 static void msg_print(int line, char *msg);
@@ -97,7 +100,7 @@ int main()
 	}
 
 	//check_item ================================================
-	ret = svc_check_item("/opt/usr/media/Music/Over the horizon.mp3", "audio/mpeg", &err_msg);
+	ret = svc_check_item(tzplatform_mkpath(TZ_USER_CONTENT,"Music/Over the horizon.mp3"), "audio/mpeg", &err_msg);
 	if(ret < 0) {
 		msg_print(__LINE__, "svc_check_item error");
 		if(err_msg != NULL) {
@@ -138,7 +141,7 @@ int main()
 #if 1
 	while (1) {
 
-	printf("Enter path and mimetype ( ex. /opt/usr/media/a.jpg image ) : ");
+	printf("Enter path and mimetype ( ex. %s image ) : ", tzplatform_mkpath(TZ_USER_CONTENT, "a.jpg"));
 	scanf("%s %s", path, type);
 
 	//check_item_exist ============================================
@@ -181,7 +184,7 @@ int main()
 #endif
 
 	//folder test ==================================================
-	char *folder_path = "/opt/usr/media/Sounds";
+	char *folder_path = tzplatform_mkpath(TZ_USER_CONTENT,"Sounds"));
 	ret = svc_set_folder_item_validity(db_handle, folder_path, 0, 1, &err_msg);
 	if(ret < 0) {
 		msg_print(__LINE__, "svc_set_folder_item_validity error");
