@@ -27,9 +27,9 @@
 #include "media-svc-types.h"
 
 int _media_svc_get_folder_id_by_foldername(sqlite3 *handle, const char *folder_name, char *folder_id);
-int _media_svc_append_folder(sqlite3 *handle, media_svc_storage_type_e storage_type, const char *folder_id, const char *path_name, const char *folder_name, int modified_date);
-int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const char *folder_uuid, const char *folder_path, bool stack_query);
-int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *path, media_svc_storage_type_e storage_type, char *folder_id);
-int _media_svc_update_folder_table(sqlite3 *handle);
+int _media_svc_append_folder(sqlite3 *handle, media_svc_storage_type_e storage_type, const char *folder_id, const char *path_name, const char *folder_name, int modified_date, uid_t uid);
+int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const char *folder_uuid, const char *folder_path, bool stack_query, uid_t uid);
+int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *path, media_svc_storage_type_e storage_type, char *folder_id, uid_t uid);
+int _media_svc_update_folder_table(sqlite3 *handle, uid_t uid);
 
 #endif /*_MEDIA_SVC_MEDIA_FOLDER_H_*/

@@ -56,13 +56,13 @@ int _media_svc_get_folder_id_by_foldername(sqlite3 *handle, const char *folder_n
 }
 
 int _media_svc_append_folder(sqlite3 *handle, media_svc_storage_type_e storage_type,
-				    const char *folder_id, const char *path_name, const char *folder_name, int modified_date)
+				    const char *folder_id, const char *path_name, const char *folder_name, int modified_date, uid_t uid)
 {
 	int err = -1;
 
 	char *sql = sqlite3_mprintf("INSERT INTO %s (folder_uuid, path, name, storage_type, modified_time) values (%Q, %Q, %Q, '%d', '%d'); ",
 					     MEDIA_SVC_DB_TABLE_FOLDER, folder_id, path_name, folder_name, storage_type, modified_date);
-	err = _media_svc_sql_query(handle, sql);
+	err = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		media_svc_error("failed to insert folder");
@@ -72,7 +72,7 @@ int _media_svc_append_folder(sqlite3 *handle, media_svc_storage_type_e storage_t
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const char *folder_uuid, const char *folder_path, bool stack_query)
+int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const char *folder_uuid, const char *folder_path, bool stack_query, uid_t uid)
 {
 	int err = -1;
 	int modified_time = 0;
@@ -82,7 +82,7 @@ int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const
 	char *sql = sqlite3_mprintf("UPDATE %s SET modified_time=%d WHERE folder_uuid=%Q;", MEDIA_SVC_DB_TABLE_FOLDER, modified_time, folder_uuid);
 
 	if(!stack_query) {
-		err = _media_svc_sql_query(handle, sql);
+		err = _media_svc_sql_query(handle, sql, uid);
 		sqlite3_free(sql);
 		if (err != SQLITE_OK) {
 			media_svc_error("failed to update folder");
@@ -95,7 +95,7 @@ int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *path, media_svc_storage_type_e storage_type, char *folder_id)
+int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *path, media_svc_storage_type_e storage_type, char *folder_id, uid_t uid)
 {
 	char *path_name = NULL;
 	int ret = MEDIA_INFO_ERROR_NONE;
@@ -117,7 +117,7 @@ int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *pat
 		folder_name = g_path_get_basename(path_name);
 		folder_modified_date = _media_svc_get_file_time(path_name);
 
-		ret = _media_svc_append_folder(handle, storage_type, folder_uuid, path_name, folder_name, folder_modified_date);
+		ret = _media_svc_append_folder(handle, storage_type, folder_uuid, path_name, folder_name, folder_modified_date, uid);
 		SAFE_FREE(folder_name);
 		_strncpy_safe(folder_id, folder_uuid, MEDIA_SVC_UUID_SIZE+1);
 	}
@@ -127,7 +127,7 @@ int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *pat
 	return ret;
 }
 
-int _media_svc_update_folder_table(sqlite3 *handle)
+int _media_svc_update_folder_table(sqlite3 *handle, uid_t uid)
 {
 	int err = -1;
 	char *sql = NULL;
@@ -135,7 +135,7 @@ int _media_svc_update_folder_table(sqlite3 *handle)
 	sql = sqlite3_mprintf("DELETE FROM %s WHERE folder_uuid IN (SELECT folder_uuid FROM %s WHERE folder_uuid NOT IN (SELECT folder_uuid FROM %s))",
 	     MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_TABLE_MEDIA);
 
-	err = _media_svc_sql_query(handle, sql);
+	err = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		media_svc_error("failed to delete folder item");

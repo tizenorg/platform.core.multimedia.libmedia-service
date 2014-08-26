@@ -96,7 +96,7 @@ int _media_svc_disconnect_db_with_handle(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_media_table(sqlite3 *db_handle)
+int _media_svc_create_media_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -158,7 +158,7 @@ int _media_svc_create_media_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -178,7 +178,7 @@ int _media_svc_create_media_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -188,7 +188,7 @@ int _media_svc_create_media_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_folder_table(sqlite3 *db_handle)
+int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -207,7 +207,7 @@ int _media_svc_create_folder_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -222,7 +222,7 @@ int _media_svc_create_folder_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -232,7 +232,7 @@ int _media_svc_create_folder_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_playlist_table(sqlite3 *db_handle)
+int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -249,7 +249,7 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -267,7 +267,7 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -281,7 +281,7 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -295,7 +295,7 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -305,7 +305,7 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_album_table(sqlite3 *db_handle)
+int _media_svc_create_album_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -323,7 +323,7 @@ int _media_svc_create_album_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -338,7 +338,7 @@ int _media_svc_create_album_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -348,7 +348,7 @@ int _media_svc_create_album_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_tag_table(sqlite3 *db_handle)
+int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -364,7 +364,7 @@ int _media_svc_create_tag_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -382,7 +382,7 @@ int _media_svc_create_tag_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -396,7 +396,7 @@ int _media_svc_create_tag_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -410,7 +410,7 @@ int _media_svc_create_tag_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -419,7 +419,7 @@ int _media_svc_create_tag_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_bookmark_table(sqlite3 *db_handle)
+int _media_svc_create_bookmark_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -437,7 +437,7 @@ int _media_svc_create_bookmark_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -451,7 +451,7 @@ int _media_svc_create_bookmark_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -461,7 +461,7 @@ int _media_svc_create_bookmark_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_create_custom_table(sqlite3 *db_handle)
+int _media_svc_create_custom_table(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
@@ -483,7 +483,7 @@ int _media_svc_create_custom_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -497,7 +497,7 @@ int _media_svc_create_custom_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
@@ -511,7 +511,7 @@ int _media_svc_create_custom_table(sqlite3 *db_handle)
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
-	ret = _media_svc_sql_query(db_handle, sql);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
@@ -521,23 +521,23 @@ int _media_svc_create_custom_table(sqlite3 *db_handle)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_request_update_db(const char *sql_str)
+int _media_svc_request_update_db(const char *sql_str, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	ret = media_db_request_update_db(sql_str);
+	ret = media_db_request_update_db(sql_str, uid);
 
 	return ret;
 }
 
-int _media_svc_sql_query(sqlite3 *db_handle, const char *sql_str)
+int _media_svc_sql_query(sqlite3 *db_handle, const char *sql_str, uid_t uid)
 {
 	int err = -1;
 
 	media_svc_debug("[SQL query] : %s", sql_str);
 #if 1
 	//DB will be updated by Media Server.
-	err = _media_svc_request_update_db(sql_str);
+	err = _media_svc_request_update_db(sql_str, uid);
 
 	return _media_svc_error_convert(err);
 #else
@@ -582,14 +582,14 @@ int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_sql_begin_trans(sqlite3 *handle)
+int _media_svc_sql_begin_trans(sqlite3 *handle, uid_t uid)
 {
 	int err = MEDIA_INFO_ERROR_NONE;
 
 	media_svc_debug("========_media_svc_sql_begin_trans");
 #if 1
 	//err = _media_svc_request_update_db("BEGIN IMMEDIATE;");
-	err = media_db_request_update_db_batch_start("BEGIN IMMEDIATE;");
+	err = media_db_request_update_db_batch_start("BEGIN IMMEDIATE;", uid);
 
 	return _media_svc_error_convert(err);
 #else
@@ -606,13 +606,13 @@ int _media_svc_sql_begin_trans(sqlite3 *handle)
 #endif
 }
 
-int _media_svc_sql_end_trans(sqlite3 *handle)
+int _media_svc_sql_end_trans(sqlite3 *handle, uid_t uid)
 {
 	int err = MEDIA_INFO_ERROR_NONE;
 
 	media_svc_debug("========_media_svc_sql_end_trans");
 #if 1
-	err = media_db_request_update_db_batch_end("COMMIT;");
+	err = media_db_request_update_db_batch_end("COMMIT;", uid);
 	//err = _media_svc_request_update_db("COMMIT;");
 	return _media_svc_error_convert(err);
 #else
@@ -628,13 +628,13 @@ int _media_svc_sql_end_trans(sqlite3 *handle)
 #endif
 }
 
-int _media_svc_sql_rollback_trans(sqlite3 *handle)
+int _media_svc_sql_rollback_trans(sqlite3 *handle, uid_t uid)
 {
 	int err = MEDIA_INFO_ERROR_NONE;
 
 	media_svc_debug("========_media_svc_sql_rollback_trans");
 #if 1
-	err = _media_svc_request_update_db("ROLLBACK;");
+	err = _media_svc_request_update_db("ROLLBACK;", uid);
 	return _media_svc_error_convert(err);
 #else
 	char *err_msg = NULL;
@@ -649,7 +649,7 @@ int _media_svc_sql_rollback_trans(sqlite3 *handle)
 #endif
 }
 
-int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list)
+int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 {
 	int i = 0;
 	int length = g_list_length(*query_list);
@@ -662,7 +662,7 @@ int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list)
 		sql = (char*)g_list_nth_data(*query_list, i);
 		if(sql != NULL) {
 			//err = _media_svc_sql_query(handle, sql);
-			err = media_db_request_update_db_batch(sql);
+			err = media_db_request_update_db_batch(sql, uid);
 			//if (err != SQLITE_OK) {
 			//	media_svc_error("A query failed in batch");
 			if (err < MS_MEDIA_ERR_NONE) {

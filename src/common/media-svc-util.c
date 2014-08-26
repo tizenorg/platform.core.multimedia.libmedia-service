@@ -36,6 +36,8 @@
 #include <libexif/exif-data.h>
 #include <media-thumbnail.h>
 #include <media-util.h>
+#include <grp.h>
+#include <pwd.h>
 #include "uuid.h"
 #include "media-svc-util.h"
 #include "media-svc-error.h"
@@ -46,6 +48,7 @@
 
 
 #define MEDIA_SVC_FILE_EXT_LEN_MAX				6			/**<  Maximum file ext lenth*/
+#define GLOBAL_USER    0 //#define     tzplatform_getenv(TZ_GLOBAL) //TODO
 
 typedef enum {
 	MEDIA_SVC_EXTRACTED_FIELD_NONE 			= 0x00000001,
@@ -422,7 +425,139 @@ char *_media_svc_get_title_from_filepath (const char *path)
 	return title;
 }
 
-int _media_svc_save_image(void *image, int size, char *image_path)
+static int _mkdir(const char *dir, mode_t mode) {
+        char tmp[256];
+        char *p = NULL;
+        size_t len;
+
+        snprintf(tmp, sizeof(tmp),"%s",dir);
+        len = strlen(tmp);
+        if(tmp[len - 1] == '/')
+                tmp[len - 1] = 0;
+        for(p = tmp + 1; *p; p++)
+                if(*p == '/') {
+                        *p = 0;
+                        mkdir(tmp, mode);
+                        *p = '/';
+                }
+        return mkdir(tmp, mode);
+}
+
+static char* _media_svc_get_thumb_path(uid_t uid)
+{
+	char *result_psswd = NULL;
+	struct group *grpinfo = NULL;
+	if(uid == getuid())
+	{
+		result_psswd = strdup(MEDIA_SVC_THUMB_PATH_PREFIX);
+		grpinfo = getgrnam("users");
+		if(grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+	}
+	else
+	{
+		struct passwd *userinfo = getpwuid(uid);
+		if(userinfo == NULL) {
+			media_svc_error("getpwuid(%d) returns NULL !", uid);
+			return NULL;
+		}
+		grpinfo = getgrnam("users");
+		if(grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+		// Compare git_t type and not group name
+		if (grpinfo->gr_gid != userinfo->pw_gid) {
+			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
+			return NULL;
+		}
+		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb", userinfo->pw_dir);
+	}
+
+	_mkdir(result_psswd,S_IRWXU | S_IRWXG | S_IRWXO);
+
+	return result_psswd;
+}
+
+char* _media_svc_get_thumb_internal_path(uid_t uid)
+{
+	char *result_psswd = NULL;
+	struct group *grpinfo = NULL;
+	if(uid == getuid())
+	{
+		result_psswd = strdup(MEDIA_SVC_THUMB_INTERNAL_PATH);
+		grpinfo = getgrnam("users");
+		if(grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+	}
+	else
+	{
+		struct passwd *userinfo = getpwuid(uid);
+		if(userinfo == NULL) {
+			media_svc_error("getpwuid(%d) returns NULL !", uid);
+			return NULL;
+		}
+		grpinfo = getgrnam("users");
+		if(grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+		// Compare git_t type and not group name
+		if (grpinfo->gr_gid != userinfo->pw_gid) {
+			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
+			return NULL;
+		}
+		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/phone", userinfo->pw_dir);
+	}
+
+	mkdir(result_psswd,S_IRWXU | S_IRWXG | S_IRWXO);
+
+	return result_psswd;
+}
+
+char* _media_svc_get_thumb_external_path(uid_t uid)
+{
+	char *result_psswd = NULL;
+	struct group *grpinfo = NULL;	
+	if(uid == getuid())
+	{
+		result_psswd = strdup(MEDIA_SVC_THUMB_EXTERNAL_PATH);
+		grpinfo = getgrnam("users");
+		if(grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+	}
+	else
+	{
+		struct passwd *userinfo = getpwuid(uid);
+		if(userinfo == NULL) {
+			media_svc_error("getpwuid(%d) returns NULL !", uid);
+			return NULL;
+		}
+		grpinfo = getgrnam("users");
+		if(grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+		// Compare git_t type and not group name
+		if (grpinfo->gr_gid != userinfo->pw_gid) {
+			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
+			return NULL;
+		}
+		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/mmc", userinfo->pw_dir);
+	}
+
+	_mkdir(result_psswd,S_IRWXU | S_IRWXG | S_IRWXO);
+
+	return result_psswd;
+}
+
+int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid)
 {
 	media_svc_debug("start save image, path [%s] image size [%d]", image_path, size);
 
@@ -432,7 +567,7 @@ int _media_svc_save_image(void *image, int size, char *image_path)
 	}
 
 	struct statfs fs;
-	if (-1 == statfs(MEDIA_SVC_THUMB_PATH_PREFIX, &fs)) {
+	if (-1 == statfs(_media_svc_get_thumb_path(uid), &fs)) {
 		media_svc_error("error in statfs");
 		return MEDIA_INFO_ERROR_INTERNAL;
 	}
@@ -466,7 +601,8 @@ int _media_svc_save_image(void *image, int size, char *image_path)
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-bool _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *thumb_path, const char *pathname, const char *img_format)
+
+bool _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *thumb_path, const char *pathname, const char *img_format, uid_t uid)
 {
 	char savename[MEDIA_SVC_PATHNAME_SIZE] = {0};
 	char file_ext[MEDIA_SVC_FILE_EXT_LEN_MAX + 1] = {0};
@@ -474,7 +610,7 @@ bool _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *
 	char hash[255 + 1];
 	char *thumbfile_ext = NULL;
 
-	thumb_dir = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? MEDIA_SVC_THUMB_INTERNAL_PATH : MEDIA_SVC_THUMB_EXTERNAL_PATH;
+	thumb_dir = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? _media_svc_get_thumb_internal_path(uid) : _media_svc_get_thumb_external_path(uid);
 
 	memset(file_ext, 0, sizeof(file_ext));
 	if (!_media_svc_get_file_ext(pathname, file_ext)) {
@@ -844,7 +980,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo)
+int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo, uid_t uid)
 {
 	MMHandleType content = 0;
 	MMHandleType tag = 0;
@@ -1271,7 +1407,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	
 					mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_ARTWORK_MIME, &p, &artwork_mime_size, NULL);
 					if ((mmf_error == MM_ERROR_NONE) && (artwork_mime_size > 0)) {
-						result = _media_svc_get_thumbnail_path(content_info->storage_type, thumb_path, content_info->path, p);
+						result = _media_svc_get_thumbnail_path(content_info->storage_type, thumb_path, content_info->path, p, uid);
 						if (result == FALSE) {
 							media_svc_error("Fail to Get Thumbnail Path");
 						}
@@ -1281,7 +1417,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	
 					if(strlen(thumb_path) > 0)
 					{
-						ret = _media_svc_save_image(image, size, thumb_path);
+						ret = _media_svc_save_image(image, size, thumb_path, uid);
 						if (ret != MEDIA_INFO_ERROR_NONE) {
 							media_svc_error("Fail to Save Thumbnail Image");
 						}
@@ -1298,9 +1434,9 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	
 				if((strncmp(content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN))) &&
 					(strncmp(content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN))))
-					ret = _media_svc_append_album(handle, content_info->media_meta.album, content_info->media_meta.artist, content_info->thumbnail_path, &album_id);
+					ret = _media_svc_append_album(handle, content_info->media_meta.album, content_info->media_meta.artist, content_info->thumbnail_path, &album_id, uid);
 				else
-					ret = _media_svc_append_album(handle, content_info->media_meta.album, content_info->media_meta.artist, NULL, &album_id);
+					ret = _media_svc_append_album(handle, content_info->media_meta.album, content_info->media_meta.artist, NULL, &album_id, uid);
 	
 				content_info->album_id = album_id;
 			}

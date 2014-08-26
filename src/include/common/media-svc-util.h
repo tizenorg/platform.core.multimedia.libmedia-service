@@ -54,19 +54,20 @@ int _media_svc_rename_file( const char *old_name, const char *new_name);
 bool _media_svc_remove_file(const char *path);
 int _media_svc_remove_all_files_in_dir(const char *dir_path);
 char *_media_svc_get_title_from_filepath (const char *path);
-int _media_svc_save_image(void *image, int size, char *image_path);
-bool _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *thumb_path, const char *pathname, const char *img_format);
+int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid);
+bool _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *thumb_path, const char *pathname, const char *img_format, uid_t uid);
 bool _media_svc_get_file_ext(const char *file_path, char *file_ext);
 int _media_svc_get_file_time(const char *full_path);
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_storage_type_e storage_type,
 			  const char *path, media_svc_media_type_e *media_type, bool refresh, drm_content_info_s **drm_contentInfo);
 int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, media_svc_media_type_e media_type);
-int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo);
+int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo, uid_t uid);
 int __media_svc_malloc_and_strncpy(char **dst, const char *src);
 void _media_svc_destroy_content_info(media_svc_content_info_s *content_info);
 int _media_svc_get_store_type_by_path(const char *path, media_svc_storage_type_e *storage_type);
 char *_media_svc_replace_path(char *s, const char *olds, const char *news);
-
+char* _media_svc_get_thumb_internal_path(uid_t uid);
+char* _media_svc_get_thumb_external_path(uid_t uid);
 int _media_svc_error_convert(int error);
 
 /* Define data structures for media type and mime type */
