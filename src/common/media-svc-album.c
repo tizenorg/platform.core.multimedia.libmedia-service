@@ -97,13 +97,13 @@ int _media_svc_get_album_art_by_album_id(sqlite3 *handle, int album_id, char **a
 	return MEDIA_INFO_ERROR_NONE;
 }
 
-int _media_svc_append_album(sqlite3 *handle, const char *album, const char *artist, const char *album_art, int * album_id)
+int _media_svc_append_album(sqlite3 *handle, const char *album, const char *artist, const char *album_art, int * album_id, uid_t uid)
 {
 	int err = -1;
 
 	char *sql = sqlite3_mprintf("INSERT INTO %s (name, artist, album_art, album_art) values (%Q, %Q, %Q, %Q); ",
 					     MEDIA_SVC_DB_TABLE_ALBUM, album, artist, album_art, album_art);
-	err = _media_svc_sql_query(handle, sql);
+	err = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		media_svc_error("failed to insert albums");
