@@ -514,7 +514,7 @@ char* _media_svc_get_thumb_internal_path(uid_t uid)
 		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/phone", userinfo->pw_dir);
 	}
 
-	mkdir(result_psswd,S_IRWXU | S_IRWXG | S_IRWXO);
+	_mkdir(result_psswd,S_IRWXU | S_IRWXG | S_IRWXO);
 
 	return result_psswd;
 }
