@@ -45,7 +45,7 @@
 #include "media-svc-env.h"
 #include "media-svc-hash.h"
 #include "media-svc-album.h"
-
+#include "media-svc-localize_ch.h"
 
 #define MEDIA_SVC_FILE_EXT_LEN_MAX				6			/**<  Maximum file ext lenth*/
 #define GLOBAL_USER    0 //#define     tzplatform_getenv(TZ_GLOBAL) //TODO
@@ -694,6 +694,7 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	memset(&st, 0, sizeof(struct stat));
 	if (stat(path, &st) == 0) {
 		content_info->modified_time = st.st_mtime;
+		content_info->timeline = content_info->modified_time;
 		content_info->size = st.st_size;
 		//media_svc_debug("Modified time : [%d] Size : [%lld]", content_info->modified_time, content_info->size);
 	} else {
@@ -733,6 +734,9 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
+
+	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album_artist, MEDIA_SVC_TAG_UNKNOWN);
 	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.genre, MEDIA_SVC_TAG_UNKNOWN);
@@ -938,6 +942,8 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	} else {
 		content_info->media_meta.height = 0;
 	}
+
+	content_info->media_meta.weather = NULL;
 
 	if (ed != NULL) exif_data_unref(ed);
 
@@ -1536,6 +1542,7 @@ void _media_svc_destroy_content_info(media_svc_content_info_s *content_info)
 	SAFE_FREE(content_info->media_meta.title);
 	SAFE_FREE(content_info->media_meta.album);
 	SAFE_FREE(content_info->media_meta.artist);
+	SAFE_FREE(content_info->media_meta.album_artist);
 	SAFE_FREE(content_info->media_meta.genre);
 	SAFE_FREE(content_info->media_meta.composer);
 	SAFE_FREE(content_info->media_meta.year);
@@ -1544,6 +1551,16 @@ void _media_svc_destroy_content_info(media_svc_content_info_s *content_info)
 	SAFE_FREE(content_info->media_meta.track_num);
 	SAFE_FREE(content_info->media_meta.description);
 	SAFE_FREE(content_info->media_meta.datetaken);
+	SAFE_FREE(content_info->media_meta.weather);
+
+	SAFE_FREE(content_info->media_meta.title_pinyin);
+	SAFE_FREE(content_info->media_meta.album_pinyin);
+	SAFE_FREE(content_info->media_meta.artist_pinyin);
+	SAFE_FREE(content_info->media_meta.album_artist_pinyin);
+	SAFE_FREE(content_info->media_meta.genre_pinyin);
+	SAFE_FREE(content_info->media_meta.composer_pinyin);
+	SAFE_FREE(content_info->media_meta.copyright_pinyin);
+	SAFE_FREE(content_info->media_meta.description_pinyin);
 
 	return;
 }
@@ -1815,3 +1832,35 @@ int _media_svc_get_media_type(const char *path, const char *mime_type, media_svc
 	return ret;
 }
 
+int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str)
+{
+	int ret = MEDIA_INFO_ERROR_NONE;
+	int size = 0;
+	pinyin_name_s *pinyinname = NULL;
+	*pinyin_str = NULL;
+
+	if(!STRING_VALID(src_str))
+	{
+		media_svc_debug("String is invalid");
+		return ret;
+	}
+
+	ret = _media_svc_convert_chinese_to_pinyin(src_str, &pinyinname, &size);
+	if (ret == MEDIA_INFO_ERROR_NONE)
+	{
+		if(STRING_VALID(pinyinname[0].pinyin_name))
+			*pinyin_str = strdup(pinyinname[0].pinyin_name);
+		else
+			*pinyin_str = strdup(src_str);	//Return Original Non China Character
+	}
+
+	_media_svc_pinyin_free(pinyinname, size);
+
+	return ret;
+}
+
+bool _media_svc_check_pinyin_support(void)
+{
+	/*Check CSC*/
+	return TRUE;
+}

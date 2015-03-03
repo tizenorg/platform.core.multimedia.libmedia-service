@@ -141,7 +141,8 @@ static const char sound_mime_table[SOUND_MIME_NUM][MIME_LENGTH] = {
 bool _media_svc_is_drm_file(const char *path);
 int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_info_s **drm_contentInfo);
 int _media_svc_get_content_type_from_mime(const char * path, const char * mimetype, int * category);
-
+int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str);
+bool _media_svc_check_pinyin_support(void);
 int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *is_drm, drm_content_info_s **drm_contentInfo);
 
 int _media_svc_get_media_type(const char *path, const char *mime_type, media_svc_media_type_e *media_type);

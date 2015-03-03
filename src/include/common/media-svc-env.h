@@ -37,6 +37,7 @@ extern "C" {
  */
 
 #define MEDIA_SVC_DB_NAME 						MEDIA_DB_NAME		/**<  media db name*/
+#define LATEST_VERSION_NUMBER					2
 
 /**
  * DB table information
@@ -146,6 +147,7 @@ typedef struct {
 	char	*	title;				/**< track title*/
 	char	*	album;				/**< album name*/
 	char	*	artist;				/**< artist name*/
+	char	*	album_artist;		/**< artist name*/
 	char	*	genre;				/**< genre of track*/
 	char	*	composer;			/**< composer name*/
 	char	*	year;				/**< year*/
@@ -165,6 +167,17 @@ typedef struct {
 	char	*	datetaken;			/**< datetaken*/
 	int		orientation;			/**< orientation*/
 	int		rating;				/**< user defined rating */
+	char	*	weather;				/**< weather of image */
+
+	char	*	file_name_pinyin;				/**< pinyin for file_name*/
+	char	*	title_pinyin;					/**< pinyin for title*/
+	char	*	album_pinyin;				/**< pinyin for album*/
+	char	*	artist_pinyin;					/**< pinyin for artist*/
+	char	*	album_artist_pinyin;			/**< pinyin for album_artist*/
+	char	*	genre_pinyin;					/**< pinyin for genre*/
+	char	*	composer_pinyin;				/**< pinyin for composer*/
+	char	*	copyright_pinyin;				/**< pinyin for copyright*/
+	char	*	description_pinyin;			/**< pinyin for description*/
 } media_svc_content_meta_s;
 
 
@@ -175,11 +188,13 @@ typedef struct {
 	char	*	media_uuid;					/**< Unique ID of item */
 	char	*	path;						/**< Full path of media file */
 	char	*	file_name;					/**< File name of media file. Display name */
+	char	*	file_name_pinyin;				/**< File name pinyin of media file. Display name */
 	int		media_type;					/**< Type of media file : internal/external */
 	char	*	mime_type;					/**< Full path and file name of media file */
 	unsigned long long	size;							/**< size */
 	time_t	added_time;					/**< added time, time_t */
 	time_t	modified_time;				/**< modified time, time_t */
+	time_t	timeline;					/**< timeline of media, time_t */
 	char	*	folder_uuid;					/**< Unique ID of folder */
 	int		album_id;					/**< Unique ID of album */
 	char	*	thumbnail_path;				/**< Thumbnail image file path */
@@ -188,6 +203,7 @@ typedef struct {
 	int		last_played_position;			/**< last played position */
 	int		favourate;					/**< favourate. o or 1 */
 	int		is_drm;						/**< is_drm. o or 1 */
+	int		sync_status;						/**< sync_status  */
 	int		storage_type;					/**< Storage of media file : internal/external */
 	media_svc_content_meta_s	media_meta;	/**< meta data structure for audio files */
 } media_svc_content_info_s;

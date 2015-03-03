@@ -29,6 +29,80 @@
 #include "media-svc-db-utils.h"
 #include "media-util-db.h"
 
+static int __media_svc_create_update_media_table(sqlite3 *db_handle);
+
+#define MEDIA_DB_SCHEMA	"CREATE TABLE IF NOT EXISTS %s (\
+				media_uuid			TEXT PRIMARY KEY, \
+				path				TEXT NOT NULL UNIQUE, \
+				file_name			TEXT NOT NULL, \
+				media_type			INTEGER,\
+				mime_type			TEXT, \
+				size				INTEGER DEFAULT 0, \
+				added_time			INTEGER DEFAULT 0,\
+				modified_time			INTEGER DEFAULT 0, \
+				folder_uuid			TEXT NOT NULL, \
+				thumbnail_path			TEXT, \
+				title				TEXT, \
+				album_id			INTEGER DEFAULT 0, \
+				album				TEXT, \
+				artist				TEXT, \
+				album_artist    		TEXT, \
+				genre				TEXT, \
+				composer			TEXT, \
+				year				TEXT, \
+				recorded_date			TEXT, \
+				copyright			TEXT, \
+				track_num			TEXT, \
+				description			TEXT, \
+				bitrate				INTEGER DEFAULT -1, \
+				samplerate			INTEGER DEFAULT -1, \
+				channel				INTEGER DEFAULT -1, \
+				duration			INTEGER DEFAULT -1, \
+				longitude			DOUBLE DEFAULT 0, \
+				latitude			DOUBLE DEFAULT 0, \
+				altitude			DOUBLE DEFAULT 0, \
+				width				INTEGER DEFAULT -1, \
+				height				INTEGER DEFAULT -1, \
+				datetaken			TEXT, \
+				orientation			INTEGER DEFAULT -1, \
+				burst_id			TEXT, \
+				played_count			INTEGER DEFAULT 0, \
+				last_played_time		INTEGER DEFAULT 0, \
+				last_played_position		INTEGER DEFAULT 0, \
+				rating				INTEGER DEFAULT 0, \
+				favourite			INTEGER DEFAULT 0, \
+				author				TEXT, \
+				provider			TEXT, \
+				content_name			TEXT, \
+				category			TEXT, \
+				location_tag			TEXT, \
+				age_rating			TEXT, \
+				keyword				TEXT, \
+				is_drm				INTEGER DEFAULT 0, \
+				storage_type			INTEGER, \
+				timeline 			INTEGER DEFAULT 0, \
+				weather				TEXT, \
+				sync_status		INTEGER DEFAULT 0, \
+				file_name_pinyin	TEXT, \
+				title_pinyin    TEXT, \
+				album_pinyin    TEXT, \
+				artist_pinyin    TEXT, \
+				album_artist_pinyin      TEXT, \
+				genre_pinyin    TEXT, \
+				composer_pinyin   TEXT, \
+				copyright_pinyin   TEXT, \
+				description_pinyin   TEXT, \
+				author_pinyin    TEXT, \
+				provider_pinyin   TEXT, \
+				content_name_pinyin  TEXT, \
+				category_pinyin   TEXT, \
+				location_tag_pinyin  TEXT, \
+				age_rating_pinyin   TEXT, \
+				keyword_pinyin   TEXT, \
+				validity			INTEGER DEFAULT 1, \
+				unique(path, file_name) \
+				);"
+
 static int __media_svc_busy_handler(void *pData, int count);
 
 static int __media_svc_busy_handler(void *pData, int count)
@@ -103,58 +177,7 @@ int _media_svc_create_media_table(sqlite3 *db_handle, uid_t uid)
 
 	media_svc_debug_func();
 
-	sql = sqlite3_mprintf("CREATE TABLE IF NOT EXISTS %s (\
-				media_uuid			TEXT PRIMARY KEY, \
-				path					TEXT NOT NULL UNIQUE, \
-				file_name			TEXT NOT NULL, \
-				media_type			INTEGER,\
-				mime_type			TEXT, \
-				size					INTEGER DEFAULT 0, \
-				added_time			INTEGER DEFAULT 0,\
-				modified_time			INTEGER DEFAULT 0, \
-				folder_uuid			TEXT NOT NULL, \
-				thumbnail_path		TEXT, \
-				title					TEXT, \
-				album_id				INTEGER DEFAULT 0, \
-				album				TEXT, \
-				artist				TEXT, \
-				genre				TEXT, \
-				composer			TEXT, \
-				year					TEXT, \
-				recorded_date		TEXT, \
-				copyright			TEXT, \
-				track_num			TEXT, \
-				description			TEXT, \
-				bitrate				INTEGER DEFAULT -1, \
-				samplerate			INTEGER DEFAULT -1, \
-				channel				INTEGER DEFAULT -1, \
-				duration				INTEGER DEFAULT -1, \
-				longitude			DOUBLE DEFAULT 0, \
-				latitude				DOUBLE DEFAULT 0, \
-				altitude				DOUBLE DEFAULT 0, \
-				width				INTEGER DEFAULT -1, \
-				height				INTEGER DEFAULT -1, \
-				datetaken			TEXT, \
-				orientation			INTEGER DEFAULT -1, \
-				burst_id			TEXT, \
-				played_count			INTEGER DEFAULT 0, \
-				last_played_time		INTEGER DEFAULT 0, \
-				last_played_position	INTEGER DEFAULT 0, \
-				rating				INTEGER DEFAULT 0, \
-				favourite				INTEGER DEFAULT 0, \
-				author				TEXT, \
-				provider				TEXT, \
-				content_name		TEXT, \
-				category				TEXT, \
-				location_tag			TEXT, \
-				age_rating			TEXT, \
-				keyword				TEXT, \
-				is_drm				INTEGER DEFAULT 0, \
-				storage_type			INTEGER, \
-				validity				INTEGER DEFAULT 1, \
-				unique(path, file_name) \
-				);",
-				MEDIA_SVC_DB_TABLE_MEDIA);
+	sql = sqlite3_mprintf(MEDIA_DB_SCHEMA, MEDIA_SVC_DB_TABLE_MEDIA);
 
 	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
@@ -170,7 +193,33 @@ int _media_svc_create_media_table(sqlite3 *db_handle, uid_t uid)
 						CREATE INDEX IF NOT EXISTS media_title_idx on %s (title); \
 						CREATE INDEX IF NOT EXISTS media_modified_time_idx on %s (modified_time); \
 						CREATE INDEX IF NOT EXISTS media_provider_idx on %s (provider); \
+						CREATE INDEX IF NOT EXISTS folder_uuid_idx on %s (folder_uuid); \
+						CREATE INDEX IF NOT EXISTS media_album_idx on %s (album); \
+						CREATE INDEX IF NOT EXISTS media_artist_idx on %s (artist); \
+						CREATE INDEX IF NOT EXISTS media_author_idx on %s (author); \
+						CREATE INDEX IF NOT EXISTS media_category_idx on %s (category); \
+						CREATE INDEX IF NOT EXISTS media_composer_idx on %s (composer); \
+						CREATE INDEX IF NOT EXISTS media_content_name_idx on %s (content_name); \
+						CREATE INDEX IF NOT EXISTS media_file_name_idx on %s (file_name); \
+						CREATE INDEX IF NOT EXISTS media_genre_idx on %s (genre); \
+						CREATE INDEX IF NOT EXISTS media_location_tag_idx on %s (location_tag); \
+						CREATE INDEX IF NOT EXISTS media_media_uuid_idx on %s (media_uuid); \
+						CREATE INDEX IF NOT EXISTS media_timeline_idx on %s (timeline); \
+						CREATE INDEX IF NOT EXISTS media_path_idx on %s (path); \
 						",
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
+						MEDIA_SVC_DB_TABLE_MEDIA,
 						MEDIA_SVC_DB_TABLE_MEDIA,
 						MEDIA_SVC_DB_TABLE_MEDIA,
 						MEDIA_SVC_DB_TABLE_MEDIA,
@@ -200,8 +249,9 @@ int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 				path				TEXT NOT NULL UNIQUE, \
 				name 			TEXT NOT NULL, \
 				modified_time		INTEGER DEFAULT 0, \
+				name_pinyin 		TEXT, \
 				storage_type		INTEGER, \
-				unique(path, name) \
+				unique(path, name, storage_type) \
 				);",
 				MEDIA_SVC_DB_TABLE_FOLDER);
 
@@ -229,6 +279,16 @@ int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
+	/* Create Index*/
+	sql = sqlite3_mprintf("	CREATE INDEX IF NOT EXISTS folder_folder_uuid_idx on %s (folder_uuid); \
+						",
+						MEDIA_SVC_DB_TABLE_FOLDER);
+
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
+
+	ret = _media_svc_sql_query(db_handle, sql, uid);
+	sqlite3_free(sql);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 	return MEDIA_INFO_ERROR_NONE;
 }
 
@@ -243,6 +303,7 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 	sql = sqlite3_mprintf("CREATE TABLE IF NOT EXISTS %s (\
 				playlist_id		INTEGER PRIMARY KEY AUTOINCREMENT, \
 				name			TEXT NOT NULL UNIQUE,\
+				name_pinyin 		TEXT, \
 				thumbnail_path 	TEXT\
 				);",
 				MEDIA_SVC_DB_TABLE_PLAYLIST);
@@ -273,6 +334,28 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 		media_svc_error("It failed to create db table (%d)", ret);
 		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
+
+	/* Create playlist_view*/
+	sql = sqlite3_mprintf(" \
+		CREATE VIEW IF NOT EXISTS playlist_view AS \
+		SELECT p.playlist_id, p.name, p.thumbnail_path, media_count, pm._id as pm_id, pm.play_order, m.media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, m.thumbnail_path, description, rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, duration, played_count, last_played_time, last_played_position, samplerate, channel, weather, timeline, sync_status FROM playlist AS p \
+		INNER JOIN playlist_map AS pm \
+		INNER JOIN media AS m \
+		INNER JOIN (SELECT count(playlist_id) as media_count, playlist_id FROM playlist_map group by playlist_id) as cnt_tbl \
+				ON (p.playlist_id=pm.playlist_id AND pm.media_uuid = m.media_uuid AND cnt_tbl.playlist_id=pm.playlist_id AND m.validity=1) \
+		UNION \
+			SELECT playlist_id, name, thumbnail_path, 0, 0, -1, NULL, NULL, -1, -1, -1, -1, -1, NULL, NULL, -1, -1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, -1, -1, 0, -1, -1, -1, -1, -1, -1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, -1, -1, -1, -1, -1, -1, NULL, -1, NULL, -1, 0 FROM playlist \
+				WHERE playlist_id NOT IN (select playlist_id from playlist_map) \
+		UNION \
+			SELECT playlist_id, name, thumbnail_path, 0, 0, -1, NULL, NULL, -1, -1, -1, -1, -1, NULL, NULL, -1, -1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, -1, -1, 0, -1, -1, -1, -1, -1, -1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, -1, -1, -1, -1, -1, -1, NULL, -1, NULL, -1, 0 FROM playlist \
+				WHERE playlist_id IN (select pm.playlist_id from playlist_map AS pm INNER JOIN media AS m ON (pm.media_uuid= m.media_uuid) AND m.validity=0); \
+		");
+
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
+
+	ret = _media_svc_sql_query(db_handle, sql, uid);
+	sqlite3_free(sql);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	/* Create Trigger to remove media from playlist_map when media remove from media_table*/
 	sql = sqlite3_mprintf("CREATE TRIGGER IF NOT EXISTS playlist_map_cleanup \
@@ -358,7 +441,8 @@ int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 	/*Create tag table*/
 	sql = sqlite3_mprintf("CREATE TABLE IF NOT EXISTS %s (\
 				tag_id		INTEGER PRIMARY KEY AUTOINCREMENT, \
-				name		TEXT NOT NULL UNIQUE\
+				name		TEXT NOT NULL UNIQUE, \
+				name_pinyin 		TEXT \
 				);",
 				MEDIA_SVC_DB_TABLE_TAG);
 
@@ -388,6 +472,28 @@ int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 		media_svc_error("It failed to create db table (%d)", ret);
 		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
+
+	/*Create tag_view*/
+	sql = sqlite3_mprintf("\
+				CREATE VIEW IF NOT EXISTS tag_view AS \
+				SELECT \
+					t.tag_id, t.name, media_count, tm._id as tm_id, m.media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description, rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, duration, played_count, last_played_time, last_played_position, samplerate, channel, weather, timeline, sync_status FROM tag AS t \
+				INNER JOIN tag_map AS tm \
+				INNER JOIN media AS m \
+				INNER JOIN (SELECT count(tag_id) as media_count, tag_id FROM tag_map group by tag_id) as cnt_tbl \
+						 ON (t.tag_id=tm.tag_id AND tm.media_uuid = m.media_uuid AND cnt_tbl.tag_id=tm.tag_id AND m.validity=1) \
+				UNION \
+				SELECT \
+					tag_id, name, 0, 0,  NULL, NULL, -1, -1, -1, -1, -1, NULL, NULL, -1, -1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, -1, -1,  0, -1, -1, -1, -1, -1, -1, NULL, NULL, NULL, NULL, NULL, NULL,NULL, NULL, NULL, NULL, -1, -1, -1, -1, -1, -1, NULL, -1, NULL, -1, 0 FROM tag \
+				WHERE tag_id \
+				NOT IN (select tag_id from tag_map); \
+				");
+
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
+
+	ret = _media_svc_sql_query(db_handle, sql, uid);
+	sqlite3_free(sql);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	/* Create Trigger to remove media from tag_map when media remove from media_table*/
 	sql = sqlite3_mprintf("CREATE TRIGGER IF NOT EXISTS tag_map_cleanup \

@@ -26,6 +26,8 @@
 
 #include "media-svc-types.h"
 #include "media-svc-error.h"
+#include <media-util-noti.h>
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -237,6 +239,8 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
 
 int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *folder_path, int *count);
 
+int media_svc_get_pinyin(MediaSvcHandle *handle, const char * src_str, char **pinyin_str);
+int media_svc_check_pinyin_support(bool *support);
 /** @} */
 
 /**

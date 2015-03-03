@@ -60,14 +60,21 @@ int _media_svc_append_folder(sqlite3 *handle, media_svc_storage_type_e storage_t
 {
 	int err = -1;
 
-	char *sql = sqlite3_mprintf("INSERT INTO %s (folder_uuid, path, name, storage_type, modified_time) values (%Q, %Q, %Q, '%d', '%d'); ",
-					     MEDIA_SVC_DB_TABLE_FOLDER, folder_id, path_name, folder_name, storage_type, modified_date);
+	/*Update Pinyin If Support Pinyin*/
+	char *folder_name_pinyin = NULL;
+	if(_media_svc_check_pinyin_support())
+		_media_svc_get_pinyin_str(folder_name, &folder_name_pinyin);
+
+	char *sql = sqlite3_mprintf("INSERT INTO %s (folder_uuid, path, name, storage_type, modified_time, name_pinyin) values (%Q, %Q, %Q, '%d', '%d', %Q); ",
+					     MEDIA_SVC_DB_TABLE_FOLDER, folder_id, path_name, folder_name, storage_type, modified_date, folder_name_pinyin);
 	err = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	if (err != SQLITE_OK) {
 		media_svc_error("failed to insert folder");
 		return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
 	}
+	
+	SAFE_FREE(folder_name_pinyin);
 
 	return MEDIA_INFO_ERROR_NONE;
 }

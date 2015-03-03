@@ -1208,3 +1208,16 @@ int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *
 
 	return _media_svc_count_invalid_folder_items(db_handle, folder_path, count);
 }
+
+int media_svc_get_pinyin(MediaSvcHandle *handle, const char * src_str, char **pinyin_str)
+{
+	media_svc_retvm_if(!STRING_VALID(src_str), MEDIA_INFO_ERROR_INVALID_PARAMETER, "String is NULL");
+
+	return _media_svc_get_pinyin_str(src_str, pinyin_str);
+}
+int media_svc_check_pinyin_support(bool *support)
+{
+	*support = _media_svc_check_pinyin_support();
+
+	return MEDIA_INFO_ERROR_NONE;
+}

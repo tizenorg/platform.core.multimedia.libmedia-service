@@ -211,9 +211,10 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 	char *burst_id = NULL;
 
 	char * db_fields = "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, folder_uuid, \
-					thumbnail_path, title, album_id, album, artist, genre, composer, year, recorded_date, copyright, track_num, description,\
+					thumbnail_path, title, album_id, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, description,\
 					bitrate, samplerate, channel, duration, longitude, latitude, altitude, width, height, datetaken, orientation,\
-					rating, is_drm, storage_type, burst_id";
+					rating, is_drm, storage_type, burst_id, timeline, weather, sync_status, \
+					file_name_pinyin, title_pinyin, album_pinyin, artist_pinyin, album_artist_pinyin, genre_pinyin, composer_pinyin, copyright_pinyin, description_pinyin ";
 
 	/* This sql is due to sqlite3_mprintf's wrong operation when using floating point in the text format */
 	/* This code will be removed when sqlite3_mprintf works clearly */
@@ -255,10 +256,34 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 			content_info->media_meta.height = height;
 	}
 
+	/*Update Pinyin If Support Pinyin*/
+	if(_media_svc_check_pinyin_support())
+	{
+		if(STRING_VALID(content_info->file_name))
+			_media_svc_get_pinyin_str(content_info->file_name, &content_info->file_name_pinyin);
+		if(STRING_VALID(content_info->media_meta.title))
+			_media_svc_get_pinyin_str(content_info->media_meta.title, &content_info->media_meta.title_pinyin);
+		if(STRING_VALID(content_info->media_meta.album))
+			_media_svc_get_pinyin_str(content_info->media_meta.album, &content_info->media_meta.album_pinyin);
+		if(STRING_VALID(content_info->media_meta.artist))
+			_media_svc_get_pinyin_str(content_info->media_meta.artist, &content_info->media_meta.artist_pinyin);
+		if(STRING_VALID(content_info->media_meta.album_artist))
+			_media_svc_get_pinyin_str(content_info->media_meta.album_artist, &content_info->media_meta.album_artist_pinyin);
+		if(STRING_VALID(content_info->media_meta.genre))
+			_media_svc_get_pinyin_str(content_info->media_meta.genre, &content_info->media_meta.genre_pinyin);
+		if(STRING_VALID(content_info->media_meta.composer))
+			_media_svc_get_pinyin_str(content_info->media_meta.composer, &content_info->media_meta.composer_pinyin);
+		if(STRING_VALID(content_info->media_meta.copyright))
+			_media_svc_get_pinyin_str(content_info->media_meta.copyright, &content_info->media_meta.copyright_pinyin);
+		if(STRING_VALID(content_info->media_meta.description))
+			_media_svc_get_pinyin_str(content_info->media_meta.description, &content_info->media_meta.description_pinyin);
+	}
+
 	char *sql = sqlite3_mprintf("INSERT INTO %s (%s) VALUES (%Q, %Q, %Q, %d, %Q, %lld, %d, %d, %Q, \
-													%Q, %Q, %d, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, \
-													%d, %d, %d, %d, %.2f, %.2f, %.2f, %d, %d, %Q, %d, \
-													%d, %d, %d, %Q);",
+													%Q, %Q, %d, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, \
+													%d, %d, %d, %d, %.6f, %.6f, %.6f, %d, %d, %Q, %d, \
+													%d, %d, %d, %Q, %d, %Q, %d, \
+													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q);",
 		MEDIA_SVC_DB_TABLE_MEDIA, db_fields,
 		content_info->media_uuid,
 		content_info->path,
@@ -274,6 +299,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->album_id,
 		content_info->media_meta.album,
 		content_info->media_meta.artist,
+		content_info->media_meta.album_artist,
 		content_info->media_meta.genre,
 		content_info->media_meta.composer,
 		content_info->media_meta.year,
@@ -295,7 +321,20 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->media_meta.rating,
 		content_info->is_drm,
 		content_info->storage_type,
-		burst_id);
+		burst_id,
+		content_info->timeline,
+		content_info->media_meta.weather,
+		content_info->sync_status,
+		content_info->file_name_pinyin,
+		content_info->media_meta.title_pinyin,
+		content_info->media_meta.album_pinyin,
+		content_info->media_meta.artist_pinyin,
+		content_info->media_meta.album_artist_pinyin,
+		content_info->media_meta.genre_pinyin,
+		content_info->media_meta.composer_pinyin,
+		content_info->media_meta.copyright_pinyin,
+		content_info->media_meta.description_pinyin
+		);
 
 	if (burst_id) sqlite3_free(burst_id);
 	burst_id = NULL;
@@ -325,8 +364,29 @@ int _media_svc_update_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 	char *test_sql = sqlite3_mprintf("%f, %f, %f", content_info->media_meta.longitude, content_info->media_meta.latitude, content_info->media_meta.altitude);
 	sqlite3_free(test_sql);
 
+	/*Update Pinyin If Support Pinyin*/
+	if(_media_svc_check_pinyin_support())
+	{
+		if(STRING_VALID(content_info->media_meta.title))
+			_media_svc_get_pinyin_str(content_info->media_meta.title, &content_info->media_meta.title_pinyin);
+		if(STRING_VALID(content_info->media_meta.album))
+			_media_svc_get_pinyin_str(content_info->media_meta.album, &content_info->media_meta.album_pinyin);
+		if(STRING_VALID(content_info->media_meta.artist))
+			_media_svc_get_pinyin_str(content_info->media_meta.artist, &content_info->media_meta.artist_pinyin);
+		if(STRING_VALID(content_info->media_meta.album_artist))
+			_media_svc_get_pinyin_str(content_info->media_meta.album_artist, &content_info->media_meta.album_artist_pinyin);
+		if(STRING_VALID(content_info->media_meta.genre))
+			_media_svc_get_pinyin_str(content_info->media_meta.genre, &content_info->media_meta.genre_pinyin);
+		if(STRING_VALID(content_info->media_meta.composer))
+			_media_svc_get_pinyin_str(content_info->media_meta.composer, &content_info->media_meta.composer_pinyin);
+		if(STRING_VALID(content_info->media_meta.copyright))
+			_media_svc_get_pinyin_str(content_info->media_meta.copyright, &content_info->media_meta.copyright_pinyin);
+		if(STRING_VALID(content_info->media_meta.description))
+			_media_svc_get_pinyin_str(content_info->media_meta.description, &content_info->media_meta.description_pinyin);
+	}
+
 	char *sql = sqlite3_mprintf("UPDATE %s SET \
-		size=%lld, modified_time=%d, thumbnail_path=%Q, title=%Q, album_id=%d, album=%Q, artist=%Q, genre=%Q, \
+		size=%lld, modified_time=%d, thumbnail_path=%Q, title=%Q, album_id=%d, album=%Q, artist=%Q, album_artist=%Q, genre=%Q, \
 		composer=%Q, year=%Q, recorded_date=%Q, copyright=%Q, track_num=%Q, description=%Q, \
 		bitrate=%d, samplerate=%d, channel=%d, duration=%d, longitude=%f, latitude=%f, altitude=%f, width=%d, height=%d, datetaken=%Q, \
 													orientation=%d WHERE path=%Q",
@@ -338,6 +398,7 @@ int _media_svc_update_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->album_id,
 		content_info->media_meta.album,
 		content_info->media_meta.artist,
+		content_info->media_meta.album_artist,
 		content_info->media_meta.genre,
 		content_info->media_meta.composer,
 		content_info->media_meta.year,
