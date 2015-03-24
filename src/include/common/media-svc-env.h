@@ -168,6 +168,7 @@ typedef struct {
 	int		orientation;			/**< orientation*/
 	int		rating;				/**< user defined rating */
 	char	*	weather;				/**< weather of image */
+	int		bitpersample;				/**< bitrate*/
 
 	char	*	file_name_pinyin;				/**< pinyin for file_name*/
 	char	*	title_pinyin;					/**< pinyin for title*/

@@ -212,7 +212,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 
 	char * db_fields = "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, folder_uuid, \
 					thumbnail_path, title, album_id, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, description,\
-					bitrate, samplerate, channel, duration, longitude, latitude, altitude, width, height, datetaken, orientation,\
+					bitrate, bitpersample, samplerate, channel, duration, longitude, latitude, altitude, width, height, datetaken, orientation,\
 					rating, is_drm, storage_type, burst_id, timeline, weather, sync_status, \
 					file_name_pinyin, title_pinyin, album_pinyin, artist_pinyin, album_artist_pinyin, genre_pinyin, composer_pinyin, copyright_pinyin, description_pinyin ";
 
@@ -281,7 +281,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 
 	char *sql = sqlite3_mprintf("INSERT INTO %s (%s) VALUES (%Q, %Q, %Q, %d, %Q, %lld, %d, %d, %Q, \
 													%Q, %Q, %d, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, \
-													%d, %d, %d, %d, %.6f, %.6f, %.6f, %d, %d, %Q, %d, \
+													%d, %d, %d, %d, %d, %.6f, %.6f, %.6f, %d, %d, %Q, %d, \
 													%d, %d, %d, %Q, %d, %Q, %d, \
 													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q);",
 		MEDIA_SVC_DB_TABLE_MEDIA, db_fields,
@@ -308,6 +308,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->media_meta.track_num,
 		content_info->media_meta.description,	//
 		content_info->media_meta.bitrate,
+		content_info->media_meta.bitpersample,
 		content_info->media_meta.samplerate,
 		content_info->media_meta.channel,
 		content_info->media_meta.duration,
@@ -388,7 +389,7 @@ int _media_svc_update_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 	char *sql = sqlite3_mprintf("UPDATE %s SET \
 		size=%lld, modified_time=%d, thumbnail_path=%Q, title=%Q, album_id=%d, album=%Q, artist=%Q, album_artist=%Q, genre=%Q, \
 		composer=%Q, year=%Q, recorded_date=%Q, copyright=%Q, track_num=%Q, description=%Q, \
-		bitrate=%d, samplerate=%d, channel=%d, duration=%d, longitude=%f, latitude=%f, altitude=%f, width=%d, height=%d, datetaken=%Q, \
+		bitrate=%d, bitpersample=%d, samplerate=%d, channel=%d, duration=%d, longitude=%f, latitude=%f, altitude=%f, width=%d, height=%d, datetaken=%Q, \
 													orientation=%d WHERE path=%Q",
 		MEDIA_SVC_DB_TABLE_MEDIA,
 		content_info->size,
@@ -407,6 +408,7 @@ int _media_svc_update_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->media_meta.track_num,
 		content_info->media_meta.description,
 		content_info->media_meta.bitrate,
+		content_info->media_meta.bitpersample,
 		content_info->media_meta.samplerate,
 		content_info->media_meta.channel,
 		content_info->media_meta.duration,

@@ -1125,6 +1125,14 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			} else {
 				//media_svc_debug("channel : %d", content_info->media_meta.channel);
 			}
+
+			mmf_error = mm_file_get_attrs(content, &err_attr_name, MM_FILE_CONTENT_AUDIO_BITPERSAMPLE, &content_info->media_meta.bitpersample, NULL);
+			if (mmf_error != MM_ERROR_NONE) {
+				SAFE_FREE(err_attr_name);
+				media_svc_debug("fail to get audio bit per sample attr - err(%x)", mmf_error);
+			} else {
+				media_svc_debug("bitpersample : %d", content_info->media_meta.bitpersample);
+			}
 		}else if(media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)	{	/*Video attribute*/
 			int audio_bitrate = 0;
 			int video_bitrate = 0;
