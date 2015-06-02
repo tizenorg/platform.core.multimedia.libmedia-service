@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include <stdbool.h>
 #include <media-svc.h>
 
 #include <tzplatform_config.h>

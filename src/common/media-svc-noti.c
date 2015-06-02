@@ -43,10 +43,10 @@ int _media_svc_create_noti_list(int count)
 	g_inserted_noti_list = calloc(count, sizeof(media_svc_noti_item));
 	if (g_inserted_noti_list == NULL) {
 		media_svc_error("Failed to prepare noti items");
-		return MEDIA_INFO_ERROR_OUT_OF_MEMORY;
+		return MS_MEDIA_ERR_OUT_OF_MEMORY;
 	}
 
-	return MEDIA_INFO_ERROR_NONE;
+	return MS_MEDIA_ERR_NONE;
 }
 
 int _media_svc_insert_item_to_noti_list(media_svc_content_info_s *content_info, int cnt)
@@ -66,9 +66,8 @@ int _media_svc_insert_item_to_noti_list(media_svc_content_info_s *content_info, 
 			noti_list[cnt].mime_type = strdup(content_info->mime_type);
 	}
 
-	return MEDIA_INFO_ERROR_NONE;
+	return MS_MEDIA_ERR_NONE;
 }
-
 
 int _media_svc_destroy_noti_list(int all_cnt)
 {
@@ -86,25 +85,22 @@ int _media_svc_destroy_noti_list(int all_cnt)
 		g_inserted_noti_list = NULL;
 	}
 
-	return MEDIA_INFO_ERROR_NONE;
+	return MS_MEDIA_ERR_NONE;
 }
 
 int _media_svc_publish_noti_list(int all_cnt)
 {
-	int err = MEDIA_INFO_ERROR_NONE;
-	int i = 0;
+	int ret = MS_MEDIA_ERR_NONE;
+	int idx = 0;
 	media_svc_noti_item *noti_list = g_inserted_noti_list;
 
 	if (noti_list) {
-		for (i = 0; i < all_cnt; i++) {
-			err = _media_svc_publish_noti_by_item(&(noti_list[i]));
-			if (err < 0) {
-				media_svc_error("_media_svc_publish_noti failed : %d", err);
-			}
+		for (idx = 0; idx < all_cnt; idx++) {
+			ret = __media_svc_publish_noti_by_item(&(noti_list[idx]));
 		}
 	}
 
-	return err;
+	return ret;
 }
 
 
@@ -118,14 +114,14 @@ int _media_svc_create_noti_item(media_svc_content_info_s *content_info,
 
 	if (item == NULL || content_info == NULL) {
 		media_svc_error("_media_svc_create_noti_item : invalid param");
-		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
 	_item = calloc(1, sizeof(media_svc_noti_item));
 
 	if (_item == NULL) {
 		media_svc_error("Failed to prepare noti items");
-		return MEDIA_INFO_ERROR_OUT_OF_MEMORY;
+		return MS_MEDIA_ERR_OUT_OF_MEMORY;
 	}
 
 	_item->pid = pid;
@@ -142,7 +138,7 @@ int _media_svc_create_noti_item(media_svc_content_info_s *content_info,
 
 	*item = _item;
 
-	return MEDIA_INFO_ERROR_NONE;
+	return MS_MEDIA_ERR_NONE;
 }
 
 int _media_svc_destroy_noti_item(media_svc_noti_item *item)
@@ -155,12 +151,12 @@ int _media_svc_destroy_noti_item(media_svc_noti_item *item)
 		SAFE_FREE(item);
 	}
 
-	return MEDIA_INFO_ERROR_NONE;
+	return MS_MEDIA_ERR_NONE;
 }
 
 int _media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 {
-	int err = MEDIA_INFO_ERROR_NONE;
+	int err = MS_MEDIA_ERR_NONE;
 
 	if (noti_item && noti_item->path) {
 		err = media_db_update_send(noti_item->pid,
@@ -188,7 +184,7 @@ int _media_svc_publish_noti(media_item_type_e update_item,
 							const char *mime_type
 )
 {
-	int err = MEDIA_INFO_ERROR_NONE;
+	int err = MS_MEDIA_ERR_NONE;
 
 	if (path) {
 		err = media_db_update_send(getpid(),
@@ -200,7 +196,7 @@ int _media_svc_publish_noti(media_item_type_e update_item,
 								(char *)mime_type);
 		if (err < 0) {
 			media_svc_error("media_db_update_send failed : %d [%s]", err, path);
-			return MEDIA_INFO_ERROR_SEND_NOTI_FAIL;
+			return MS_MEDIA_ERR_SEND_NOTI_FAIL;
 		} else {
 			media_svc_debug("media_db_update_send success");
 		}

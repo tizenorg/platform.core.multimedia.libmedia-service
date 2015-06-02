@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sqlite3.h>
+#include <iniparser.h>
 #include <drm_client.h>
 #include "media-svc-types.h"
 #include "media-svc-env.h"

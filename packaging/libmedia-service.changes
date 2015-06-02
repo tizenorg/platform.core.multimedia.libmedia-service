@@ -1,3 +1,0 @@
-* Wed May 29 2013 Xavier Roche <xavrock.os@gmail.com> accepted/tizen/20130520.101126@e2cbc11
-- Fix hardcoded lib path, and typedef definition for 64b compatibility
-

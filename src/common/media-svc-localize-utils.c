@@ -17,7 +17,8 @@
  *
  */
 
-#include "media-svc-error.h"
+#include "media-util-err.h"
+#include "media-svc-debug.h"
 #include "media-svc-localize-utils.h"
 
 int _media_svc_check_utf8(char c)
@@ -35,6 +36,6 @@ int _media_svc_check_utf8(char c)
 	else if ((c & (char)0xfe) == (char)0xfc)
 		return 6;
 	else
-		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+		return MS_MEDIA_ERR_INVALID_PARAMETER;
 }
 

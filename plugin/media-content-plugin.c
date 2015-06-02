@@ -23,6 +23,7 @@
 #include <mm_file.h>
 #include <media-thumbnail.h>
 #include "media-svc.h"
+#include "media-svc-util.h"
 
 #define MEDIA_SVC_PLUGIN_ERROR_NONE		0
 #define MEDIA_SVC_PLUGIN_ERROR			-1
@@ -43,74 +44,6 @@ typedef enum{
 	ERR_CHECK_ITEM,
 	ERR_MAX,
 }media_svc_error_type_e;
-
-#define MS_CATEGORY_UNKNOWN	0x00000000	/**< Default */
-#define MS_CATEGORY_ETC		0x00000001	/**< ETC category */
-#define MS_CATEGORY_IMAGE		0x00000002	/**< Image category */
-#define MS_CATEGORY_VIDEO		0x00000004	/**< Video category */
-#define MS_CATEGORY_MUSIC		0x00000008	/**< Music category */
-#define MS_CATEGORY_SOUND	0x00000010	/**< Sound category */
-
-#define CONTENT_TYPE_NUM 4
-#define MUSIC_MIME_NUM 29
-#define SOUND_MIME_NUM 1
-#define MIME_TYPE_LENGTH 255
-#define MIME_LENGTH 50
-#define _3GP_FILE ".3gp"
-#define _MP4_FILE ".mp4"
-
-
-typedef struct {
-	char content_type[15];
-	int category_by_mime;
-} fex_content_table_t;
-
-static const fex_content_table_t content_category[CONTENT_TYPE_NUM] = {
-	{"audio", MS_CATEGORY_SOUND},
-	{"image", MS_CATEGORY_IMAGE},
-	{"video", MS_CATEGORY_VIDEO},
-	{"application", MS_CATEGORY_ETC},
-};
-
-static const char music_mime_table[MUSIC_MIME_NUM][MIME_LENGTH] = {
-	/*known mime types of normal files*/
-	"mpeg",
-	"ogg",
-	"x-ms-wma",
-	"x-flac",
-	"mp4",
-	/* known mime types of drm files*/
-	"mp3",
-	"x-mp3", /*alias of audio/mpeg*/
-	"x-mpeg", /*alias of audio/mpeg*/
-	"3gpp",
-	"x-ogg", /*alias of  audio/ogg*/
-	"vnd.ms-playready.media.pya:*.pya", /*playready*/
-	"wma",
-	"aac",
-	"x-m4a", /*alias of audio/mp4*/
-	/* below mimes are rare*/
-	"x-vorbis+ogg",
-	"x-flac+ogg",
-	"x-matroska",
-	"ac3",
-	"mp2",
-	"x-ape",
-	"x-ms-asx",
-	"vnd.rn-realaudio",
-
-	"x-vorbis", /*alias of audio/x-vorbis+ogg*/
-	"vorbis", /*alias of audio/x-vorbis+ogg*/
-	"x-oggflac",
-	"x-mp2", /*alias of audio/mp2*/
-	"x-pn-realaudio", /*alias of audio/vnd.rn-realaudio*/
-	"vnd.m-realaudio", /*alias of audio/vnd.rn-realaudio*/
-	"x-wav",
-};
-
-static const char sound_mime_table[SOUND_MIME_NUM][MIME_LENGTH] = {
-	"x-smaf",
-};
 
 static void __set_error_message(int err_type, char ** err_msg);
 
@@ -135,18 +68,20 @@ static void __set_error_message(int err_type, char ** err_msg)
 		*err_msg = strdup("invalid storage type");
 	else if(err_type == ERR_CHECK_ITEM)
 		*err_msg = strdup("item does not exist");
-	else if(err_type == MEDIA_INFO_ERROR_DATABASE_CONNECT)
+	else if(err_type == MS_MEDIA_ERR_DB_CONNECT_FAIL)
 		*err_msg = strdup("DB connect error");
-	else if(err_type == MEDIA_INFO_ERROR_DATABASE_DISCONNECT)
+	else if(err_type == MS_MEDIA_ERR_DB_DISCONNECT_FAIL)
 		*err_msg = strdup("DB disconnect error");
-	else if(err_type == MEDIA_INFO_ERROR_INVALID_PARAMETER)
+	else if(err_type == MS_MEDIA_ERR_INVALID_PARAMETER)
 		*err_msg = strdup("invalid parameter");
-	else if(err_type == MEDIA_INFO_ERROR_DATABASE_INTERNAL)
+	else if(err_type == MS_MEDIA_ERR_DB_INTERNAL)
 		*err_msg = strdup("DB internal error");
-	else if(err_type == MEDIA_INFO_ERROR_DATABASE_NO_RECORD)
+	else if(err_type == MS_MEDIA_ERR_DB_NO_RECORD)
 		*err_msg = strdup("not found in DB");
-	else if(err_type == MEDIA_INFO_ERROR_INTERNAL)
+	else if(err_type == MS_MEDIA_ERR_INTERNAL)
 		*err_msg = strdup("media service internal error");
+	else if(err_type == MS_MEDIA_ERR_DB_CORRUPT)
+		*err_msg = strdup("DB corrupt error");
 	else
 		*err_msg = strdup("error unknown");
 
@@ -163,7 +98,7 @@ int check_item(const char *file_path, char ** err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int connect(void ** handle, uid_t uid, char ** err_msg)
+int connect_db(void ** handle, uid_t uid, char ** err_msg)
 {
 	int ret = media_svc_connect(handle,uid);
 
@@ -175,7 +110,7 @@ int connect(void ** handle, uid_t uid, char ** err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int disconnect(void * handle, char ** err_msg)
+int disconnect_db(void * handle, char ** err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -213,8 +148,9 @@ int check_item_exist(void* handle, const char *file_path, int storage_type, char
 	}
 
 	ret = media_svc_check_item_exist_by_path(handle, file_path);
-	if(ret == MEDIA_INFO_ERROR_NONE)
+	if(ret == MS_MEDIA_ERR_NONE) {
 		return MEDIA_SVC_PLUGIN_ERROR_NONE;	//exist
+	}
 
 	__set_error_message(ERR_CHECK_ITEM, err_msg);
 
