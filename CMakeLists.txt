@@ -49,6 +49,7 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(BINDIR "${PREFIX}/bin")
 SET(DATADIR "${PREFIX}/share")
 SET(EXEC_PREFIX "\${prefix}")
+SET(LIBDIR "\${prefix}/lib")
 SET(INCLUDEDIR "\${prefix}/include")
 
 IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -58,10 +59,12 @@ MESSAGE("Build type: ${CMAKE_BUILD_TYPE}")
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/include/common ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/uuid ${CMAKE_SOURCE_DIR}/md5)
 
+FIND_PROGRAM(UNAME NAMES uname)
+EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
+
+
 INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo drm-client media-thumbnail libmedia-utils aul)
-
-
+pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo media-thumbnail libmedia-utils aul vconf drm-client)
 
 FOREACH(flag ${pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
@@ -71,8 +74,6 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS} -fPIC")
 SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
 SET(CMAKE_C_FLAGS_RELEASE "-O2 -fPIC")
 
-FIND_PROGRAM(UNAME NAMES uname)
-EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
 IF("${ARCH}" STREQUAL "arm")
 	ADD_DEFINITIONS("-DTARGET")
 	MESSAGE("add -DTARGET")
@@ -111,5 +112,4 @@ INSTALL(TARGETS ${MEDIASERVICE-HASH-LIB} LIBRARY DESTINATION ${LIB_INSTALL_DIR})
 INSTALL(TARGETS ${MEDIACONTENT-PLUGIN-LIB} LIBRARY DESTINATION ${LIB_INSTALL_DIR})
 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc.h DESTINATION include/media-service/)
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc-error.h DESTINATION include/media-service/)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/media-svc-types.h DESTINATION include/media-service/)

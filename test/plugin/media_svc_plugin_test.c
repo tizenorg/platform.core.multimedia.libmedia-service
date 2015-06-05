@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include <stdbool.h>
 #include <media-svc.h>
 
 #include <tzplatform_config.h>
@@ -50,8 +51,8 @@ int __load_functions()
 	}
 
 	svc_check_item		= dlsym (funcHandle, "check_item");
-	svc_connect			= dlsym (funcHandle, "connect");
-	svc_disconnect		= dlsym (funcHandle, "disconnect");
+	svc_connect			= dlsym (funcHandle, "connect_db");
+	svc_disconnect		= dlsym (funcHandle, "disconnect_db");
 	svc_check_item_exist	= dlsym (funcHandle, "check_item_exist");
 	svc_insert_item_immediately	= dlsym (funcHandle, "insert_item_immediately");
 	svc_set_folder_item_validity	= dlsym (funcHandle, "set_folder_item_validity");
