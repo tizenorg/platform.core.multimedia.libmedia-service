@@ -25,6 +25,7 @@
 #define _MEDIA_SVC_H_
 
 #include "media-svc-types.h"
+#include "media-svc-error.h"
 #include <media-util-noti.h>
 #include <stdbool.h>
 #ifdef __cplusplus

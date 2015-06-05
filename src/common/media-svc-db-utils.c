@@ -20,17 +20,14 @@
  */
 
 #include <unistd.h>
-#include <sys/stat.h>
 #include <db-util.h>
 #include <media-util.h>
-#include <errno.h>
 #include "media-svc-env.h"
 #include "media-svc-debug.h"
+#include "media-svc-error.h"
 #include "media-svc-util.h"
 #include "media-svc-db-utils.h"
-#include "media-util-err.h"
 #include "media-util-db.h"
-#include "media-svc-media.h"
 
 static int __media_svc_create_update_media_table(sqlite3 *db_handle);
 
@@ -120,7 +117,7 @@ static int __media_svc_busy_handler(void *pData, int count)
 
 int _media_svc_connect_db_with_handle(sqlite3 **db_handle)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 
 	media_svc_debug_func();
 
@@ -131,7 +128,7 @@ int _media_svc_connect_db_with_handle(sqlite3 **db_handle)
 
 		media_svc_error("error when db open");
 		*db_handle = NULL;
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_CONNECT;
 	}
 
 	/*Register busy handler*/
@@ -147,19 +144,19 @@ int _media_svc_connect_db_with_handle(sqlite3 **db_handle)
 			db_util_close(*db_handle);
 			*db_handle = NULL;
 
-			return MS_MEDIA_ERR_DB_INTERNAL;
+			return MEDIA_INFO_ERROR_DATABASE_CONNECT;
 		}
 	} else {
 		*db_handle = NULL;
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_CONNECT;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_disconnect_db_with_handle(sqlite3 *db_handle)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 
 	media_svc_debug_func();
 
@@ -168,28 +165,28 @@ int _media_svc_disconnect_db_with_handle(sqlite3 *db_handle)
 	if (SQLITE_OK != ret) {
 		media_svc_error("Error when db close : %s", sqlite3_errmsg(db_handle));
 		db_handle = NULL;
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_DISCONNECT;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_media_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
-	char *sql = NULL;
+	int ret = MEDIA_INFO_ERROR_NONE;
+	char * sql = NULL;
 
 	media_svc_debug_func();
 
 	sql = sqlite3_mprintf(MEDIA_DB_SCHEMA, MEDIA_SVC_DB_TABLE_MEDIA);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Index*/
@@ -229,22 +226,22 @@ int _media_svc_create_media_table(sqlite3 *db_handle, uid_t uid)
 						MEDIA_SVC_DB_TABLE_MEDIA,
 						MEDIA_SVC_DB_TABLE_MEDIA);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
-	char *sql = NULL;
+	int ret = MEDIA_INFO_ERROR_NONE;
+	char * sql = NULL;
 
 	media_svc_debug_func();
 
@@ -259,13 +256,13 @@ int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_FOLDER);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Trigger to remove folder which have no content from folder when media remove from media_table*/
@@ -274,13 +271,13 @@ int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 				WHERE (SELECT count(*) FROM %s WHERE folder_uuid=old.folder_uuid)=1 AND folder_uuid=old.folder_uuid;END;",
 				MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_TABLE_MEDIA);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Index*/
@@ -288,17 +285,17 @@ int _media_svc_create_folder_table(sqlite3 *db_handle, uid_t uid)
 						",
 						MEDIA_SVC_DB_TABLE_FOLDER);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-	return MS_MEDIA_ERR_NONE;
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
 
 	media_svc_debug_func();
@@ -312,13 +309,13 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_PLAYLIST);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/*Create playlist_map table*/
@@ -330,13 +327,13 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_PLAYLIST_MAP);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create playlist_view*/
@@ -355,24 +352,24 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 				WHERE playlist_id IN (select pm.playlist_id from playlist_map AS pm INNER JOIN media AS m ON (pm.media_uuid= m.media_uuid) AND m.validity=0); \
 		");
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	/* Create Trigger to remove media from playlist_map when media remove from media_table*/
 	sql = sqlite3_mprintf("CREATE TRIGGER IF NOT EXISTS playlist_map_cleanup \
 				DELETE ON %s BEGIN DELETE FROM %s WHERE media_uuid=old.media_uuid;END;",
 				MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Trigger to remove media from playlist_map when playlist removed from playlist table*/
@@ -380,21 +377,21 @@ int _media_svc_create_playlist_table(sqlite3 *db_handle, uid_t uid)
 				DELETE ON %s BEGIN DELETE FROM %s WHERE playlist_id=old.playlist_id;END;",
 				MEDIA_SVC_DB_TABLE_PLAYLIST, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_album_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
 
 	media_svc_debug_func();
@@ -408,13 +405,13 @@ int _media_svc_create_album_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_ALBUM);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Trigger to remove album when media remove from media_table*/
@@ -423,21 +420,21 @@ int _media_svc_create_album_table(sqlite3 *db_handle, uid_t uid)
 				WHERE (SELECT count(*) FROM %s WHERE album_id=old.album_id)=1 AND album_id=old.album_id;END;",
 				MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_ALBUM, MEDIA_SVC_DB_TABLE_MEDIA);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
 
 	media_svc_debug_func();
@@ -450,13 +447,13 @@ int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_TAG);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/*Create tag_map table*/
@@ -468,13 +465,13 @@ int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_TAG_MAP);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/*Create tag_view*/
@@ -493,24 +490,24 @@ int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 				NOT IN (select tag_id from tag_map); \
 				");
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 
 	/* Create Trigger to remove media from tag_map when media remove from media_table*/
 	sql = sqlite3_mprintf("CREATE TRIGGER IF NOT EXISTS tag_map_cleanup \
 				DELETE ON %s BEGIN DELETE FROM %s WHERE media_uuid=old.media_uuid;END;",
 				MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_TAG_MAP);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Trigger to remove media from tag_map when tag removed from tag table*/
@@ -518,20 +515,20 @@ int _media_svc_create_tag_table(sqlite3 *db_handle, uid_t uid)
 				DELETE ON %s BEGIN DELETE FROM %s WHERE tag_id=old.tag_id;END;",
 				MEDIA_SVC_DB_TABLE_TAG, MEDIA_SVC_DB_TABLE_TAG_MAP);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_bookmark_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
 
 	media_svc_debug_func();
@@ -545,13 +542,13 @@ int _media_svc_create_bookmark_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_BOOKMARK);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Trigger to remove media from tag_map when media remove from media_table*/
@@ -559,21 +556,21 @@ int _media_svc_create_bookmark_table(sqlite3 *db_handle, uid_t uid)
 				DELETE ON %s BEGIN DELETE FROM %s WHERE media_uuid=old.media_uuid;END;",
 				MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_BOOKMARK);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_create_custom_table(sqlite3 *db_handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char * sql = NULL;
 
 	media_svc_debug_func();
@@ -591,13 +588,13 @@ int _media_svc_create_custom_table(sqlite3 *db_handle, uid_t uid)
 				);",
 				MEDIA_SVC_DB_TABLE_CUSTOM);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Trigger to remove media from tag_map when media remove from media_table*/
@@ -605,13 +602,13 @@ int _media_svc_create_custom_table(sqlite3 *db_handle, uid_t uid)
 				DELETE ON %s BEGIN DELETE FROM %s WHERE media_uuid=old.media_uuid;END;",
 				MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_CUSTOM);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create trigger (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
 	/* Create Index*/
@@ -619,16 +616,16 @@ int _media_svc_create_custom_table(sqlite3 *db_handle, uid_t uid)
 						",
 						MEDIA_SVC_DB_TABLE_CUSTOM);
 
-	media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
+	media_svc_retv_if(sql == NULL, MEDIA_INFO_ERROR_OUT_OF_MEMORY);
 
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
 	if (ret != SQLITE_OK) {
 		media_svc_error("It failed to create db table (%d)", ret);
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		return MEDIA_INFO_ERROR_DATABASE_TABLE_OPEN;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_request_update_db(const char *sql_str, uid_t uid)
@@ -642,14 +639,30 @@ int _media_svc_request_update_db(const char *sql_str, uid_t uid)
 
 int _media_svc_sql_query(sqlite3 *db_handle, const char *sql_str, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int err = -1;
 
 	media_svc_debug("[SQL query] : %s", sql_str);
-
+#if 1
 	//DB will be updated by Media Server.
-	ret = _media_svc_request_update_db(sql_str, uid);
+	err = _media_svc_request_update_db(sql_str, uid);
 
-	return ret;
+	return _media_svc_error_convert(err);
+#else
+	char *zErrMsg = NULL;
+	media_svc_retvm_if(sql_str == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "sql_str is NULL");
+
+	err = sqlite3_exec(db_handle, sql_str, NULL, NULL, &zErrMsg);
+
+	if (SQLITE_OK != err) {
+		media_svc_error("failed to execute [%s], err[%d]", zErrMsg, err);
+	} else {
+		media_svc_debug("query success");
+	}
+
+	if (zErrMsg)
+		sqlite3_free (zErrMsg);
+	return err;
+#endif
 }
 
 int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3_stmt** stmt)
@@ -662,66 +675,105 @@ int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3
 	sqlite3_free((char *)sql_str);
 
 	if (err != SQLITE_OK) {
-		media_svc_error ("prepare error %d[%s]", err, sqlite3_errmsg(handle));
-		return MS_MEDIA_ERR_DB_INTERNAL;
+		media_svc_error ("prepare error [%s]", sqlite3_errmsg(handle));
+		return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
 	}
 
 	err = sqlite3_step(*stmt);
 	if (err != SQLITE_ROW) {
 		media_svc_error("Item not found. end of row [%s]", sqlite3_errmsg(handle));
 		SQLITE3_FINALIZE(*stmt);
-		return MS_MEDIA_ERR_DB_NO_RECORD;
+		return MEDIA_INFO_ERROR_DATABASE_NO_RECORD;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_sql_begin_trans(sqlite3 *handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int err = MEDIA_INFO_ERROR_NONE;
 
-	media_svc_error("========_media_svc_sql_begin_trans");
+	media_svc_debug("========_media_svc_sql_begin_trans");
+#if 1
+	//err = _media_svc_request_update_db("BEGIN IMMEDIATE;");
+	err = media_db_request_update_db_batch_start("BEGIN IMMEDIATE;", uid);
 
-	ret = media_db_request_update_db_batch_start("BEGIN IMMEDIATE;", uid);
+	return _media_svc_error_convert(err);
+#else
+	char *err_msg = NULL;
 
-	return ret;
+	if (SQLITE_OK != sqlite3_exec(handle, "BEGIN IMMEDIATE;", NULL, NULL, &err_msg)) {
+		media_svc_error("Error:failed to begin transaction: error=%s", err_msg);
+		sqlite3_free(err_msg);
+		return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
+	}
+
+	sqlite3_free(err_msg);
+	return err;
+#endif
 }
 
 int _media_svc_sql_end_trans(sqlite3 *handle, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int err = MEDIA_INFO_ERROR_NONE;
 
-	media_svc_error("========_media_svc_sql_end_trans");
+	media_svc_debug("========_media_svc_sql_end_trans");
+#if 1
+	err = media_db_request_update_db_batch_end("COMMIT;", uid);
+	//err = _media_svc_request_update_db("COMMIT;");
+	return _media_svc_error_convert(err);
+#else
+	char *err_msg = NULL;
+	if (SQLITE_OK != sqlite3_exec(handle, "COMMIT;", NULL, NULL, &err_msg)) {
+		media_svc_error("Error:failed to end transaction: error=%s", err_msg);
+		sqlite3_free(err_msg);
+		return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
+	}
 
-	ret = media_db_request_update_db_batch_end("COMMIT;", uid);
-
-	return ret;
+	sqlite3_free(err_msg);
+	return err;
+#endif
 }
 
 int _media_svc_sql_rollback_trans(sqlite3 *handle, uid_t uid)
 {
-	media_svc_error("========_media_svc_sql_rollback_trans");
+	int err = MEDIA_INFO_ERROR_NONE;
 
-	return _media_svc_request_update_db("ROLLBACK;", uid);
+	media_svc_debug("========_media_svc_sql_rollback_trans");
+#if 1
+	err = _media_svc_request_update_db("ROLLBACK;", uid);
+	return _media_svc_error_convert(err);
+#else
+	char *err_msg = NULL;
+	if (SQLITE_OK != sqlite3_exec(handle, "ROLLBACK;", NULL, NULL, &err_msg)) {
+		media_svc_error("Error:failed to rollback transaction: error=%s", err_msg);
+		sqlite3_free(err_msg);
+		return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
+	}
 
+	sqlite3_free(err_msg);
+	return err;
+#endif
 }
 
 int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
-	int idx = 0;
+	int i = 0;
 	int length = g_list_length(*query_list);
+	int err = -1;
 	char *sql = NULL;
 
 	media_svc_debug("query list length : [%d]", length);
 
-	for (idx = 0; idx < length; idx++) {
-		sql = (char*)g_list_nth_data(*query_list, idx);
+	for (i = 0; i < length; i++) {
+		sql = (char*)g_list_nth_data(*query_list, i);
 		if(sql != NULL) {
-			//ret = _media_svc_sql_query(handle, sql);
-			ret = media_db_request_update_db_batch(sql, uid);
-			if (ret != MS_MEDIA_ERR_NONE) {
-				media_svc_error("media_db_request_update_db_batch failed : %d", ret);
+			//err = _media_svc_sql_query(handle, sql);
+			err = media_db_request_update_db_batch(sql, uid);
+			//if (err != SQLITE_OK) {
+			//	media_svc_error("A query failed in batch");
+			if (err < MS_MEDIA_ERR_NONE) {
+				media_svc_error("media_db_request_update_db_batch failed : %d", err);
 			}
 			sqlite3_free(sql);
 			sql = NULL;
@@ -730,7 +782,7 @@ int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 
 	_media_svc_sql_query_release(query_list);
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 
 }
 

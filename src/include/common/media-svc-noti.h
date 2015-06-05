@@ -22,9 +22,9 @@
 #ifndef _MEDIA_SVC_NOTI_H_
 #define _MEDIA_SVC_NOTI_H_
 
-#include "media-svc-types.h"
 #include "media-svc-env.h"
 #include "media-svc-debug.h"
+#include "media-svc-error.h"
 #include <media-util-noti.h>
 
 typedef struct _media_svc_noti_item media_svc_noti_item;
@@ -40,6 +40,7 @@ struct _media_svc_noti_item {
 };
 
 void _media_svc_set_noti_from_pid(int pid);
+
 int _media_svc_create_noti_list(int count);
 int _media_svc_insert_item_to_noti_list(media_svc_content_info_s *content_info, int cnt);
 int _media_svc_destroy_noti_list(int all_cnt);

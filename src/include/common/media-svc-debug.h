@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlog.h>
-#include <errno.h>
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -72,25 +71,6 @@
 				_media_svc_destroy_content_info(p_str);        \
 				return (val); \
 			} \
-		} while (0)
-
-#define media_svc_sec_debug(fmt, arg...) do { \
-			SECURE_LOGI(" "fmt"", ##arg);	 \
-		} while (0)
-
-#define media_svc_sec_warn(fmt, arg...) do { \
-			SECURE_LOGW(" "fmt"", ##arg); 	\
-		} while (0)
-
-#define media_svct_sec_error(fmt, arg...) do { \
-			SECURE_LOGE(" "fmt"", ##arg);	  \
-		} while (0)
-
-#define ERR_BUF_LENGHT 256
-#define media_svc_stderror(fmt) do { \
-			char buf[ERR_BUF_LENGHT] = {0,}; \
-			strerror_r(errno, buf, ERR_BUF_LENGHT); \
-			LOGE(fmt" : standard error= [%s]", buf); \
 		} while (0)
 
 #ifdef _USE_LOG_FILE_

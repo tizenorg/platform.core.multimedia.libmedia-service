@@ -39,9 +39,8 @@
 #include <grp.h>
 #include <pwd.h>
 #include "uuid.h"
-#include "media-util-err.h"
 #include "media-svc-util.h"
-#include "media-svc-db-utils.h"
+#include "media-svc-error.h"
 #include "media-svc-debug.h"
 #include "media-svc-env.h"
 #include "media-svc-hash.h"
@@ -84,7 +83,7 @@ static char *__year_2_str(int year)
 char *_media_info_generate_uuid(void)
 {
 	uuid_t uuid_value;
-	static char uuid_unparsed[50];
+	static char uuid_unparsed[50];	
 
 	uuid_generate(uuid_value);
 	uuid_unparse(uuid_value, uuid_unparsed);
@@ -115,7 +114,7 @@ int __media_svc_malloc_and_strncpy(char **dst, const char *src)
 
 	if (!STRING_VALID(src)) {
 		media_svc_error("invalid src");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	SAFE_FREE(*dst);
@@ -125,14 +124,14 @@ int __media_svc_malloc_and_strncpy(char **dst, const char *src)
 
 	if (*dst == NULL) {
 		media_svc_error("malloc failed");
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INTERNAL;
 	}
 
 	strncpy(*dst, src, len);
 	char *p = *dst;
 	p[len - 1] = '\0';
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 static void __media_svc_split_to_double(char *input, double *arr, int *num)
@@ -197,7 +196,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 
 	if (ed == NULL) {
 		//media_svc_debug("ExifData is NULL");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	ifd = ifdtype;
@@ -212,7 +211,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 
 			if (i_value == NULL) {
 				media_svc_error("i_value is NULL");
-				return MS_MEDIA_ERR_INVALID_PARAMETER;
+				return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 			}
 
 			ExifByteOrder mByteOrder = exif_data_get_byte_order(ed);
@@ -224,7 +223,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 
 			if (d_value == NULL) {
 				media_svc_error("d_value is NULL");
-				return MS_MEDIA_ERR_INVALID_PARAMETER;
+				return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 			}
 
 			/* Get the contents of the tag in human-readable form */
@@ -240,7 +239,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 			__media_svc_split_to_double(gps_buf, tmp_arr, &count);
 			if (count != 3) {
 				media_svc_error("Value is invalid");
-				return MS_MEDIA_ERR_INTERNAL;
+				return MEDIA_INFO_ERROR_INTERNAL;
 			}
 
 			*d_value = tmp_arr[0] + tmp_arr[1] / 60 + tmp_arr[2] / 3600;
@@ -249,7 +248,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 
 			if (buf == NULL) {
 				media_svc_error("buf is NULL");
-				return MS_MEDIA_ERR_INVALID_PARAMETER;
+				return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 			}
 
 			exif_entry_get_value(entry, buf, MEDIA_SVC_METADATA_LEN_MAX);
@@ -261,7 +260,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 		}
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 unsigned int _media_svc_get_current_time(void)
@@ -321,15 +320,15 @@ int _media_svc_rename_file( const char *old_name, const char *new_name)
 	if((old_name == NULL) || (new_name == NULL))
 	{
 		media_svc_error("invalid file name");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	if (rename(old_name, new_name) < 0) {
 		media_svc_error("Old : [%s] New : [%s] errno : [%s]", old_name, new_name, strerror(errno));
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INTERNAL;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 bool _media_svc_remove_file(const char *path)
@@ -356,7 +355,7 @@ int _media_svc_remove_all_files_in_dir(const char *dir_path)
 	dir = opendir(dir_path);
 	if (dir == NULL) {
 		media_svc_error("%s is not exist", dir_path);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	while ((entry = readdir(dir)) != NULL) {
@@ -374,12 +373,12 @@ int _media_svc_remove_all_files_in_dir(const char *dir_path)
 		if (unlink(filename) != 0) {
 			media_svc_error("failed to remove : %s", filename);
 			closedir(dir);
-			return MS_MEDIA_ERR_INTERNAL;
+			return MEDIA_INFO_ERROR_INTERNAL;
 		}
 	}
 
 	closedir(dir);
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 char *_media_svc_get_title_from_filepath (const char *path)
@@ -564,20 +563,20 @@ int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid)
 
 	if (!image) {
 		media_svc_error("invalid image..");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	struct statfs fs;
 	if (-1 == statfs(_media_svc_get_thumb_path(uid), &fs)) {
 		media_svc_error("error in statfs");
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INTERNAL;
 	}
 
 	long bsize_kbytes = fs.f_bsize >> 10;
 
 	if ((bsize_kbytes * fs.f_bavail) < 1024) {
 		media_svc_error("not enought space...");
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INTERNAL;
 	}
 
 	FILE *fp = NULL;
@@ -587,19 +586,19 @@ int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid)
 
 		if (fp == NULL) {
 			media_svc_error("failed to open file");
-			return MS_MEDIA_ERR_INTERNAL;
+			return MEDIA_INFO_ERROR_INTERNAL;
 		}
 
 		nwrite = fwrite(image, 1, size, fp);
 		if (nwrite != size) {
 			media_svc_error("failed to write thumbnail");
 			fclose(fp);
-			return MS_MEDIA_ERR_INTERNAL;
+			return MEDIA_INFO_ERROR_INTERNAL;
 		}
 		fclose(fp);
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 
@@ -673,7 +672,7 @@ int _media_svc_get_file_time(const char *full_path)
 	fd = stat(full_path, &statbuf);
 	if (fd == -1) {
 		 media_svc_error("stat(%s) fails.", full_path);
-		 return MS_MEDIA_ERR_INTERNAL;
+		 return MEDIA_INFO_ERROR_INTERNAL;
 	 }
 
 	 return statbuf.st_mtime;
@@ -682,7 +681,7 @@ int _media_svc_get_file_time(const char *full_path)
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_storage_type_e storage_type,
 			  const char *path, media_svc_media_type_e *media_type, bool refresh, drm_content_info_s **drm_contentInfo)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char * media_uuid = NULL;
 	char * file_name = NULL;
 	struct stat st;
@@ -690,7 +689,7 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	char mime_type[256] = {0};
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->path, path);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	memset(&st, 0, sizeof(struct stat));
 	if (stat(path, &st) == 0) {
@@ -712,85 +711,85 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	title = _media_svc_get_title_from_filepath(content_info->path);
 	if (title) {
 		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
-		if(ret != MS_MEDIA_ERR_NONE)
+		if(ret != MEDIA_INFO_ERROR_NONE)
 			media_svc_error("strcpy error");
 		SAFE_FREE(title);
 	} else {
 		media_svc_error("Can't extract title from filepath [%s]", content_info->path);
 		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
-		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+		media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 	}
 
 	/* Set default value before extracting meta information */
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.copyright, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.track_num, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album_artist, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.genre, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.composer, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.year, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	/* refresh is TRUE when file modified. so only modified_time and size are changed*/
 	if(refresh) {
 		media_svc_debug("refresh");
-		return MS_MEDIA_ERR_NONE;
+		return MEDIA_INFO_ERROR_NONE;
 	}
 
 	content_info->storage_type = storage_type;
 	time(&content_info->added_time);
 
 	media_uuid = _media_info_generate_uuid();
-	media_svc_retvm_if(media_uuid == NULL, MS_MEDIA_ERR_INTERNAL, "Invalid UUID");
+	media_svc_retvm_if(media_uuid == NULL, MEDIA_INFO_ERROR_INTERNAL, "Invalid UUID");
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_uuid, media_uuid);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	file_name = g_path_get_basename(path);
 	ret = __media_svc_malloc_and_strncpy(&content_info->file_name, file_name);
 	SAFE_FREE(file_name);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
 	/* if the file is DRM file, drm_type value is DRM_TRUE(1).
 	if drm_contentinfo is not NULL, the file is OMA DRM.*/
 	ret = _media_svc_get_mime_type(path, mime_type, &drm_type, drm_contentInfo);
 	if (ret < 0) {
 		media_svc_error("media_svc_get_mime_type failed : %d (%s)", ret, path);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PATH;
 	}
 
 	media_svc_error("mime [%s]", mime_type);
 	content_info->is_drm = drm_type;
 
 	ret = _media_svc_get_media_type(path, mime_type, media_type);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	media_svc_retv_if(ret != MEDIA_INFO_ERROR_NONE, ret);
 	if ((*media_type < MEDIA_SVC_MEDIA_TYPE_IMAGE) || (*media_type > MEDIA_SVC_MEDIA_TYPE_OTHER)) {
 		media_svc_error("invalid media_type condition[%d]", *media_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->mime_type, mime_type);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	media_svc_retv_del_if(ret != MEDIA_INFO_ERROR_NONE, ret, content_info);
 
-	media_svc_sec_debug("storage[%d], path[%s], media_type[%d]", storage_type, path, *media_type);
+	media_svc_debug("storage[%d], path[%s], media_type[%d]", storage_type, path, *media_type);
 
 	content_info->media_type = *media_type;
 
@@ -800,14 +799,14 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	content_info->favourate= 0;
 	content_info->media_meta.rating = 0;
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, media_svc_media_type_e media_type)
 {
 	if (content_info == NULL || media_type != MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 		media_svc_error("content_info == NULL || media_type != MEDIA_SVC_MEDIA_TYPE_IMAGE");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	char buf[MEDIA_SVC_METADATA_LEN_MAX + 1] = { '\0' };
@@ -815,7 +814,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	memset(buf, 0x00, sizeof(buf));
 	memset(description_buf, 0x00, sizeof(description_buf));
 
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	double value = 0.0;
 	int orient_value = 0;
 	int exif_width = 0;
@@ -825,7 +824,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	char *path = content_info->path;
 	if (path == NULL) {
 		media_svc_error("path is NULL");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	/* Load an ExifData object from an EXIF file */
@@ -835,9 +834,9 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 		media_svc_debug("There is no exif data in [ %s ]", path);
 	}
 
-	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_GPS_LATITUDE_REF) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_GPS_LATITUDE_REF) == MEDIA_INFO_ERROR_NONE) {
 		if (strlen(buf) != 0) {
-			if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE) == MS_MEDIA_ERR_NONE) {
+			if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE) == MEDIA_INFO_ERROR_NONE) {
 
 				if (strcmp(buf, "S") == 0) {
 					value = -1 * value;
@@ -856,9 +855,9 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_GPS_LONGITUDE_REF) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_GPS_LONGITUDE_REF) == MEDIA_INFO_ERROR_NONE) {
 		if (strlen(buf) != 0) {
-			if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE) == MS_MEDIA_ERR_NONE) {
+			if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE) == MEDIA_INFO_ERROR_NONE) {
 				if (strcmp(buf, "W") == 0) {
 					value = -1 * value;
 				}
@@ -875,44 +874,44 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (__media_svc_get_exif_info(ed, description_buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_IMAGE_DESCRIPTION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, description_buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_IMAGE_DESCRIPTION) == MEDIA_INFO_ERROR_NONE) {
 		if (strlen(description_buf) == 0) {
 			//media_svc_debug("Use 'No description'");
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 		} else {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, description_buf);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 		}
 	} else {
 		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
-		if(ret != MS_MEDIA_ERR_NONE)
+		if(ret != MEDIA_INFO_ERROR_NONE)
 			media_svc_error("strcpy error");
 	}
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_DATE_TIME) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_DATE_TIME) == MEDIA_INFO_ERROR_NONE) {
 		if (strlen(buf) == 0) {
 			//media_svc_debug("time  is NULL");
 		} else {
 			//media_svc_debug("time  is %s", buf);
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.datetaken, buf);
-			if(ret != MS_MEDIA_ERR_NONE) {
+			if(ret != MEDIA_INFO_ERROR_NONE) {
 				media_svc_error("strcpy error");
 			} else {
 				/* This is same as recorded_date */
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.recorded_date, buf);
-				if(ret != MS_MEDIA_ERR_NONE)
+				if(ret != MEDIA_INFO_ERROR_NONE)
 					media_svc_error("strcpy error");
 			}
 		}
 	}
 
 	/* Get orientation value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &orient_value, NULL, EXIF_IFD_0, EXIF_TAG_ORIENTATION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &orient_value, NULL, EXIF_IFD_0, EXIF_TAG_ORIENTATION) == MEDIA_INFO_ERROR_NONE) {
 		if (orient_value >= NOT_AVAILABLE && orient_value <= ROT_270) {
 			content_info->media_meta.orientation = orient_value;
 		} else {
@@ -923,7 +922,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	}
 
 	/* Get width value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &exif_width, NULL, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_X_DIMENSION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &exif_width, NULL, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_X_DIMENSION) == MEDIA_INFO_ERROR_NONE) {
 		if (exif_width > 0) {
 			content_info->media_meta.width = exif_width;
 		} else {
@@ -934,7 +933,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	}
 
 	/* Get height value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &exif_height, NULL, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_Y_DIMENSION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &exif_height, NULL, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_Y_DIMENSION) == MEDIA_INFO_ERROR_NONE) {
 		if (exif_height > 0) {
 			content_info->media_meta.height = exif_height;
 		} else {
@@ -953,7 +952,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	title = _media_svc_get_title_from_filepath(content_info->path);
 	if (title) {
 		ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
-		if(ret != MS_MEDIA_ERR_NONE)
+		if(ret != MEDIA_INFO_ERROR_NONE)
 			media_svc_error("strcpy error");
 		SAFE_FREE(title);
 	} else {
@@ -981,10 +980,10 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	else
 		content_info->thumbnail_path = NULL;
 
-	if(ret != MS_MEDIA_ERR_NONE)
+	if(ret != MEDIA_INFO_ERROR_NONE)
 		media_svc_error("strcpy error");
 #endif
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo, uid_t uid)
@@ -1003,7 +1002,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	bool append_album = FALSE;
 	int album_id = 0;
 	double gps_value = 0.0;
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	char *path = content_info->path;
 
 #ifdef __SUPPORT_DRM
@@ -1022,45 +1021,45 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			if (drm_file_type == DRM_TYPE_OMA_V1) {
 				if (strlen(drm_contentInfo->title) > 0) {
 					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, drm_contentInfo->title);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
 				}
 
 				if (strlen(drm_contentInfo->description) > 0) {
 					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, drm_contentInfo->description);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_DESC;
 				}
 			} else if (drm_file_type == DRM_TYPE_OMA_V2) {
 				if (strlen(drm_contentInfo->title) > 0) {
 					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, drm_contentInfo->title);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
 				}
 
 				if (strlen(drm_contentInfo->description) > 0) {
 					ret =  __media_svc_malloc_and_strncpy(&content_info->media_meta.description, drm_contentInfo->description);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_DESC;
 				}
 
 				if (strlen(drm_contentInfo->copyright) > 0) {
 					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.copyright, drm_contentInfo->copyright);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_COPYRIGHT;
 				}
 
 				if (strlen(drm_contentInfo->author) > 0) {
 					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.composer, drm_contentInfo->author);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, drm_contentInfo->author);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 
 					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_AUTHOR;
@@ -1073,14 +1072,14 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				if (title) {
 					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
 					SAFE_FREE(title);
-					if(ret != MS_MEDIA_ERR_NONE)
+					if(ret != MEDIA_INFO_ERROR_NONE)
 						media_svc_error("strcpy error");
 				} else {
 					media_svc_error("Can't extract title from filepath [%s]", content_info->path);
 				}
 			}
 
-			return MS_MEDIA_ERR_NONE;
+			return MEDIA_INFO_ERROR_NONE;
 		} else {
 			media_svc_debug("Some Not OMA Content's metadata is not incrypted so fileinfo can extracted metadata");
 		}
@@ -1174,7 +1173,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 		} else {
 			media_svc_error("Not support type");
-			return MS_MEDIA_ERR_INVALID_PARAMETER;
+			return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 		}
 
 		mmf_error = mm_file_destroy_content_attrs(content);
@@ -1192,7 +1191,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_ALBUM, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_ALBUM)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.album, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 
 			//media_svc_debug("album[%d] : %s", size, content_info->media_meta.album);
@@ -1204,7 +1203,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_ARTIST, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_ARTIST)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 			//media_svc_debug("artist[%d] : %s", size, content_info->media_meta.artist);
 		} else {
@@ -1215,7 +1214,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_GENRE, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_GENRE)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.genre, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 
 			//media_svc_debug("genre : %s", content_info->media_meta.genre);
@@ -1234,7 +1233,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == MM_ERROR_NONE) && (size > 0)/* && 	(!isspace(*p))*/) {
 			if(!isspace(*p)) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, p);
-				if(ret != MS_MEDIA_ERR_NONE)
+				if(ret != MEDIA_INFO_ERROR_NONE)
 					media_svc_error("strcpy error");
 
 				extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
@@ -1252,7 +1251,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					} else {
 						media_svc_debug("Not SPACE [%s]", p);
 						ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, p);
-						if(ret != MS_MEDIA_ERR_NONE)
+						if(ret != MEDIA_INFO_ERROR_NONE)
 							media_svc_error("strcpy error");
 						break;
 					}
@@ -1264,7 +1263,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					title = _media_svc_get_title_from_filepath(content_info->path);
 					if (title) {
 						ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
-						if(ret != MS_MEDIA_ERR_NONE)
+						if(ret != MEDIA_INFO_ERROR_NONE)
 							media_svc_error("strcpy error");
 						SAFE_FREE(title);
 					} else {
@@ -1277,7 +1276,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			title = _media_svc_get_title_from_filepath(content_info->path);
 			if (title) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
-				if(ret != MS_MEDIA_ERR_NONE)
+				if(ret != MEDIA_INFO_ERROR_NONE)
 					media_svc_error("strcpy error");
 				SAFE_FREE(title);
 			} else {
@@ -1288,7 +1287,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_DESCRIPTION, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_DESC)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 			//media_svc_debug("desc : %s", content_info->media_meta.description);
 		} else {
@@ -1298,12 +1297,12 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_RECDATE, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_DESC)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.recorded_date, p);
-			if(ret != MS_MEDIA_ERR_NONE) {
+			if(ret != MEDIA_INFO_ERROR_NONE) {
 				media_svc_error("strcpy error");
 			} else {
 				/* This is same as datetaken */
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.datetaken, p);
-				if(ret != MS_MEDIA_ERR_NONE)
+				if(ret != MEDIA_INFO_ERROR_NONE)
 					media_svc_error("strcpy error");
 			}
 			//media_svc_debug("Recorded date : %s", content_info->media_meta.recorded_date);
@@ -1314,7 +1313,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_AUTHOR, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_AUTHOR)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.composer, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 			extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_AUTHOR;
 			//media_svc_debug("extract composer from content : %s", content_info->media_meta.composer);
@@ -1326,7 +1325,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_COPYRIGHT, &p, &size, NULL);
 		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_COPYRIGHT)) && (mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.copyright, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 			extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_AUTHOR;
 			//media_svc_debug("extract copyright from content : %s", content_info->media_meta.copyright);
@@ -1338,7 +1337,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_TRACK_NUM, &p, &size, NULL);
 		if ((mmf_error == MM_ERROR_NONE) && (size > 0)) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.track_num, p);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 		} else {
 			SAFE_FREE(err_attr_name);
@@ -1349,7 +1348,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			int year = 0;
 			if((p != NULL) && (sscanf( p, "%d", &year))) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.year, p);
-				if(ret != MS_MEDIA_ERR_NONE)
+				if(ret != MEDIA_INFO_ERROR_NONE)
 					media_svc_error("strcpy error");
 			} else {
 				media_svc_debug("Wrong Year Information [%s]", p);
@@ -1371,8 +1370,8 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			content_info->album_id = album_id;
 			ret = _media_svc_get_album_id(handle, content_info->media_meta.album, content_info->media_meta.artist, &album_id);
 	
-			if (ret != MS_MEDIA_ERR_NONE) {
-				if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+			if (ret != MEDIA_INFO_ERROR_NONE) {
+				if (ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD) {
 					media_svc_debug("album does not exist. So start to make album art");
 					extract_thumbnail = TRUE;
 					append_album = TRUE;
@@ -1393,7 +1392,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	
 					media_svc_debug("album already exists. don't need to make album art");
 					ret = _media_svc_get_album_art_by_album_id(handle, album_id, &content_info->thumbnail_path);
-					media_svc_retv_del_if((ret != MS_MEDIA_ERR_NONE) && (ret != MS_MEDIA_ERR_DB_NO_RECORD), ret, content_info);
+					media_svc_retv_del_if((ret != MEDIA_INFO_ERROR_NONE) && (ret != MEDIA_INFO_ERROR_DATABASE_NO_RECORD), ret, content_info);
 					extract_thumbnail = FALSE;
 				}
 			}
@@ -1416,7 +1415,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				}
 				if (image != NULL && size > 0) {
 					bool result = FALSE;
-					int ret = MS_MEDIA_ERR_NONE;
+					int ret = MEDIA_INFO_ERROR_NONE;
 					char thumb_path[MEDIA_SVC_PATHNAME_SIZE] = "\0";
 					int artwork_mime_size = -1;
 	
@@ -1433,12 +1432,12 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					if(strlen(thumb_path) > 0)
 					{
 						ret = _media_svc_save_image(image, size, thumb_path, uid);
-						if (ret != MS_MEDIA_ERR_NONE) {
+						if (ret != MEDIA_INFO_ERROR_NONE) {
 							media_svc_error("Fail to Save Thumbnail Image");
 						}
 						else {
 							ret = __media_svc_malloc_and_strncpy(&content_info->thumbnail_path, thumb_path);
-							if(ret != MS_MEDIA_ERR_NONE)
+							if(ret != MEDIA_INFO_ERROR_NONE)
 								media_svc_error("strcpy error");
 						}
 					}
@@ -1501,7 +1500,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				}
 
 				ret = __media_svc_malloc_and_strncpy(&content_info->thumbnail_path, thumb_path);
-				if(ret != MS_MEDIA_ERR_NONE)
+				if(ret != MEDIA_INFO_ERROR_NONE)
 					media_svc_error("strcpy error");
 
 				if (content_info->media_meta.width <= 0) content_info->media_meta.width = width;
@@ -1522,7 +1521,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		title = _media_svc_get_title_from_filepath(content_info->path);
 		if (title) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if(ret != MEDIA_INFO_ERROR_NONE)
 				media_svc_error("strcpy error");
 			SAFE_FREE(title);
 		} else {
@@ -1532,7 +1531,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		content_info->album_id = album_id;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 void _media_svc_destroy_content_info(media_svc_content_info_s *content_info)
@@ -1590,10 +1589,10 @@ int _media_svc_get_store_type_by_path(const char *path, media_svc_storage_type_e
 	else
 	{
 		media_svc_error("INVALID parameter");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 char *_media_svc_replace_path(char *s, const char *olds, const char *news)
@@ -1628,6 +1627,25 @@ char *_media_svc_replace_path(char *s, const char *olds, const char *news)
   return result;
 }
 
+int _media_svc_error_convert(int error)
+{
+	media_svc_debug("error : [%d]", error);
+
+	if(error == MS_MEDIA_ERR_NONE)							/*Error None*/
+		return MEDIA_INFO_ERROR_NONE;
+	else if(error == MS_MEDIA_ERR_DB_CONNECT_FAIL)			/*DB Connect Fail*/
+		return MEDIA_INFO_ERROR_DATABASE_CONNECT;
+	else if(error == MS_MEDIA_ERR_DB_DISCONNECT_FAIL)		/*DB Disconnect Fail*/
+		return MEDIA_INFO_ERROR_DATABASE_DISCONNECT;
+	else if(error == MS_MEDIA_ERR_SOCKET_CONN)				/*Socket Connect Fail*/
+		return MEDIA_INFO_ERROR_SOCKET_CONN;
+	else if(error == MS_MEDIA_ERR_INVALID_PARAMETER || error == MS_MEDIA_ERR_INVALID_PATH)
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
+
+	return MEDIA_INFO_ERROR_INTERNAL;
+}
+
+
 bool _media_svc_is_drm_file(const char *path)
 {
 #ifdef __SUPPORT_DRM
@@ -1644,16 +1662,16 @@ bool _media_svc_is_drm_file(const char *path)
 int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_info_s **drm_contentInfo)
 {
 #ifdef __SUPPORT_DRM
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	drm_file_type_e file_type = DRM_TYPE_UNDEFINED;
 
 	if (path == NULL || mime == NULL)
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 
 	ret = drm_get_file_type(path, &file_type);
 	if (ret != DRM_RETURN_SUCCESS) {
 		media_svc_error("drm_get_file_type() failed : %d", ret);
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INVALID_MEDIA;
 	} else {
 		if (file_type == DRM_TYPE_OMA_V1
 		|| file_type == DRM_TYPE_OMA_V2
@@ -1665,7 +1683,7 @@ int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_in
 				media_svc_error("drm_svc_get_content_info() fails :%d ", ret);
 				free(*drm_contentInfo);
 				*drm_contentInfo = NULL;
-				return MS_MEDIA_ERR_INTERNAL;
+				return MEDIA_INFO_ERROR_INVALID_MEDIA;
 			}
 
 			if (STRING_VALID((*drm_contentInfo)->mime_type)) {
@@ -1674,19 +1692,19 @@ int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_in
 			} else {
 				free(*drm_contentInfo);
 				*drm_contentInfo = NULL;
-				return MS_MEDIA_ERR_INTERNAL;
+				return MEDIA_INFO_ERROR_INVALID_MEDIA;
 			}
 		} else {
 			media_svc_error("THIS IS DRM BUT YOU SHOULD USE API OF AUL LIBRARY");
 			*drm_contentInfo = NULL;
-			return MS_MEDIA_ERR_INTERNAL;
+			return MEDIA_INFO_ERROR_INVALID_MEDIA;
 		}
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 #else
 	*drm_contentInfo = NULL;
-	return MS_MEDIA_ERR_INTERNAL;
+	return MEDIA_INFO_ERROR_INVALID_MEDIA;
 #endif
 }
 
@@ -1771,17 +1789,17 @@ If the file is not OMA DRM, drm_contentinfo must be NULL.
 */
 int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *is_drm, drm_content_info_s **drm_contentInfo)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 
 	if (path == NULL)
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 
 #ifdef __SUPPORT_DRM
 	/* In case of drm file. */
 	if (_media_svc_is_drm_file(path)) {
 		*is_drm = DRM_TRUE;
 		ret =  _media_svc_get_mime_in_drm_info(path, mimetype, drm_contentInfo);
-		if (ret == MS_MEDIA_ERR_NONE) {
+		if (ret == MEDIA_INFO_ERROR_NONE) {
 			return ret;
 		}
 	}
@@ -1793,15 +1811,15 @@ int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *
 	/*in case of normal files or failure to get mime in drm */
 	if (aul_get_mime_from_file(path, mimetype, 255) < 0) {
 		media_svc_error("aul_get_mime_from_file fail");
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INVALID_MEDIA;
 	}
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_get_media_type(const char *path, const char *mime_type, media_svc_media_type_e *media_type)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	int category = 0;
 
 	media_svc_media_type_e type;
@@ -1824,7 +1842,7 @@ int _media_svc_get_media_type(const char *path, const char *mime_type, media_svc
 
 int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	int size = 0;
 	pinyin_name_s *pinyinname = NULL;
 	*pinyin_str = NULL;
@@ -1836,7 +1854,7 @@ int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str)
 	}
 
 	ret = _media_svc_convert_chinese_to_pinyin(src_str, &pinyinname, &size);
-	if (ret == MS_MEDIA_ERR_NONE)
+	if (ret == MEDIA_INFO_ERROR_NONE)
 	{
 		if(STRING_VALID(pinyinname[0].pinyin_name))
 			*pinyin_str = strdup(pinyinname[0].pinyin_name);

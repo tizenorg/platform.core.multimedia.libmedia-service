@@ -19,8 +19,8 @@
  *
  */
 
-#include <media-util-err.h>
 #include "media-svc-album.h"
+#include "media-svc-error.h"
 #include "media-svc-debug.h"
 #include "media-svc-env.h"
 #include "media-svc-util.h"
@@ -28,11 +28,11 @@
 
 int _media_svc_get_album_id(sqlite3 *handle, const char *album, const char *artist, int * album_id)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
 
-	media_svc_retvm_if(album == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "album is NULL");
+	media_svc_retvm_if(album == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "album is NULL");
 
 	if(artist != NULL) {
 		sql = sqlite3_mprintf("SELECT album_id FROM %s WHERE name = '%q' AND artist = '%q';", MEDIA_SVC_DB_TABLE_ALBUM, album, artist);
@@ -42,8 +42,8 @@ int _media_svc_get_album_id(sqlite3 *handle, const char *album, const char *arti
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
-	if (ret != MS_MEDIA_ERR_NONE) {
-		if(ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		if(ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD) {
 			media_svc_debug("there is no album.");
 		}
 		else {
@@ -61,7 +61,7 @@ int _media_svc_get_album_id(sqlite3 *handle, const char *album, const char *arti
 
 int _media_svc_get_album_art_by_album_id(sqlite3 *handle, int album_id, char **album_art)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 	char *value = NULL;
 
@@ -69,12 +69,12 @@ int _media_svc_get_album_art_by_album_id(sqlite3 *handle, int album_id, char **a
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
-	if (ret != MS_MEDIA_ERR_NONE) {
-		if(ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		if(ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD) {
 			media_svc_debug("there is no album_id.");
 		}
 		else {
-			media_svc_error("error when get album_art. err = [%d]", ret);
+			media_svc_error("error when _media_svc_get_folder_id_by_foldername. err = [%d]", ret);
 		}
 		return ret;
 	}
@@ -83,7 +83,8 @@ int _media_svc_get_album_art_by_album_id(sqlite3 *handle, int album_id, char **a
 
 	if (STRING_VALID(value)) {
 		ret = __media_svc_malloc_and_strncpy(album_art, value);
-		if (ret != MS_MEDIA_ERR_NONE) {
+		if (ret < 0) {
+			media_svc_error("__media_svc_malloc_and_strncpy failed: %d", ret);
 			SQLITE3_FINALIZE(sql_stmt);
 			return ret;
 		}
@@ -93,42 +94,48 @@ int _media_svc_get_album_art_by_album_id(sqlite3 *handle, int album_id, char **a
 
 	SQLITE3_FINALIZE(sql_stmt);
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_append_album(sqlite3 *handle, const char *album, const char *artist, const char *album_art, int * album_id, uid_t uid)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int err = -1;
 
 	char *sql = sqlite3_mprintf("INSERT INTO %s (name, artist, album_art, album_art) values (%Q, %Q, %Q, %Q); ",
 					     MEDIA_SVC_DB_TABLE_ALBUM, album, artist, album_art, album_art);
-	ret = _media_svc_sql_query(handle, sql, uid);
+	err = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (err != SQLITE_OK) {
+		media_svc_error("failed to insert albums");
+		return MEDIA_INFO_ERROR_DATABASE_INTERNAL;
+	}
 
 	//*album_id = sqlite3_last_insert_rowid(handle);
 	int inserted_album_id = 0;
-	ret = _media_svc_get_album_id(handle, album, artist, &inserted_album_id);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	err = _media_svc_get_album_id(handle, album, artist, &inserted_album_id);
+	if (err < 0) {
+		media_svc_error("Failed _media_svc_get_album_id : %d", err);
+		return err;
+	}
 
 	*album_id = inserted_album_id;
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 
 int _media_svc_get_media_count_with_album_id_by_path(sqlite3 *handle, const char *path, int *count)
 {
-	int ret = MS_MEDIA_ERR_NONE;
+	int ret = MEDIA_INFO_ERROR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
 
-	media_svc_retvm_if(path == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
+	media_svc_retvm_if(path == NULL, MEDIA_INFO_ERROR_INVALID_PARAMETER, "path is NULL");
 
 	sql = sqlite3_mprintf("select count(media_uuid) from %s INNER JOIN (select album_id from %s where path=%Q and album_id > 0) as album ON album.album_id=media.album_id;", MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, path);
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
-	if (ret != MS_MEDIA_ERR_NONE) {
-		if(ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+	if (ret != MEDIA_INFO_ERROR_NONE) {
+		if(ret == MEDIA_INFO_ERROR_DATABASE_NO_RECORD) {
 			media_svc_debug("there is no media in relted to this media's album.");
 		}
 		else {

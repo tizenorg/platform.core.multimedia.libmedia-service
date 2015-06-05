@@ -29,7 +29,7 @@
 #include <string.h>
 #include <alloca.h>
 #include "media-svc-hash.h"
-#include "media-util-err.h"
+#include "media-svc-error.h"
 
 
 static const char ACCEPTABLE_URI_CHARS[96] = {
@@ -116,18 +116,18 @@ int mb_svc_generate_hash_code(const char *origin_path, char *hash_code, int max_
 	char *hash = NULL;
 
 	if (max_length < ((2 * MD5_HASHBYTES) + 1)) {
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		return MEDIA_INFO_ERROR_INVALID_PARAMETER;
 	}
 
 	hash = _mb_svc_generate_hash_name(origin_path);
 
 	if (hash == NULL) {
-		return MS_MEDIA_ERR_INTERNAL;
+		return MEDIA_INFO_ERROR_INTERNAL;
 	}
 
 	strncpy(hash_code, hash, max_length);
 	hash_code[strlen(hash_code)] ='\0';
 
-	return MS_MEDIA_ERR_NONE;
+	return MEDIA_INFO_ERROR_NONE;
 }
 

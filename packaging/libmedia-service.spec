@@ -5,6 +5,7 @@ Release:    3
 Group:      System/Libraries
 License:    Apache License, Version 2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: 	libmedia-service.manifest
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -21,9 +22,7 @@ BuildRequires:  pkgconfig(mm-fileinfo)
 BuildRequires:  pkgconfig(media-thumbnail)
 BuildRequires:  pkgconfig(drm-client)
 BuildRequires:  pkgconfig(libmedia-utils)
-BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(libtzplatform-config)
-BuildRequires:  pkgconfig(iniparser)
 
 %description
 Media information service library for multimedia applications
@@ -36,8 +35,10 @@ Requires:   %{name} = %{version}-%{release}
 %description devel
 Media information service library for multimedia applications. (development files)
 
+
 %prep
 %setup -q 
+cp %{SOURCE1001} .
 
 
 %build
