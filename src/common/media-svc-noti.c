@@ -96,7 +96,7 @@ int _media_svc_publish_noti_list(int all_cnt)
 
 	if (noti_list) {
 		for (idx = 0; idx < all_cnt; idx++) {
-			ret = __media_svc_publish_noti_by_item(&(noti_list[idx]));
+			ret = _media_svc_publish_noti_by_item(&(noti_list[idx]));
 		}
 	}
 
