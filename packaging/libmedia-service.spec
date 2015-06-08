@@ -22,6 +22,7 @@ BuildRequires:  pkgconfig(mm-fileinfo)
 BuildRequires:  pkgconfig(media-thumbnail)
 BuildRequires:  pkgconfig(drm-client)
 BuildRequires:  pkgconfig(libmedia-utils)
+BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(libtzplatform-config)
 
 %description
@@ -34,7 +35,6 @@ Requires:   %{name} = %{version}-%{release}
 
 %description devel
 Media information service library for multimedia applications. (development files)
-
 
 %prep
 %setup -q 

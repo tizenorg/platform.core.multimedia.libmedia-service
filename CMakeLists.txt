@@ -7,17 +7,6 @@ SET(MEDIASERVICE-LIB "media-service")
 SET(MEDIASERVICE-HASH-LIB "media-svc-hash")
 SET(MEDIACONTENT-PLUGIN-LIB "media-content-plugin")
 SET(SRCS 
-	uuid/clear.c
-	uuid/compare.c
-	uuid/copy.c
-	uuid/gen_uuid.c
-	uuid/isnull.c
-	uuid/pack.c
-	uuid/parse.c
-	uuid/unpack.c
-	uuid/unparse.c
-	uuid/uuid_time.c
-
 	src/common/media-svc.c
 	src/common/media-svc-media.c
 	src/common/media-svc-album.c
@@ -64,7 +53,7 @@ EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
 
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo media-thumbnail libmedia-utils aul vconf drm-client)
+pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo media-thumbnail libmedia-utils aul uuid vconf drm-client)
 
 FOREACH(flag ${pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
