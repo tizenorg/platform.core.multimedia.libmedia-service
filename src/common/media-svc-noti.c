@@ -26,6 +26,38 @@
 static __thread media_svc_noti_item *g_inserted_noti_list = NULL;
 static __thread int g_noti_from_pid = -1;
 
+static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+
+	if (noti_item && noti_item->path)
+	{
+		ret = media_db_update_send(noti_item->pid,
+								noti_item->update_item,
+								noti_item->update_type,
+								noti_item->path,
+								noti_item->media_uuid,
+								noti_item->media_type,
+								noti_item->mime_type);
+		if(ret != MS_MEDIA_ERR_NONE)
+		{
+			media_svc_error("media_db_update_send failed : %d [%s]", ret, noti_item->path);
+			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
+		}
+		else
+		{
+			media_svc_debug("media_db_update_send success");
+		}
+	}
+	else
+	{
+		media_svc_debug("invalid path");
+		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
+	}
+
+	return ret;
+}
+
 media_svc_noti_item *_media_svc_get_noti_list()
 {
 	return g_inserted_noti_list;
@@ -96,7 +128,7 @@ int _media_svc_publish_noti_list(int all_cnt)
 
 	if (noti_list) {
 		for (idx = 0; idx < all_cnt; idx++) {
-			ret = _media_svc_publish_noti_by_item(&(noti_list[idx]));
+			ret = __media_svc_publish_noti_by_item(&(noti_list[idx]));
 		}
 	}
 
@@ -152,28 +184,6 @@ int _media_svc_destroy_noti_item(media_svc_noti_item *item)
 	}
 
 	return MS_MEDIA_ERR_NONE;
-}
-
-int _media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
-{
-	int err = MS_MEDIA_ERR_NONE;
-
-	if (noti_item && noti_item->path) {
-		err = media_db_update_send(noti_item->pid,
-								noti_item->update_item,
-								noti_item->update_type,
-								noti_item->path,
-								noti_item->media_uuid,
-								noti_item->media_type,
-								noti_item->mime_type);
-		if (err < 0) {
-			media_svc_error("media_db_update_send failed : %d [%s]", err, noti_item->path);
-		} else {
-			media_svc_debug("media_db_update_send success");
-		}
-	}
-
-	return err;
 }
 
 int _media_svc_publish_noti(media_item_type_e update_item,
