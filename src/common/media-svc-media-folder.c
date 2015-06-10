@@ -69,11 +69,7 @@ int _media_svc_append_folder(sqlite3 *handle, media_svc_storage_type_e storage_t
 					     MEDIA_SVC_DB_TABLE_FOLDER, folder_id, path_name, folder_name, storage_type, modified_date, folder_name_pinyin);
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
-	if (ret != SQLITE_OK) {
-		media_svc_error("failed to insert folder");
-		return MS_MEDIA_ERR_DB_INTERNAL;
-	}
-	
+
 	SAFE_FREE(folder_name_pinyin);
 
 	return ret;
@@ -91,10 +87,6 @@ int _media_svc_update_folder_modified_time_by_folder_uuid(sqlite3 *handle, const
 	if(!stack_query) {
 		ret = _media_svc_sql_query(handle, sql, uid);
 		sqlite3_free(sql);
-		if (ret != SQLITE_OK) {
-			media_svc_error("failed to update folder");
-			return MS_MEDIA_ERR_DB_INTERNAL;
-		}
 	} else {
 		_media_svc_sql_query_add(&g_media_svc_move_item_query_list, &sql);
 	}
@@ -144,10 +136,6 @@ int _media_svc_update_folder_table(sqlite3 *handle, uid_t uid)
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
-	if (ret != SQLITE_OK) {
-		media_svc_error("failed to delete folder item");
-		return MS_MEDIA_ERR_DB_INTERNAL;
-	}
 
-	return MS_MEDIA_ERR_NONE;
+	return ret;
 }

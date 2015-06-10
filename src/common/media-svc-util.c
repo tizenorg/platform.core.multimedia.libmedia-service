@@ -665,13 +665,12 @@ int _media_svc_get_file_time(const char *full_path)
 }
 
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_storage_type_e storage_type,
-			  const char *path, media_svc_media_type_e *media_type, bool refresh, drm_content_info_s **drm_contentInfo)
+			  const char *path, media_svc_media_type_e *media_type, bool refresh)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char * media_uuid = NULL;
 	char * file_name = NULL;
 	struct stat st;
-	drm_bool_type_e drm_type = DRM_FALSE;
 	char mime_type[256] = {0};
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->path, path);
@@ -754,16 +753,13 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_
 	SAFE_FREE(file_name);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	/* if the file is DRM file, drm_type value is DRM_TRUE(1).
-	if drm_contentinfo is not NULL, the file is OMA DRM.*/
-	ret = _media_svc_get_mime_type(path, mime_type, &drm_type, drm_contentInfo);
+	ret = _media_svc_get_mime_type(path, mime_type);
 	if (ret < 0) {
 		media_svc_error("media_svc_get_mime_type failed : %d (%s)", ret, path);
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
 	media_svc_error("mime [%s]", mime_type);
-	content_info->is_drm = drm_type;
 
 	ret = _media_svc_get_media_type(path, mime_type, media_type);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -972,7 +968,7 @@ int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, me
 	return MS_MEDIA_ERR_NONE;
 }
 
-int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo, uid_t uid)
+int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, uid_t uid)
 {
 	MMHandleType content = 0;
 	MMHandleType tag = 0;
@@ -989,88 +985,6 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	int album_id = 0;
 	double gps_value = 0.0;
 	int ret = MS_MEDIA_ERR_NONE;
-	char *path = content_info->path;
-
-#ifdef __SUPPORT_DRM
-	/*To do - code for DRM content*/
-	if (content_info->is_drm) {
-		drm_file_type_e drm_file_type;
-
-		ret = drm_get_file_type(path, &drm_file_type);
-		if (ret < 0) {
-			media_svc_error("drm_get_file_type falied : %d", ret);
-			drm_file_type = DRM_TYPE_UNDEFINED;
-		}
-
-		/* if drm_contentinfo is not NULL, the file is OMA DRM.*/
-		if (drm_contentInfo != NULL) {
-			if (drm_file_type == DRM_TYPE_OMA_V1) {
-				if (strlen(drm_contentInfo->title) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, drm_contentInfo->title);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
-				}
-
-				if (strlen(drm_contentInfo->description) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, drm_contentInfo->description);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_DESC;
-				}
-			} else if (drm_file_type == DRM_TYPE_OMA_V2) {
-				if (strlen(drm_contentInfo->title) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, drm_contentInfo->title);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
-				}
-
-				if (strlen(drm_contentInfo->description) > 0) {
-					ret =  __media_svc_malloc_and_strncpy(&content_info->media_meta.description, drm_contentInfo->description);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_DESC;
-				}
-
-				if (strlen(drm_contentInfo->copyright) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.copyright, drm_contentInfo->copyright);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_COPYRIGHT;
-				}
-
-				if (strlen(drm_contentInfo->author) > 0) {
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.composer, drm_contentInfo->author);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-					 ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.artist, drm_contentInfo->author);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_AUTHOR;
-					extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_ARTIST;
-				}
-			}
-
-			if (!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) {
-				title = _media_svc_get_title_from_filepath(path);
-				if (title) {
-					ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, title);
-					SAFE_FREE(title);
-					if(ret != MS_MEDIA_ERR_NONE)
-						media_svc_error("strcpy error");
-				} else {
-					media_svc_error("Can't extract title from filepath [%s]", content_info->path);
-				}
-			}
-
-			return MS_MEDIA_ERR_NONE;
-		} else {
-			media_svc_debug("Some Not OMA Content's metadata is not incrypted so fileinfo can extracted metadata");
-		}
-	}
-#endif
 
 	/*Get Content attribute ===========*/
 	mmf_error = mm_file_create_content_attrs(&content, content_info->path);
@@ -1468,29 +1382,6 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			} else {
 				SAFE_FREE(err_attr_name);
 			}
-#if 0
-			//if ((!thumb_extracted_from_drm) && (extract_thumbnail == TRUE))
-			{
-				/* Extracting thumbnail */
-				char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
-				int width = 0;
-				int height = 0;
-
-				ret = thumbnail_request_from_db_with_size(content_info->path, thumb_path, sizeof(thumb_path), &width, &height);
-				if (ret < 0) {
-					media_svc_error("thumbnail_request_from_db failed: %d", ret);
-				} else {
-					//media_svc_debug("thumbnail_request_from_db success: %s", thumb_path);
-				}
-
-				ret = __media_svc_malloc_and_strncpy(&content_info->thumbnail_path, thumb_path);
-				if(ret != MS_MEDIA_ERR_NONE)
-					media_svc_error("strcpy error");
-
-				if (content_info->media_meta.width <= 0) content_info->media_meta.width = width;
-				if (content_info->media_meta.height <= 0) content_info->media_meta.height = height;
-			}
-#endif
 		}
 
 		mmf_error = mm_file_destroy_tag_attrs(tag);
@@ -1624,55 +1515,6 @@ bool _media_svc_is_drm_file(const char *path)
 	return FALSE;
 }
 
-int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_info_s **drm_contentInfo)
-{
-#ifdef __SUPPORT_DRM
-	int ret = MS_MEDIA_ERR_NONE;
-	drm_file_type_e file_type = DRM_TYPE_UNDEFINED;
-
-	if (path == NULL || mime == NULL)
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-
-	ret = drm_get_file_type(path, &file_type);
-	if (ret != DRM_RETURN_SUCCESS) {
-		media_svc_error("drm_get_file_type() failed : %d", ret);
-		return MS_MEDIA_ERR_INTERNAL;
-	} else {
-		if (file_type == DRM_TYPE_OMA_V1
-		|| file_type == DRM_TYPE_OMA_V2
-		|| file_type == DRM_TYPE_OMA_PD) {
-			*drm_contentInfo = malloc(sizeof(drm_content_info_s));
-			memset(*drm_contentInfo,0x0,sizeof(drm_content_info_s));
-			ret = drm_get_content_info(path, *drm_contentInfo);
-			if (ret != DRM_RETURN_SUCCESS) {
-				media_svc_error("drm_svc_get_content_info() fails :%d ", ret);
-				free(*drm_contentInfo);
-				*drm_contentInfo = NULL;
-				return MS_MEDIA_ERR_INTERNAL;
-			}
-
-			if (STRING_VALID((*drm_contentInfo)->mime_type)) {
-				strncpy(mime,(*drm_contentInfo)->mime_type, MEDIA_SVC_METADATA_LEN_MAX);
-				media_svc_debug("DRM contentType : %s",(*drm_contentInfo)->mime_type);
-			} else {
-				free(*drm_contentInfo);
-				*drm_contentInfo = NULL;
-				return MS_MEDIA_ERR_INTERNAL;
-			}
-		} else {
-			media_svc_error("THIS IS DRM BUT YOU SHOULD USE API OF AUL LIBRARY");
-			*drm_contentInfo = NULL;
-			return MS_MEDIA_ERR_INTERNAL;
-		}
-	}
-
-	return MS_MEDIA_ERR_NONE;
-#else
-	*drm_contentInfo = NULL;
-	return MS_MEDIA_ERR_INTERNAL;
-#endif
-}
-
 int _media_svc_get_content_type_from_mime(const char * path, const char * mimetype, int * category)
 {
 	int i = 0;
@@ -1748,30 +1590,10 @@ int _media_svc_get_content_type_from_mime(const char * path, const char * mimety
 	return err;
 }
 
-/*
-drm_contentifo is not NULL, if the file is OMA DRM.
-If the file is not OMA DRM, drm_contentinfo must be NULL.
-*/
-int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *is_drm, drm_content_info_s **drm_contentInfo)
+int _media_svc_get_mime_type(const char *path, char *mimetype)
 {
-	int ret = MS_MEDIA_ERR_NONE;
-
 	if (path == NULL)
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
-
-#ifdef __SUPPORT_DRM
-	/* In case of drm file. */
-	if (_media_svc_is_drm_file(path)) {
-		*is_drm = DRM_TRUE;
-		ret =  _media_svc_get_mime_in_drm_info(path, mimetype, drm_contentInfo);
-		if (ret == MS_MEDIA_ERR_NONE) {
-			return ret;
-		}
-	}
-#else
-	*is_drm = DRM_FALSE;
-	*drm_contentInfo = NULL;
-#endif
 
 	/*in case of normal files or failure to get mime in drm */
 	if (aul_get_mime_from_file(path, mimetype, 255) < 0) {
