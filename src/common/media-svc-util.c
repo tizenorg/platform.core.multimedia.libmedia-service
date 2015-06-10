@@ -65,21 +65,6 @@ typedef enum {
 	MEDIA_SVC_EXTRACTED_FIELD_CATEGORY		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 10,
 } media_svc_extracted_field_e;
 
-#if 0
-static char *__year_2_str(int year);
-
-static char *__year_2_str(int year)
-{
-	static char ret[MEDIA_SVC_METADATA_LEN_MAX];
-
-	if (year == -1 || year == 0) {
-		_strncpy_safe(ret, MEDIA_SVC_TAG_UNKNOWN, MEDIA_SVC_METADATA_LEN_MAX);
-	} else {
-		snprintf(ret, MEDIA_SVC_METADATA_LEN_MAX - 1, "%d", year);
-	}
-	return ret;
-}
-#endif
 
 char *_media_info_generate_uuid(void)
 {
@@ -1238,8 +1223,6 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					media_svc_error("strcpy error");
 
 				extracted_field |= MEDIA_SVC_EXTRACTED_FIELD_TITLE;
-				//media_svc_debug("extract title from content : %s", content_info->media_meta.title);
-				//media_svc_debug("^^^^^^^^^^^^^^^ path = %s, title = %s, size = %d ^^^^^^^^^^^^^^", content_info->path, content_info->media_meta.title, size);
 			}
 			else {
 				int idx = 0;

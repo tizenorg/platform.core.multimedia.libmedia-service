@@ -24,9 +24,6 @@
 #ifndef _MEDIA_SVC_TYPES_H_
 #define _MEDIA_SVC_TYPES_H_
 
-#ifndef DEPRECATED_API
-#  define DEPRECATED_API __attribute__ ((deprecated))
-#endif
 
 typedef void MediaSvcHandle;		/**< Handle */
 

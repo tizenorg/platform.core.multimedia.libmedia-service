@@ -1,7 +1,30 @@
+/*
+ * libmedia-service
+ *
+ * Copyright (c) 2000 - 2011 Samsung Electronics Co., Ltd. All rights reserved.
+ *
+ * Contact: Hyunjun Ko <zzoon.ko@samsung.com>, Haejeong Kim <backto.kim@samsung.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+ 
 #include <stdio.h>
 #include <unistd.h>
 #include <media-svc.h>
 #include <media-svc-noti.h>
+
+#define SAFE_FREE(src)      		{ if(src) {free(src); src = NULL;}}
 
 GMainLoop *g_loop = NULL;
 MediaSvcHandle *g_db_handle = NULL;
@@ -54,7 +77,7 @@ void _noti_cb(int pid,
 #if 1
 gboolean _send_noti_batch_operations(gpointer data)
 {
-    int ret = MEDIA_INFO_ERROR_NONE;
+    int ret = MS_MEDIA_ERR_NONE;
 
     /* First of all, noti subscription */
     char *user_str = strdup("hi");
@@ -66,38 +89,40 @@ gboolean _send_noti_batch_operations(gpointer data)
 	media_svc_storage_type_e storage_type;
 
 	ret = media_svc_get_storage_type(path, &storage_type);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
+		SAFE_FREE(user_str);
         return FALSE;
 	}
 
-	int i;
+	int idx = 0;
 	char *file_list[10];
 
 	ret = media_svc_insert_item_begin(g_db_handle, 100, TRUE, getpid());
 	//ret = media_svc_insert_item_begin(g_db_handle, 100);
-	for (i = 0; i < 16; i++) {
+	for (idx = 0; idx < 10; idx++) {
 		char filepath[255] = {0,};
-		snprintf(filepath, sizeof(filepath), "%s%d.jpg", tzplatform_mkpath(TZ_USER_CONTENT,"test/image"), i+1);
+		snprintf(filepath, sizeof(filepath), "%s%d.jpg", tzplatform_mkpath(TZ_USER_CONTENT,"test/image"), idx+1);
 		media_svc_debug("File : %s\n", filepath);
-		file_list[i] = strdup(filepath);
-		ret = media_svc_insert_item_bulk(g_db_handle, storage_type, file_list[i], FALSE);
+		file_list[idx] = strdup(filepath);
+		ret = media_svc_insert_item_bulk(g_db_handle, storage_type, file_list[idx], FALSE);
 		if (ret != 0) {
-			media_svc_error("media_svc_insert_item_bulk[%d] failed", i);
+			media_svc_error("media_svc_insert_item_bulk[%d] failed", idx);
 		} else {
-			media_svc_debug("media_svc_insert_item_bulk[%d] success", i);
+			media_svc_debug("media_svc_insert_item_bulk[%d] success", idx);
 		}
 	}
 
 	ret = media_svc_insert_item_end(g_db_handle);
 
+	SAFE_FREE(user_str);
 	return FALSE;
 }
 #endif
 
 gboolean _send_noti_operations(gpointer data)
 {
-	int ret = MEDIA_INFO_ERROR_NONE;
+	int ret = MS_MEDIA_ERR_NONE;
 
 	/* First of all, noti subscription */
 	char *user_str = strdup("hi");
@@ -108,14 +133,16 @@ gboolean _send_noti_operations(gpointer data)
 	media_svc_storage_type_e storage_type;
 
 	ret = media_svc_get_storage_type(path, &storage_type);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
+		SAFE_FREE(user_str);
 		return FALSE;
 	}
 
 	ret = media_svc_insert_item_immediately(g_db_handle, storage_type, path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_insert_item_immediately failed : %d", ret);
+		SAFE_FREE(user_str);
 		return FALSE;
 	}
 
@@ -123,7 +150,7 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* 2. media_svc_refresh_item */
 	ret = media_svc_refresh_item(g_db_handle, storage_type, path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_refresh_item failed : %d", ret);
 		return FALSE;
 	}
@@ -132,14 +159,14 @@ gboolean _send_noti_operations(gpointer data)
 	/* 2. media_svc_move_item */
 	const char *dst_path = tzplatform_mkpath(TZ_USER_CONTENT, "test/image11.jpg");
 	ret = media_svc_move_item(g_db_handle, storage_type, path, storage_type, dst_path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_move_item failed : %d", ret);
 		return FALSE;
 	}
 	media_svc_debug("media_svc_move_item success");
 
 	ret = media_svc_move_item(g_db_handle, storage_type, dst_path, storage_type, path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_move_item failed : %d", ret);
 		return FALSE;
 	}
@@ -147,7 +174,7 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* 4. media_svc_delete_item_by_path */
 	ret = media_svc_delete_item_by_path(g_db_handle, path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_delete_item_by_path failed : %d", ret);
 		return FALSE;
 	}
@@ -157,7 +184,7 @@ gboolean _send_noti_operations(gpointer data)
 	const char *src_folder_path = tzplatform_mkpath(TZ_USER_CONTENT, "test");
 	const char *dst_folder_path = tzplatform_mkpath(TZ_USER_CONTENT,"test_test");
 	ret = media_svc_rename_folder(g_db_handle, src_folder_path, dst_folder_path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_rename_folder failed : %d", ret);
 		return FALSE;
 	}
@@ -165,7 +192,7 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* Rename folder again */
 	ret = media_svc_rename_folder(g_db_handle, dst_folder_path, src_folder_path);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_rename_folder failed : %d", ret);
 		return FALSE;
 	}
@@ -194,21 +221,21 @@ int test_noti()
 	g_main_loop_unref(g_loop);
     media_db_update_unsubscribe();
 
-	return MEDIA_INFO_ERROR_NONE;
+	return MS_MEDIA_ERR_NONE;
 }
 
 int main()
 {
-	int ret = MEDIA_INFO_ERROR_NONE;
+	int ret = MS_MEDIA_ERR_NONE;
 	ret = media_svc_connect(&g_db_handle);
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_connect failed : %d", ret);
 	} else {
 		media_svc_debug("media_svc_connect success");
 	}
 
 	ret = test_noti();
-	if (ret < MEDIA_INFO_ERROR_NONE) {
+	if (ret < MS_MEDIA_ERR_NONE) {
 		media_svc_error("test_noti failed : %d", ret);
 	} else {
 		media_svc_debug("test_noti success");
