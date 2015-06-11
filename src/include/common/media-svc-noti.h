@@ -44,17 +44,7 @@ int _media_svc_create_noti_list(int count);
 int _media_svc_insert_item_to_noti_list(media_svc_content_info_s *content_info, int cnt);
 int _media_svc_destroy_noti_list(int all_cnt);
 int _media_svc_publish_noti_list(int all_cnt);
-
-#if 0
-int _media_svc_create_noti_item(media_svc_content_info_s *content_info,
-							int pid,
-							media_item_type_e update_item,
-							media_item_update_type_e update_type,
-							media_svc_noti_item **item);
-
-#endif
 int _media_svc_destroy_noti_item(media_svc_noti_item *item);
-
 int _media_svc_publish_noti(media_item_type_e update_item,
 							media_item_update_type_e update_type,
 							const char *path,

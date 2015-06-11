@@ -1,9 +1,9 @@
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications
-Version: 0.2.47
+Version: 0.2.48
 Release:    3
 Group:      System/Libraries
-License:    Apache License, Version 2.0
+License:    Apache-2.0 and public domain
 Source0:    %{name}-%{version}.tar.gz
 Source1001: 	libmedia-service.manifest
 
@@ -20,13 +20,12 @@ BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  pkgconfig(db-util)
 BuildRequires:  pkgconfig(mm-fileinfo)
 BuildRequires:  pkgconfig(media-thumbnail)
-BuildRequires:  pkgconfig(drm-client)
 BuildRequires:  pkgconfig(libmedia-utils)
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(libtzplatform-config)
 
 %description
-Media information service library for multimedia applications
+Media information service library for multimedia applications.
 
 %package devel
 Summary:    Media information service library for multimedia applications. (development)
@@ -37,12 +36,11 @@ Requires:   %{name} = %{version}-%{release}
 Media information service library for multimedia applications. (development files)
 
 %prep
-%setup -q 
+%setup -q
 cp %{SOURCE1001} .
 
-
 %build
-%cmake . 
+%cmake .
 make %{?jobs:-j%jobs}
 
 %install

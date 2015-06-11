@@ -614,7 +614,7 @@ int update_end(uid_t uid)
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
 	ret = thumbnail_request_extract_all_thumbs(uid);
-	if (ret < 0) {
+	if(ret < 0) {
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
@@ -631,7 +631,7 @@ int send_dir_update_noti(void * handle, const char *dir_path, char **err_msg)
 	}
 
 	ret = media_svc_send_dir_update_noti(handle, dir_path);
-	if (ret < 0) {
+	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}

@@ -337,8 +337,11 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, media_svc_content_info_s *
 		content_info->media_meta.description_pinyin
 		);
 
-	if (burst_id) sqlite3_free(burst_id);
-	burst_id = NULL;
+	if (burst_id)
+	{
+		sqlite3_free(burst_id);
+		burst_id = NULL;
+	}
 
 	if(!stack_query) {
 		ret = _media_svc_sql_query(handle, sql, uid);

@@ -27,7 +27,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sqlite3.h>
-#include <drm_client.h>
 #include "media-svc-types.h"
 #include "media-svc-env.h"
 
@@ -59,9 +58,9 @@ bool _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *
 bool _media_svc_get_file_ext(const char *file_path, char *file_ext);
 int _media_svc_get_file_time(const char *full_path);
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, media_svc_storage_type_e storage_type,
-			  const char *path, media_svc_media_type_e *media_type, bool refresh, drm_content_info_s **drm_contentInfo);
+			  const char *path, media_svc_media_type_e *media_type, bool refresh);
 int _media_svc_extract_image_metadata(media_svc_content_info_s *content_info, media_svc_media_type_e media_type);
-int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, drm_content_info_s *drm_contentInfo, uid_t uid);
+int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type, uid_t uid);
 int __media_svc_malloc_and_strncpy(char **dst, const char *src);
 void _media_svc_destroy_content_info(media_svc_content_info_s *content_info);
 int _media_svc_get_store_type_by_path(const char *path, media_svc_storage_type_e *storage_type);
@@ -139,12 +138,10 @@ static const char sound_mime_table[SOUND_MIME_NUM][MIME_LENGTH] = {
 };
 
 bool _media_svc_is_drm_file(const char *path);
-int _media_svc_get_mime_in_drm_info(const char *path, char *mime, drm_content_info_s **drm_contentInfo);
 int _media_svc_get_content_type_from_mime(const char * path, const char * mimetype, int * category);
 int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str);
 bool _media_svc_check_pinyin_support(void);
-int _media_svc_get_mime_type(const char *path, char *mimetype, drm_bool_type_e *is_drm, drm_content_info_s **drm_contentInfo);
-
+int _media_svc_get_mime_type(const char *path, char *mimetype);
 int _media_svc_get_media_type(const char *path, const char *mime_type, media_svc_media_type_e *media_type);
 
 #ifdef __cplusplus

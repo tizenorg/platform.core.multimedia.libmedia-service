@@ -21,7 +21,6 @@
 
 #include <string.h>
 #include <errno.h>
-#include <drm_client.h>
 #include <media-util.h>
 #include "media-svc.h"
 #include "media-svc-media.h"
@@ -145,12 +144,8 @@ int media_svc_get_storage_type(const char *path, media_svc_storage_type_e *stora
 int media_svc_get_mime_type(const char *path, char *mimetype)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	drm_bool_type_e is_drm = DRM_FALSE;
-	drm_content_info_s *drm_contentInfo = NULL;
 
-	ret = _media_svc_get_mime_type(path, mimetype, &is_drm, &drm_contentInfo);
-
-	SAFE_FREE(drm_contentInfo);
+	ret = _media_svc_get_mime_type(path, mimetype);
 
 	return ret;
 }
@@ -246,7 +241,6 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 	sqlite3 * db_handle = (sqlite3 *)handle;
 	char folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0,};
 	media_svc_media_type_e media_type;
-	drm_content_info_s *drm_contentInfo = NULL;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
@@ -260,8 +254,7 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
-	/* if drm_contentinfo is not NULL, the file is OMA DRM.*/
-	ret = _media_svc_set_media_info(&content_info, storage_type, path, &media_type, FALSE, &drm_contentInfo);
+	ret = _media_svc_set_media_info(&content_info, storage_type, path, &media_type, FALSE);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	if(media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
@@ -269,9 +262,8 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 	} else if(media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 		ret = _media_svc_extract_image_metadata(&content_info, media_type);
 	} else {
-		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, drm_contentInfo, uid);
+		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, uid);
 	}
-	SAFE_FREE(drm_contentInfo);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*Set or Get folder id*/
@@ -339,7 +331,6 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 	sqlite3 * db_handle = (sqlite3 *)handle;
 	char folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0,};
 	media_svc_media_type_e media_type;
-	drm_content_info_s *drm_contentInfo = NULL;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
@@ -353,7 +344,7 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
-	ret = _media_svc_set_media_info(&content_info, storage_type, path, &media_type, FALSE, &drm_contentInfo);
+	ret = _media_svc_set_media_info(&content_info, storage_type, path, &media_type, FALSE);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	if(media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
@@ -362,7 +353,7 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 		ret = _media_svc_extract_image_metadata(&content_info, media_type);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	} else {
-		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, drm_contentInfo, uid);
+		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, uid);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	}
 
@@ -864,7 +855,6 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 * db_handle = (sqlite3 *)handle;
 	media_svc_media_type_e media_type;
-	drm_content_info_s *drm_contentInfo = NULL;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
@@ -878,7 +868,7 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
-	ret = _media_svc_set_media_info(&content_info, storage_type, path, &media_type, TRUE, &drm_contentInfo);
+	ret = _media_svc_set_media_info(&content_info, storage_type, path, &media_type, TRUE);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/* Initialize thumbnail information to remake thumbnail. */
@@ -912,7 +902,7 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 			return ret;
 		}
 	} else {
-		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, drm_contentInfo, uid);
+		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, uid);
 		if (ret != MS_MEDIA_ERR_NONE) {
 			_media_svc_destroy_noti_item(noti_item);
 			return ret;

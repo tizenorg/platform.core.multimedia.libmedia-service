@@ -24,9 +24,6 @@
 #ifndef _MEDIA_SVC_TYPES_H_
 #define _MEDIA_SVC_TYPES_H_
 
-#ifndef DEPRECATED_API
-#  define DEPRECATED_API __attribute__ ((deprecated))
-#endif
 
 typedef void MediaSvcHandle;		/**< Handle */
 
@@ -47,7 +44,7 @@ typedef enum{
 	MEDIA_SVC_MEDIA_TYPE_VIDEO	= 1,	/**< Video Content*/
 	MEDIA_SVC_MEDIA_TYPE_SOUND	= 2,	/**< Sound Content like Ringtone*/
 	MEDIA_SVC_MEDIA_TYPE_MUSIC	= 3,	/**< Music Content like mp3*/
-	MEDIA_SVC_MEDIA_TYPE_OTHER	= 4,	/**< Invalid Content*/
+	MEDIA_SVC_MEDIA_TYPE_OTHER	= 4,	/**< Not media Content*/
 }media_svc_media_type_e;
 
 #endif /*_MEDIA_SVC_TYPES_H_*/

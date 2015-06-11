@@ -17,6 +17,7 @@ SET(SRCS
 	src/common/media-svc-noti.c
 	src/common/media-svc-localize-utils.c
 	src/common/media-svc-localize_ch.c
+	src/common/media-svc-localize_tw.c
 	)
 
 SET(HASH_SRCS
@@ -53,7 +54,7 @@ EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
 
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo media-thumbnail libmedia-utils aul uuid vconf drm-client)
+pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo media-thumbnail libmedia-utils aul uuid vconf)
 
 FOREACH(flag ${pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
