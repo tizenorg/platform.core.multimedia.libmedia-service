@@ -108,6 +108,7 @@ static int __media_svc_create_update_media_table(sqlite3 *db_handle);
 				age_rating_pinyin   TEXT, \
 				keyword_pinyin   TEXT, \
 				validity			INTEGER DEFAULT 1, \
+				storage_uuid	TEXT, \
 				unique(path, file_name) \
 				);"
 
