@@ -473,7 +473,7 @@ int delete_item(void * handle, const char *file_path, int storage_type, uid_t ui
 
 	ret = media_svc_check_item_exist_by_path(handle, file_path);
 	if(ret == 0) {
-		ret = media_svc_delete_item_by_path(handle, file_path, uid);
+		ret = media_svc_delete_item_by_path(handle, "media", file_path, uid);
 
 		if(ret < 0) {
 			__set_error_message(ret, err_msg);
@@ -595,7 +595,7 @@ int refresh_item(void * handle, const char *file_path, int storage_type, uid_t u
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = media_svc_refresh_item(handle, storage_type, file_path, uid);
+	ret = media_svc_refresh_item(handle, storage_type, "media", file_path, uid);
 	if(ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;

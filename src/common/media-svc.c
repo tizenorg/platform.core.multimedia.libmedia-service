@@ -696,7 +696,7 @@ int media_svc_set_item_validity(MediaSvcHandle *handle, const char *path, int va
 	return MS_MEDIA_ERR_NONE;
 }
 
-int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *path, uid_t uid)
+int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *storage_id, const char *path, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 * db_handle = (sqlite3 *)handle;
@@ -850,7 +850,7 @@ int media_svc_set_folder_items_validity(MediaSvcHandle *handle, const char *fold
 		return _media_svc_update_folder_item_validity(db_handle, folder_path, validity, uid);
 }
 
-int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, uid_t uid)
+int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *storage_id, const char *path, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 * db_handle = (sqlite3 *)handle;
@@ -948,7 +948,7 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	return ret;
 }
 
-int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const char *dst_path, uid_t uid)
+int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, const char *src_path, const char *dst_path, uid_t uid)
 {
 	sqlite3 * db_handle = (sqlite3 *)handle;
 	int ret = MS_MEDIA_ERR_NONE;
@@ -969,8 +969,8 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *src_path, const 
 
 	/* Update all folder record's path, which are matched by old parent path */
 	char *update_folder_path_sql = NULL;
-	char src_path_slash[MEDIA_SVC_PATHNAME_SIZE + 1];
-	char dst_path_slash[MEDIA_SVC_PATHNAME_SIZE + 1];
+	char src_path_slash[MEDIA_SVC_PATHNAME_SIZE + 1] = {0,};
+	char dst_path_slash[MEDIA_SVC_PATHNAME_SIZE + 1] = {0,};
 
 	snprintf(src_path_slash, sizeof(src_path_slash), "%s/", src_path);
 	snprintf(dst_path_slash, sizeof(dst_path_slash), "%s/", dst_path);
@@ -1198,15 +1198,27 @@ int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *
 	return _media_svc_count_invalid_folder_items(db_handle, folder_path, count);
 }
 
+int media_svc_publish_noti(MediaSvcHandle *handle, media_item_type_e update_item, media_item_update_type_e update_type, const char *path, media_type_e media_type, const char *uuid, const char *mime_type)
+{
+	return _media_svc_publish_noti(update_item, update_type, path, media_type, uuid, mime_type);
+}
+
 int media_svc_get_pinyin(MediaSvcHandle *handle, const char * src_str, char **pinyin_str)
 {
 	media_svc_retvm_if(!STRING_VALID(src_str), MS_MEDIA_ERR_INVALID_PARAMETER, "String is NULL");
 
 	return _media_svc_get_pinyin_str(src_str, pinyin_str);
 }
+
 int media_svc_check_pinyin_support(bool *support)
 {
 	*support = _media_svc_check_pinyin_support();
 
 	return MS_MEDIA_ERR_NONE;
+}
+
+
+char *media_info_generate_uuid(void)
+{
+	return _media_info_generate_uuid();
 }

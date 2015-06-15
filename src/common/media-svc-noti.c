@@ -58,6 +58,32 @@ static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 	return ret;
 }
 
+int _media_svc_publish_noti(media_item_type_e update_item,
+							media_item_update_type_e update_type,
+							const char *path,
+							media_type_e media_type,
+							const char *uuid,
+							const char *mime_type
+)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+
+	if(path) {
+		ret = media_db_update_send(getpid(), update_item, update_type, (char *)path, (char *)uuid, media_type, (char *)mime_type);
+		if(ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("Send noti failed : %d [%s]", ret, path);
+			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
+		} else {
+			media_svc_debug("media_db_update_send success");
+		}
+	} else {
+		media_svc_debug("invalid path");
+		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
+	}
+
+	return ret;
+}
+
 media_svc_noti_item *_media_svc_get_noti_list()
 {
 	return g_inserted_noti_list;
@@ -184,33 +210,4 @@ int _media_svc_destroy_noti_item(media_svc_noti_item *item)
 	}
 
 	return MS_MEDIA_ERR_NONE;
-}
-
-int _media_svc_publish_noti(media_item_type_e update_item,
-							media_item_update_type_e update_type,
-							const char *path,
-							media_type_e media_type,
-							const char *uuid,
-							const char *mime_type
-)
-{
-	int err = MS_MEDIA_ERR_NONE;
-
-	if (path) {
-		err = media_db_update_send(getpid(),
-								update_item,
-								update_type,
-								(char *)path,
-								(char *)uuid,
-								media_type,
-								(char *)mime_type);
-		if (err < 0) {
-			media_svc_error("media_db_update_send failed : %d [%s]", err, path);
-			return MS_MEDIA_ERR_SEND_NOTI_FAIL;
-		} else {
-			media_svc_debug("media_db_update_send success");
-		}
-	}
-
-	return err;
 }
