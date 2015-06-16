@@ -16,10 +16,15 @@
  * limitations under the License.
  *
  */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "media-util-err.h"
 #include "media-svc-debug.h"
 #include "media-svc-localize-utils.h"
+
+#define SAFE_STRLEN(src) ((src)?strlen(src):0)
 
 int _media_svc_check_utf8(char c)
 {
@@ -39,3 +44,32 @@ int _media_svc_check_utf8(char c)
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 }
 
+int SAFE_SNPRINTF(char **buf, int *buf_size, int len, const char *src)
+{
+	int remain;
+	int temp_len;
+
+	if (len < 0)
+		return -1;
+
+	remain = *buf_size - len;
+	if (remain > strlen(src) + 1) {
+		temp_len = snprintf((*buf)+len, remain, "%s", src);
+		return temp_len;
+	}
+	else {
+		char *temp;
+		while(1) {
+			temp = realloc(*buf, *buf_size*2);
+			if (NULL == temp)
+				return -1;
+			*buf = temp;
+			*buf_size = *buf_size * 2;
+			remain = *buf_size - len;
+			if (remain > strlen(src) + 1)
+				break;
+		}
+		temp_len = snprintf((*buf)+len, remain, "%s", src);
+		return temp_len;
+	}
+}
