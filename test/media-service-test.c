@@ -88,7 +88,7 @@ gboolean _send_noti_batch_operations(gpointer data)
 
 	media_svc_storage_type_e storage_type;
 
-	ret = media_svc_get_storage_type(path, &storage_type);
+	ret = media_svc_get_storage_type(path, &storage_type, tzplatform_getuid(TZ_USER_NAME));
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
 		SAFE_FREE(user_str);
@@ -132,7 +132,7 @@ gboolean _send_noti_operations(gpointer data)
 	char *path = tzplatform_mkpath(TZ_USER_CONTENT,"test/image1.jpg");
 	media_svc_storage_type_e storage_type;
 
-	ret = media_svc_get_storage_type(path, &storage_type);
+	ret = media_svc_get_storage_type(path, &storage_type, tzplatform_getuid(TZ_USER_NAME));
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
 		SAFE_FREE(user_str);

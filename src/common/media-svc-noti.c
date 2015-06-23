@@ -23,6 +23,8 @@
 #include "media-svc-noti.h"
 #include "media-svc-util.h"
 
+static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item);
+
 static __thread media_svc_noti_item *g_inserted_noti_list = NULL;
 static __thread int g_noti_from_pid = -1;
 
@@ -32,13 +34,7 @@ static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 
 	if (noti_item && noti_item->path)
 	{
-		ret = media_db_update_send(noti_item->pid,
-								noti_item->update_item,
-								noti_item->update_type,
-								noti_item->path,
-								noti_item->media_uuid,
-								noti_item->media_type,
-								noti_item->mime_type);
+		ret = media_db_update_send(noti_item->pid, noti_item->update_item, noti_item->update_type, noti_item->path, noti_item->media_uuid, noti_item->media_type, noti_item->mime_type);
 		if(ret != MS_MEDIA_ERR_NONE)
 		{
 			media_svc_error("media_db_update_send failed : %d [%s]", ret, noti_item->path);
@@ -68,25 +64,26 @@ int _media_svc_publish_noti(media_item_type_e update_item,
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	if(path) {
+	if(STRING_VALID(path))
+	{
 		ret = media_db_update_send(getpid(), update_item, update_type, (char *)path, (char *)uuid, media_type, (char *)mime_type);
-		if(ret != MS_MEDIA_ERR_NONE) {
+		if(ret != MS_MEDIA_ERR_NONE)
+		{
 			media_svc_error("Send noti failed : %d [%s]", ret, path);
 			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
-		} else {
-			media_svc_debug("media_db_update_send success");
 		}
-	} else {
+		else
+		{
+			media_svc_debug("Send noti success [%d][%d]", update_item, update_type);
+		}
+	}
+	else
+	{
 		media_svc_debug("invalid path");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
 	return ret;
-}
-
-media_svc_noti_item *_media_svc_get_noti_list()
-{
-	return g_inserted_noti_list;
 }
 
 void _media_svc_set_noti_from_pid(int pid)
@@ -159,44 +156,6 @@ int _media_svc_publish_noti_list(int all_cnt)
 	}
 
 	return ret;
-}
-
-
-int _media_svc_create_noti_item(media_svc_content_info_s *content_info,
-							int pid,
-							media_item_type_e update_item,
-							media_item_update_type_e update_type,
-							media_svc_noti_item **item)
-{
-	media_svc_noti_item *_item = NULL;
-
-	if (item == NULL || content_info == NULL) {
-		media_svc_error("_media_svc_create_noti_item : invalid param");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
-
-	_item = calloc(1, sizeof(media_svc_noti_item));
-
-	if (_item == NULL) {
-		media_svc_error("Failed to prepare noti items");
-		return MS_MEDIA_ERR_OUT_OF_MEMORY;
-	}
-
-	_item->pid = pid;
-	_item->update_item = update_item;
-	_item->update_type = update_type;
-	_item->media_type = content_info->media_type;
-
-	if (content_info->media_uuid)
-		_item->media_uuid = strdup(content_info->media_uuid);
-	if (content_info->path)
-		_item->path = strdup(content_info->path);
-	if (content_info->mime_type)
-		_item->mime_type = strdup(content_info->mime_type);
-
-	*item = _item;
-
-	return MS_MEDIA_ERR_NONE;
 }
 
 int _media_svc_destroy_noti_item(media_svc_noti_item *item)

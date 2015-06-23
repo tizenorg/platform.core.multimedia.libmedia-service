@@ -32,9 +32,10 @@ typedef void MediaSvcHandle;		/**< Handle */
  * Type definition for storage type
  */
 typedef enum{
-	MEDIA_SVC_STORAGE_INTERNAL,			/**< Internal storage*/
-	MEDIA_SVC_STORAGE_EXTERNAL,			/**< External storage*/
-	MEDIA_SVC_STORAGE_MAX,				/**< Invalid storage*/
+	MEDIA_SVC_STORAGE_INTERNAL = 0,			/**< Internal storage*/
+	MEDIA_SVC_STORAGE_EXTERNAL = 1,			/**< External storage*/
+	MEDIA_SVC_STORAGE_CLOUD = 100,			/**< Cloud Storage*/
+	MEDIA_SVC_STORAGE_MAX,					/**< Invalid storage*/
 }media_svc_storage_type_e;
 
 /**

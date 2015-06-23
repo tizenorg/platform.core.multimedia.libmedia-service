@@ -15,6 +15,7 @@ SET(SRCS
 	src/common/media-svc-util.c
 	src/common/media-svc-debug.c
 	src/common/media-svc-noti.c
+	src/common/media-svc-storage.c
 	src/common/media-svc-localize-utils.c
 	src/common/media-svc-localize_ch.c
 	src/common/media-svc-localize_tw.c
