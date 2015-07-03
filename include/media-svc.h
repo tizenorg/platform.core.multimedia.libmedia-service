@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 
-int media_svc_connect(MediaSvcHandle **handle,uid_t uid);
+int media_svc_connect(MediaSvcHandle **handle, uid_t uid);
 int media_svc_disconnect(MediaSvcHandle *handle);
 int media_svc_create_table(MediaSvcHandle *handle, uid_t uid);
 int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *path);
@@ -63,10 +63,10 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
 int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *folder_path, int *count);
 int media_svc_check_db_upgrade(MediaSvcHandle *handle, uid_t uid);
 int media_svc_check_db_corrupt(MediaSvcHandle *handle);
-int media_svc_get_folder_list(MediaSvcHandle *handle, char* start_path, char ***folder_list, time_t **modified_time_list, int **item_num_list, int *count);
+int media_svc_get_folder_list(MediaSvcHandle *handle, char *start_path, char ***folder_list, time_t **modified_time_list, int **item_num_list, int *count);
 int media_svc_update_folder_time(MediaSvcHandle *handle, const char *folder_path, uid_t uid);
 int media_svc_publish_noti(MediaSvcHandle *handle, media_item_type_e update_item, media_item_update_type_e update_type, const char *path, media_type_e media_type, const char *uuid, const char *mime_type);
-int media_svc_get_pinyin(MediaSvcHandle *handle, const char * src_str, char **pinyin_str);
+int media_svc_get_pinyin(MediaSvcHandle *handle, const char *src_str, char **pinyin_str);
 int media_svc_check_pinyin_support(bool *support);
 int media_svc_update_item_begin(MediaSvcHandle *handle, int data_cnt);
 int media_svc_update_item_end(MediaSvcHandle *handle, uid_t uid);

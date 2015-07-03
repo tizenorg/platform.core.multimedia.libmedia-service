@@ -103,11 +103,11 @@ extern "C" {
 #define MEDIA_SVC_DB_QUERY_VIEW_PLAYLIST		"CREATE VIEW IF NOT EXISTS %s AS SELECT %s FROM playlist \
 												LEFT OUTER JOIN playlist_map ON playlist.playlist_id = playlist_map.playlist_id \
 												LEFT OUTER JOIN media ON (playlist_map.media_uuid = media.media_uuid AND media.validity=1) \
-												LEFT OUTER JOIN (SELECT count(playlist_id) as media_count, playlist_id FROM playlist_map group by playlist_id) as cnt_tbl ON (cnt_tbl.playlist_id=playlist_map.playlist_id AND media.validity=1);"
+LEFT OUTER JOIN (SELECT count(playlist_id) as media_count, playlist_id FROM playlist_map group by playlist_id) as cnt_tbl ON (cnt_tbl.playlist_id=playlist_map.playlist_id AND media.validity=1);"
 #define MEDIA_SVC_DB_QUERY_VIEW_TAG				"CREATE VIEW IF NOT EXISTS %s AS SELECT %s FROM tag \
 												LEFT OUTER JOIN tag_map ON tag.tag_id=tag_map.tag_id \
 												LEFT OUTER JOIN media ON (tag_map.media_uuid = media.media_uuid AND media.validity=1) \
-												LEFT OUTER JOIN (SELECT count(tag_id) as media_count, tag_id FROM tag_map group by tag_id) as cnt_tbl ON (cnt_tbl.tag_id=tag_map.tag_id AND media.validity=1);"
+LEFT OUTER JOIN (SELECT count(tag_id) as media_count, tag_id FROM tag_map group by tag_id) as cnt_tbl ON (cnt_tbl.tag_id=tag_map.tag_id AND media.validity=1);"
 #define MEDIA_SVC_DB_QUERY_ALTER_TABLE			"ALTER TABLE %s ADD COLUMN %s;"
 #define MEDIA_SVC_DB_QUERY_DROP_VIEW			"DROP VIEW IF EXISTS %s;"
 
@@ -129,25 +129,25 @@ extern "C" {
 #define THUMB_EXT 	"jpg"
 
 enum Exif_Orientation {
-    NOT_AVAILABLE=0,
-    NORMAL  =1,
-    HFLIP   =2,
-    ROT_180 =3,
-    VFLIP   =4,
-    TRANSPOSE   =5,
-    ROT_90  =6,
-    TRANSVERSE  =7,
-    ROT_270 =8
+	NOT_AVAILABLE = 0,
+	NORMAL  = 1,
+	HFLIP   = 2,
+	ROT_180 = 3,
+	VFLIP   = 4,
+	TRANSPOSE   = 5,
+	ROT_90  = 6,
+	TRANSVERSE  = 7,
+	ROT_270 = 8
 };
 
-typedef enum{
+typedef enum {
 	MEDIA_SVC_QUERY_INSERT_ITEM,
 	MEDIA_SVC_QUERY_SET_ITEM_VALIDITY,
 	MEDIA_SVC_QUERY_MOVE_ITEM,
 	MEDIA_SVC_QUERY_UPDATE_ITEM
 } media_svc_query_type_e;
 
-typedef enum{
+typedef enum {
 	MEDIA_SVC_DB_LIST_MEDIA 		= 0,
 	MEDIA_SVC_DB_LIST_FOLDER 		= 1,
 	MEDIA_SVC_DB_LIST_PLAYLIST_MAP = 2,
@@ -166,7 +166,7 @@ typedef struct table_inform {
 	char *viewName;
 	char *eventTable;
 	char *actionTable;
-}table_info;
+} table_info;
 
 typedef struct column_inform {
 	char *name;
@@ -179,7 +179,7 @@ typedef struct column_inform {
 	bool isUnique;
 	bool isTrigger;
 	bool isView;
-}column_info;
+} column_info;
 
 
 #ifdef __cplusplus

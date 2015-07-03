@@ -31,4 +31,4 @@ void _media_svc_pinyin_free(pinyin_name_s *pinyinname, int size);
 
 bool _media_svc_has_chinese(const char *src);
 
-#endif // __MEDIA_SERVICE_LOCALIZE_CH_H__
+#endif /* __MEDIA_SERVICE_LOCALIZE_CH_H__ */

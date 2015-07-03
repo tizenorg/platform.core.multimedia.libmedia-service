@@ -41,10 +41,9 @@ int _media_svc_init_storage(sqlite3 *handle, uid_t uid)
 	storage_cnt = sqlite3_column_int(sql_stmt, 0);
 	SQLITE3_FINALIZE(sql_stmt);
 
-	if(storage_cnt == 0)
-	{
+	if (storage_cnt == 0) {
 		sql = sqlite3_mprintf("INSERT INTO %s (storage_uuid, storage_name, storage_path, storage_type) VALUES ('%s', '%s', '%s', 0);",
-			MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, _media_svc_get_path(uid));
+		                      MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, _media_svc_get_path(uid));
 
 		ret = _media_svc_sql_query(handle, sql, uid);
 		sqlite3_free(sql);
@@ -58,7 +57,7 @@ int _media_svc_append_storage(sqlite3 *handle, const char *storage_id, const cha
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = sqlite3_mprintf("INSERT INTO %s (storage_uuid, storage_name, storage_path, storage_account, storage_type) values (%Q, %Q, %Q, %Q, %d); ",
-							 MEDIA_SVC_DB_TABLE_STORAGE, storage_id, storage_name, storage_path, storage_account, storage_type);
+	                            MEDIA_SVC_DB_TABLE_STORAGE, storage_id, storage_name, storage_path, storage_account, storage_type);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);

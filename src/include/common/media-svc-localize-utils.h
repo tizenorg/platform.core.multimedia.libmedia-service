@@ -29,4 +29,4 @@ int SAFE_SNPRINTF(char **buf, int *buf_size, int len, const char *src);
 
 int _media_svc_collation_str(const char *src, char **dest);
 
-#endif // __MEDIA_SVC_LOCALIZE_UTILS_H__
+#endif /* __MEDIA_SVC_LOCALIZE_UTILS_H__ */

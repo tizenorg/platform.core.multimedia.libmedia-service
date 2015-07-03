@@ -48,7 +48,7 @@ int _media_svc_update_thumbnail_path(sqlite3 *handle, const char *storage_id, co
 int _media_svc_get_noti_info(sqlite3 *handle, const char *storage_id, const char *path, int update_item, media_svc_noti_item **item);
 int _media_svc_count_invalid_folder_items(sqlite3 *handle, const char *folder_path, int *count);
 int _media_svc_get_thumbnail_count(sqlite3 *handle, const char *thumb_path, int *count);
-char* _media_svc_get_thumb_default_path(uid_t uid);
+char *_media_svc_get_thumb_default_path(uid_t uid);
 int _media_svc_get_fileinfo_by_path(sqlite3 *handle, const char *path, time_t *modified_time, unsigned long long *size);
 int _media_svc_update_meta_with_data(sqlite3 *handle, media_svc_content_info_s *content_info);
 

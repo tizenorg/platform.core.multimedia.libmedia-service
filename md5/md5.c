@@ -34,7 +34,7 @@ void byteReverse(unsigned char *buf, unsigned longs)
 {
 	uint32_t t;
 	do {
-		t = (uint32_t) ((unsigned)buf[3] << 8 | buf[2]) << 16 |
+		t = (uint32_t)((unsigned)buf[3] << 8 | buf[2]) << 16 |
 		    ((unsigned)buf[1] << 8 | buf[0]);
 		*(uint32_t *) buf = t;
 		buf += 4;
@@ -108,7 +108,7 @@ void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len)
 }
 
 /*
- * Final wrapup - pad to 64-byte boundary with the bit pattern 
+ * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void MD5Final(unsigned char digest[16], MD5_CTX *ctx)
@@ -162,7 +162,7 @@ void MD5Final(unsigned char digest[16], MD5_CTX *ctx)
 
 /* This is the central step in the MD5 algorithm. */
 #define MD5STEP(f, w, x, y, z, data, s) \
-(w += f(x, y, z) + data,  w = w<<s | w>>(32-s),  w += x)
+	(w += f(x, y, z) + data,  w = w<<s | w>>(32-s),  w += x)
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to

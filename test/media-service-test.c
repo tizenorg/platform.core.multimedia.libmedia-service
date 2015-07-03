@@ -18,25 +18,25 @@
  * limitations under the License.
  *
  */
- 
+
 #include <stdio.h>
 #include <unistd.h>
 #include <media-svc.h>
 #include <media-svc-noti.h>
 
-#define SAFE_FREE(src)      		{ if(src) {free(src); src = NULL;}}
+#define SAFE_FREE(src)      		{ if(src) { free(src); src = NULL; } }
 
 GMainLoop *g_loop = NULL;
 MediaSvcHandle *g_db_handle = NULL;
 
 void _noti_cb(int pid,
-                media_item_type_e update_item,
-                media_item_update_type_e update_type,
-                char *path,
-                char *uuid,
-                media_type_e content_type,
-                char *mime_type,
-                void *user_data)
+              media_item_type_e update_item,
+              media_item_update_type_e update_type,
+              char *path,
+              char *uuid,
+              media_type_e content_type,
+              char *mime_type,
+              void *user_data)
 {
 	media_svc_debug("Noti from PID(%d)", pid);
 
@@ -54,7 +54,7 @@ void _noti_cb(int pid,
 		media_svc_debug("Noti type : MS_MEDIA_ITEM_UPDATE");
 	}
 
-	//media_svc_debug("content type : %d", content_type);
+	/*media_svc_debug("content type : %d", content_type); */
 	printf("content type : %d\n", content_type);
 
 	if (path)
@@ -67,24 +67,24 @@ void _noti_cb(int pid,
 	else
 		printf("mime not");
 
-    if (user_data) printf("String : %s\n", (char *)user_data);
+	if (user_data) printf("String : %s\n", (char *)user_data);
 	else
 		printf("user not");
 
-    return;
+	return;
 }
 
 #if 1
 gboolean _send_noti_batch_operations(gpointer data)
 {
-    int ret = MS_MEDIA_ERR_NONE;
+	int ret = MS_MEDIA_ERR_NONE;
 
-    /* First of all, noti subscription */
-    char *user_str = strdup("hi");
-    media_db_update_subscribe(_noti_cb, (void*)user_str);
+	/* First of all, noti subscription */
+	char *user_str = strdup("hi");
+	media_db_update_subscribe(_noti_cb, (void *)user_str);
 
-    /* 1. media_svc_insert_item_immediately */
-    char *path = tzplatform_mkpath(TZ_USER_CONTENT, "test/image1.jpg");
+	/* 1. media_svc_insert_item_immediately */
+	char *path = tzplatform_mkpath(TZ_USER_CONTENT, "test/image1.jpg");
 
 	media_svc_storage_type_e storage_type;
 
@@ -92,17 +92,17 @@ gboolean _send_noti_batch_operations(gpointer data)
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_get_storage_type failed : %d (%s)", ret, path);
 		SAFE_FREE(user_str);
-        return FALSE;
+		return FALSE;
 	}
 
 	int idx = 0;
 	char *file_list[10];
 
 	ret = media_svc_insert_item_begin(g_db_handle, 100, TRUE, getpid());
-	//ret = media_svc_insert_item_begin(g_db_handle, 100);
+	/*ret = media_svc_insert_item_begin(g_db_handle, 100); */
 	for (idx = 0; idx < 10; idx++) {
-		char filepath[255] = {0,};
-		snprintf(filepath, sizeof(filepath), "%s%d.jpg", tzplatform_mkpath(TZ_USER_CONTENT,"test/image"), idx+1);
+		char filepath[255] = {0, };
+		snprintf(filepath, sizeof(filepath), "%s%d.jpg", tzplatform_mkpath(TZ_USER_CONTENT, "test/image"), idx + 1);
 		media_svc_debug("File : %s\n", filepath);
 		file_list[idx] = strdup(filepath);
 		ret = media_svc_insert_item_bulk(g_db_handle, storage_type, file_list[idx], FALSE);
@@ -126,10 +126,10 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* First of all, noti subscription */
 	char *user_str = strdup("hi");
-	media_db_update_subscribe(_noti_cb, (void*)user_str);
+	media_db_update_subscribe(_noti_cb, (void *)user_str);
 
 	/* 1. media_svc_insert_item_immediately */
-	char *path = tzplatform_mkpath(TZ_USER_CONTENT,"test/image1.jpg");
+	char *path = tzplatform_mkpath(TZ_USER_CONTENT, "test/image1.jpg");
 	media_svc_storage_type_e storage_type;
 
 	ret = media_svc_get_storage_type(path, &storage_type, tzplatform_getuid(TZ_USER_NAME));
@@ -182,7 +182,7 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* Rename folder */
 	const char *src_folder_path = tzplatform_mkpath(TZ_USER_CONTENT, "test");
-	const char *dst_folder_path = tzplatform_mkpath(TZ_USER_CONTENT,"test_test");
+	const char *dst_folder_path = tzplatform_mkpath(TZ_USER_CONTENT, "test_test");
 	ret = media_svc_rename_folder(g_db_handle, src_folder_path, dst_folder_path);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_rename_folder failed : %d", ret);
@@ -210,16 +210,16 @@ int test_noti()
 	context = g_main_loop_get_context(g_loop);
 	source = g_idle_source_new();
 #if 0
-	g_source_set_callback (source, _send_noti_operations, NULL, NULL);
+	g_source_set_callback(source, _send_noti_operations, NULL, NULL);
 #else
-	g_source_set_callback (source, _send_noti_batch_operations, NULL, NULL);
+	g_source_set_callback(source, _send_noti_batch_operations, NULL, NULL);
 #endif
-	g_source_attach (source, context);
+	g_source_attach(source, context);
 
 	g_main_loop_run(g_loop);
 
 	g_main_loop_unref(g_loop);
-    media_db_update_unsubscribe();
+	media_db_update_unsubscribe();
 
 	return MS_MEDIA_ERR_NONE;
 }

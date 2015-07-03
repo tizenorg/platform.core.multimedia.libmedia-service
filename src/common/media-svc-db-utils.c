@@ -41,32 +41,29 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid);
 static GHashTable *table;
 static GSList *column_list[MEDIA_SVC_DB_LIST_MAX];
 
-char* _media_svc_get_path(uid_t uid)
+char *_media_svc_get_path(uid_t uid)
 {
 	char *result_psswd = NULL;
 	struct group *grpinfo = NULL;
-	if(uid == getuid())
-	{
+	if (uid == getuid()) {
 		result_psswd = strdup(MEDIA_ROOT_PATH_INTERNAL);
 		grpinfo = getgrnam("users");
-		if(grpinfo == NULL) {
+		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
-    }
-	else
-	{
+	} else {
 		struct passwd *userinfo = getpwuid(uid);
-		if(userinfo == NULL) {
+		if (userinfo == NULL) {
 			media_svc_error("getpwuid(%d) returns NULL !", uid);
 			return NULL;
 		}
 		grpinfo = getgrnam("users");
-		if(grpinfo == NULL) {
+		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
-		// Compare git_t type and not group name
+		/* Compare git_t type and not group name */
 		if (grpinfo->gr_gid != userinfo->pw_gid) {
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
@@ -81,18 +78,18 @@ int __media_svc_add_table_info(char *name, char *triggerName, char *eventTable, 
 {
 	table_info *tbl = NULL;
 	tbl = malloc(sizeof(table_info));
-	if(tbl == NULL) {
+	if (tbl == NULL) {
 		media_svc_error("MS_MEDIA_ERR_OUT_OF_MEMORY");
 		return MS_MEDIA_ERR_OUT_OF_MEMORY;
 	}
 	memset(tbl, 0, sizeof(table_info));
 
-	if(triggerName != NULL) {
+	if (triggerName != NULL) {
 		tbl->triggerName = strndup(triggerName, strlen(triggerName));
 		tbl->eventTable = strndup(eventTable, strlen(eventTable));
 		tbl->actionTable = strndup(actionTable, strlen(actionTable));
 	}
-	if(viewName != NULL) {
+	if (viewName != NULL) {
 		tbl->viewName = strndup(viewName, strlen(viewName));
 	}
 	g_hash_table_insert(table, name, tbl);
@@ -104,7 +101,7 @@ int __media_svc_add_column_info(GSList **slist, char *name, char *type, char *op
 {
 	column_info *col = NULL;
 	col = malloc(sizeof(column_info));
-	if(col == NULL) {
+	if (col == NULL) {
 		media_svc_error("MS_MEDIA_ERR_OUT_OF_MEMORY");
 		return MS_MEDIA_ERR_OUT_OF_MEMORY;
 	}
@@ -112,14 +109,14 @@ int __media_svc_add_column_info(GSList **slist, char *name, char *type, char *op
 
 	col->name = strndup(name, strlen(name));
 	col->type = strndup(type, strlen(type));
-	if(option != NULL) {
+	if (option != NULL) {
 		col->hasOption = true;
 		col->option = strndup(option, strlen(option));
 	} else {
 		col->hasOption = false;
 	}
 	col->version = version;
-	if(indexName != NULL) {
+	if (indexName != NULL) {
 		col->isIndex = true;
 		col->indexName = strndup(indexName, strlen(indexName));
 	} else {
@@ -138,14 +135,14 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 	int ret = MS_MEDIA_ERR_NONE;
 	column_info *col_ptr = NULL;
 	char *sql = NULL;
-	char table_query[4096] = {0,};
-	char temp[1024] = {0,};
+	char table_query[4096] = {0, };
+	char temp[1024] = {0, };
 	int table_len = 0;
 	int i, len;
-	//media
+	/*media */
 	_media_svc_update_media_view(db_handle, uid);
 
-	//drop playlist_view, tag_view
+	/*drop playlist_view, tag_view */
 	sql = sqlite3_mprintf(MEDIA_SVC_DB_QUERY_DROP_VIEW, MEDIA_SVC_DB_VIEW_PLAYLIST);
 	ret = _media_svc_sql_query(db_handle, sql, uid);
 	sqlite3_free(sql);
@@ -156,13 +153,13 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	//create playlist_view
+	/*create playlist_view */
 	len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_PLAYLIST]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_PLAYLIST], i);
-		if(col_ptr->isView) {
-			if(table_len > 0) {
-				if(strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_THUMBNAIL, strlen(MEDIA_SVC_DB_COLUMN_THUMBNAIL)) == 0)
+		if (col_ptr->isView) {
+			if (table_len > 0) {
+				if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_THUMBNAIL, strlen(MEDIA_SVC_DB_COLUMN_THUMBNAIL)) == 0)
 					snprintf(temp, sizeof(temp), ", playlist.%s AS p_thumbnail_path", col_ptr->name);
 				else
 					snprintf(temp, sizeof(temp), ", playlist.%s", col_ptr->name);
@@ -177,10 +174,10 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 		memset(temp, 0, sizeof(temp));
 	}
 	len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_PLAYLIST_MAP]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_PLAYLIST_MAP], i);
-		if(col_ptr->isView) {
-			if(strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
+		if (col_ptr->isView) {
+			if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
 				snprintf(temp, sizeof(temp), ", playlist_map.%s AS pm_id", col_ptr->name);
 			else
 				snprintf(temp, sizeof(temp), ", playlist_map.%s", col_ptr->name);
@@ -191,9 +188,9 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 	}
 
 	len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_MEDIA]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_MEDIA], i);
-		if(col_ptr->isView) {
+		if (col_ptr->isView) {
 			snprintf(temp, sizeof(temp), ", media.%s", col_ptr->name);
 			strncat(table_query, temp, strlen(temp));
 			table_len = strlen(table_query);
@@ -205,15 +202,15 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	//create tag_view
+	/*create tag_view */
 	table_len = 0;
 	memset(table_query, 0, sizeof(table_query));
 
 	len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_TAG]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_TAG], i);
-		if(col_ptr->isView) {
-			if(table_len > 0) {
+		if (col_ptr->isView) {
+			if (table_len > 0) {
 				snprintf(temp, sizeof(temp), ", tag.%s", col_ptr->name);
 				strncat(table_query, temp, strlen(temp));
 				table_len = strlen(table_query);
@@ -226,10 +223,10 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 		memset(temp, 0, sizeof(temp));
 	}
 	len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_TAG_MAP]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_TAG_MAP], i);
-		if(col_ptr->isView) {
-			if(strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
+		if (col_ptr->isView) {
+			if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
 				snprintf(temp, sizeof(temp), ", tag_map.%s AS tm_id", col_ptr->name);
 			else
 				snprintf(temp, sizeof(temp), ", tag_map.%s", col_ptr->name);
@@ -240,9 +237,9 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 	}
 
 	len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_MEDIA]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_MEDIA], i);
-		if(col_ptr->isView) {
+		if (col_ptr->isView) {
 			snprintf(temp, sizeof(temp), ", media.%s", col_ptr->name);
 			strncat(table_query, temp, strlen(temp));
 			table_len = strlen(table_query);
@@ -263,11 +260,11 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 	table_info *tb = NULL;
 	column_info *col_ptr = NULL;
 	char *sql = NULL;
-	char table_query[4096] = {0,};
-	char index_query[4096] = {0,};
-	char trigger_query[4096] = {0,};
-	char table_query_sub[1024] = {0,};
-	char temp[1024] = {0,};
+	char table_query[4096] = {0, };
+	char index_query[4096] = {0, };
+	char trigger_query[4096] = {0, };
+	char table_query_sub[1024] = {0, };
+	char temp[1024] = {0, };
 	int table_len = 0;
 	int index_len = 0;
 	int trigger_len = 0;
@@ -280,17 +277,16 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 	tb = g_hash_table_lookup(table, table_name);
 	len = g_slist_length(column_list[list]);
 
-	if(len == 0)
-	{
+	if (len == 0) {
 		media_svc_error("Invalid column");
 		return MS_MEDIA_ERR_INTERNAL;
 	}
 
-	for(i=1; i<len; i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[list], i);
-		//create table
-		if(col_ptr->hasOption) {
-			if(table_len > 0) {
+		/*create table */
+		if (col_ptr->hasOption) {
+			if (table_len > 0) {
 				snprintf(temp, sizeof(temp), ", %s %s %s", col_ptr->name, col_ptr->type, col_ptr->option);
 				strncat(table_query, temp, strlen(temp));
 				table_len = strlen(table_query);
@@ -300,7 +296,7 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 				table_len = strlen(table_query);
 			}
 		} else {
-			if(table_len > 0) {
+			if (table_len > 0) {
 				snprintf(temp, sizeof(temp), ", %s %s", col_ptr->name, col_ptr->type);
 				strncat(table_query, temp, strlen(temp));
 				table_len = strlen(table_query);
@@ -311,9 +307,9 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 			}
 		}
 		memset(temp, 0, sizeof(temp));
-		//unique
-		if(col_ptr->isUnique) {
-			if(table_sub_len > 0) {
+		/*unique */
+		if (col_ptr->isUnique) {
+			if (table_sub_len > 0) {
 				snprintf(temp, sizeof(temp), ", %s", col_ptr->name);
 				strncat(table_query_sub, temp, strlen(temp));
 				table_sub_len = strlen(table_query_sub);
@@ -324,9 +320,9 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 			}
 		}
 		memset(temp, 0, sizeof(temp));
-		//create index
-		if(col_ptr->isIndex) {
-			if(index_len > 0) {
+		/*create index */
+		if (col_ptr->isIndex) {
+			if (index_len > 0) {
 				snprintf(temp, sizeof(temp), MEDIA_SVC_DB_QUERY_INDEX, col_ptr->indexName, table_name, col_ptr->name);
 				strncat(index_query, temp, strlen(temp));
 				index_len = strlen(index_query);
@@ -337,9 +333,9 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 			}
 		}
 		memset(temp, 0, sizeof(temp));
-		//create trigger
-		if(col_ptr->isTrigger) {
-			if(strncmp(table_name, MEDIA_SVC_DB_TABLE_ALBUM, strlen(MEDIA_SVC_DB_TABLE_ALBUM)) == 0) {
+		/*create trigger */
+		if (col_ptr->isTrigger) {
+			if (strncmp(table_name, MEDIA_SVC_DB_TABLE_ALBUM, strlen(MEDIA_SVC_DB_TABLE_ALBUM)) == 0) {
 				snprintf(temp, sizeof(temp), MEDIA_SVC_DB_QUERY_TRIGGER_WITH_COUNT, tb->triggerName, tb->eventTable, tb->actionTable, tb->eventTable, col_ptr->name, col_ptr->name, col_ptr->name, col_ptr->name);
 				strncpy(trigger_query, temp, strlen(temp));
 				trigger_len = strlen(trigger_query);
@@ -352,8 +348,8 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 		memset(temp, 0, sizeof(temp));
 	}
 
-	//send queries
-	if(table_sub_len > 0) {
+	/*send queries */
+	if (table_sub_len > 0) {
 		sql = sqlite3_mprintf(MEDIA_SVC_DB_QUERY_TABLE_WITH_UNIQUE, table_name, table_query, table_query_sub);
 		ret = _media_svc_sql_query(db_handle, sql, uid);
 		sqlite3_free(sql);
@@ -368,34 +364,34 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	}
 
-	if(index_len > 0) {
+	if (index_len > 0) {
 		ret = _media_svc_sql_query(db_handle, index_query, uid);
 		memset(index_query, 0, sizeof(index_query));
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	}
 
-	if(trigger_len > 0) {
+	if (trigger_len > 0) {
 		ret = _media_svc_sql_query(db_handle, trigger_query, uid);
 		memset(trigger_query, 0, sizeof(trigger_query));
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	}
 
-	//create view
+	/*create view */
 	table_len = 0;
-	if(tb != NULL && tb->viewName != NULL) {
-		if(strncmp(table_name, MEDIA_SVC_DB_TABLE_MEDIA, strlen(MEDIA_SVC_DB_TABLE_MEDIA)) == 0) {
+	if (tb != NULL && tb->viewName != NULL) {
+		if (strncmp(table_name, MEDIA_SVC_DB_TABLE_MEDIA, strlen(MEDIA_SVC_DB_TABLE_MEDIA)) == 0) {
 			sql = sqlite3_mprintf(MEDIA_SVC_DB_QUERY_VIEW_MEDIA, tb->viewName, table_name);
 			ret = _media_svc_sql_query(db_handle, sql, uid);
 			sqlite3_free(sql);
 			media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-		} else if(strncmp(table_name, MEDIA_SVC_DB_TABLE_PLAYLIST, strlen(MEDIA_SVC_DB_TABLE_PLAYLIST)) == 0) {
+		} else if (strncmp(table_name, MEDIA_SVC_DB_TABLE_PLAYLIST, strlen(MEDIA_SVC_DB_TABLE_PLAYLIST)) == 0) {
 			len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_PLAYLIST]);
-			for(i=1; i<len; i++) {
+			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_PLAYLIST], i);
-				if(col_ptr->isView) {
-					if(table_len > 0) {
-						if(strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_THUMBNAIL, strlen(MEDIA_SVC_DB_COLUMN_THUMBNAIL)) == 0)
+				if (col_ptr->isView) {
+					if (table_len > 0) {
+						if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_THUMBNAIL, strlen(MEDIA_SVC_DB_COLUMN_THUMBNAIL)) == 0)
 							snprintf(temp, sizeof(temp), ", playlist.%s AS p_thumbnail_path", col_ptr->name);
 						else
 							snprintf(temp, sizeof(temp), ", playlist.%s", col_ptr->name);
@@ -410,10 +406,10 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 				memset(temp, 0, sizeof(temp));
 			}
 			len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_PLAYLIST_MAP]);
-			for(i=1; i<len; i++) {
+			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_PLAYLIST_MAP], i);
-				if(col_ptr->isView) {
-					if(strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
+				if (col_ptr->isView) {
+					if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
 						snprintf(temp, sizeof(temp), ", media_count IS NOT NULL AS media_count, playlist_map.%s AS pm_id", col_ptr->name);
 					else
 						snprintf(temp, sizeof(temp), ", playlist_map.%s", col_ptr->name);
@@ -424,9 +420,9 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 			}
 
 			len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_MEDIA]);
-			for(i=1; i<len; i++) {
+			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_MEDIA], i);
-				if(col_ptr->isView) {
+				if (col_ptr->isView) {
 					snprintf(temp, sizeof(temp), ", media.%s", col_ptr->name);
 					strncat(table_query, temp, strlen(temp));
 					table_len = strlen(table_query);
@@ -440,10 +436,10 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 
 		} else {
 			len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_TAG]);
-			for(i=1; i<len; i++) {
+			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_TAG], i);
-				if(col_ptr->isView) {
-					if(table_len > 0) {
+				if (col_ptr->isView) {
+					if (table_len > 0) {
 						snprintf(temp, sizeof(temp), ", tag.%s", col_ptr->name);
 						strncat(table_query, temp, strlen(temp));
 						table_len = strlen(table_query);
@@ -456,10 +452,10 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 				memset(temp, 0, sizeof(temp));
 			}
 			len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_TAG_MAP]);
-			for(i=1; i<len; i++) {
+			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_TAG_MAP], i);
-				if(col_ptr->isView) {
-					if(strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
+				if (col_ptr->isView) {
+					if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
 						snprintf(temp, sizeof(temp), ", media_count IS NOT NULL AS media_count, tag_map.%s AS tm_id", col_ptr->name);
 					else
 						snprintf(temp, sizeof(temp), ", tag_map.%s", col_ptr->name);
@@ -470,9 +466,9 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 			}
 
 			len = g_slist_length(column_list[MEDIA_SVC_DB_LIST_MEDIA]);
-			for(i=1; i<len; i++) {
+			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_MEDIA], i);
-				if(col_ptr->isView) {
+				if (col_ptr->isView) {
 					snprintf(temp, sizeof(temp), ", media.%s", col_ptr->name);
 					strncat(table_query, temp, strlen(temp));
 					table_len = strlen(table_query);
@@ -487,7 +483,7 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 		}
 	}
 
-	if(strncmp(table_name, MEDIA_SVC_DB_TABLE_STORAGE, strlen(MEDIA_SVC_DB_TABLE_STORAGE)) == 0) {
+	if (strncmp(table_name, MEDIA_SVC_DB_TABLE_STORAGE, strlen(MEDIA_SVC_DB_TABLE_STORAGE)) == 0) {
 		sql = sqlite3_mprintf("SELECT COUNT(*) FROM '%s' WHERE storage_uuid='%s'", MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA);
 		ret = _media_svc_sql_prepare_to_step(db_handle, sql, &sql_stmt);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -495,7 +491,7 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 		storage_cnt = sqlite3_column_int(sql_stmt, 0);
 		SQLITE3_FINALIZE(sql_stmt);
 
-		if(storage_cnt == 0) {
+		if (storage_cnt == 0) {
 			sql = sqlite3_mprintf("INSERT INTO %s VALUES('%s', '%s', '%s', '%s', 0, 0, 1);", MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, _media_svc_get_path(uid), NULL);
 			ret = _media_svc_sql_query(db_handle, sql, uid);
 			sqlite3_free(sql);
@@ -511,8 +507,8 @@ int _media_svc_upgrade_table_query(sqlite3 *db_handle, char *table_name, media_s
 	int ret = MS_MEDIA_ERR_NONE;
 	column_info *col_ptr = NULL;
 	char *sql = NULL;
-	char temp[1024] = {0,};
-	int len,i;
+	char temp[1024] = {0, };
+	int len, i;
 	int cur_version = 0;
 	sqlite3_stmt *sql_stmt = NULL;
 
@@ -529,11 +525,11 @@ int _media_svc_upgrade_table_query(sqlite3 *db_handle, char *table_name, media_s
 	SQLITE3_FINALIZE(sql_stmt);
 
 	len = g_slist_length(column_list[list]);
-	for(i=1;i<len;i++) {
+	for (i = 1; i < len; i++) {
 		col_ptr = g_slist_nth_data(column_list[list], i);
-		if(col_ptr->version > cur_version) {
-			//alter table
-			if(col_ptr->hasOption)
+		if (col_ptr->version > cur_version) {
+			/*alter table */
+			if (col_ptr->hasOption)
 				snprintf(temp, sizeof(temp), "%s %s %s", col_ptr->name, col_ptr->type, col_ptr->option);
 			else
 				snprintf(temp, sizeof(temp), "%s %s", col_ptr->name, col_ptr->type);
@@ -541,8 +537,8 @@ int _media_svc_upgrade_table_query(sqlite3 *db_handle, char *table_name, media_s
 			ret = _media_svc_sql_query(db_handle, sql, uid);
 			sqlite3_free(sql);
 			media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-			//create index
-			if(col_ptr->isIndex) {
+			/*create index */
+			if (col_ptr->isIndex) {
 				memset(temp, 0, sizeof(temp));
 				snprintf(temp, sizeof(temp), MEDIA_SVC_DB_QUERY_INDEX, col_ptr->indexName, table_name, col_ptr->name);
 				ret = _media_svc_sql_query(db_handle, temp, uid);
@@ -560,13 +556,13 @@ int _media_svc_init_table_query()
 	int ret = MS_MEDIA_ERR_NONE;
 	int i = 0;
 
-	//variable initialize..
+	/*variable initialize.. */
 	table = g_hash_table_new(g_str_hash, g_str_equal);
-	for(i=0;i<MEDIA_SVC_DB_LIST_MAX;i++) {
+	for (i = 0; i < MEDIA_SVC_DB_LIST_MAX; i++) {
 		column_list[i] = g_slist_alloc();
 	}
 
-	//table specification..    		 (table_name, index, unique set, trigger, view, trigger name, event table, action table, view name)
+	/*table specification..    		 (table_name, index, unique set, trigger, view, trigger name, event table, action table, view name) */
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_MEDIA, NULL, NULL, NULL, MEDIA_SVC_DB_VIEW_MEDIA);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_TRIGGER_FOLDER, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_FOLDER, NULL);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_PLAYLIST_MAP, MEDIA_SVC_DB_TRIGGER_PLAYLIST_MAP, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP, NULL);
@@ -579,7 +575,7 @@ int _media_svc_init_table_query()
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_CUSTOM, MEDIA_SVC_DB_TRIGGER_CUSTOM, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_CUSTOM, NULL);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	//insert column info..
+	/*insert column info.. */
 	/*media*/
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "media_uuid", MEDIA_SVC_DB_TYPE_TEXT, "PRIMARY KEY", 0, NULL, false, false, true);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "path", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL UNIQUE", 0, NULL, true, false, true);
@@ -742,43 +738,43 @@ void _media_svc_destroy_table_query()
 	g_hash_table_remove_all(table);
 	g_hash_table_destroy(table);
 
-	for(i=0; i<MEDIA_SVC_DB_LIST_MAX; i++)
+	for (i = 0; i < MEDIA_SVC_DB_LIST_MAX; i++)
 		g_slist_free(column_list[i]);
 }
 
 static int __media_svc_db_upgrade(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	char * sql = NULL;
+	char *sql = NULL;
 
 	ret = _media_svc_init_table_query();
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_MEDIA , MEDIA_SVC_DB_LIST_MEDIA, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_LIST_MEDIA, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_FOLDER , MEDIA_SVC_DB_LIST_FOLDER, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_LIST_FOLDER, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP , MEDIA_SVC_DB_LIST_PLAYLIST_MAP, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP, MEDIA_SVC_DB_LIST_PLAYLIST_MAP, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_PLAYLIST , MEDIA_SVC_DB_LIST_PLAYLIST, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_PLAYLIST, MEDIA_SVC_DB_LIST_PLAYLIST, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_ALBUM , MEDIA_SVC_DB_LIST_ALBUM, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_ALBUM, MEDIA_SVC_DB_LIST_ALBUM, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_TAG_MAP , MEDIA_SVC_DB_LIST_TAG_MAP, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_TAG_MAP, MEDIA_SVC_DB_LIST_TAG_MAP, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_TAG , MEDIA_SVC_DB_LIST_TAG, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_TAG, MEDIA_SVC_DB_LIST_TAG, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_BOOKMARK , MEDIA_SVC_DB_LIST_BOOKMARK, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_BOOKMARK, MEDIA_SVC_DB_LIST_BOOKMARK, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_STORAGE , MEDIA_SVC_DB_LIST_STORAGE, uid);
+	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_LIST_STORAGE, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	ret = __media_svc_rebuild_view_query(db_handle, uid);
@@ -804,14 +800,13 @@ int _media_svc_sql_query(sqlite3 *db_handle, const char *sql_str, uid_t uid)
 	return ret;
 }
 
-int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3_stmt** stmt)
+int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3_stmt **stmt)
 {
 	int err = -1;
 
 	media_svc_sec_debug("[SQL query] : %s", sql_str);
 
-	if(!STRING_VALID(sql_str))
-	{
+	if (!STRING_VALID(sql_str)) {
 		media_svc_error("invalid query");
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -820,7 +815,7 @@ int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3
 	sqlite3_free((char *)sql_str);
 
 	if (err != SQLITE_OK) {
-		media_svc_error ("prepare error %d[%s]", err, sqlite3_errmsg(handle));
+		media_svc_error("prepare error %d[%s]", err, sqlite3_errmsg(handle));
 		if (err == SQLITE_CORRUPT) {
 			return MS_MEDIA_ERR_DB_CORRUPT;
 		} else if (err == SQLITE_PERM) {
@@ -840,14 +835,13 @@ int _media_svc_sql_prepare_to_step(sqlite3 *handle, const char *sql_str, sqlite3
 	return MS_MEDIA_ERR_NONE;
 }
 
-int _media_svc_sql_prepare_to_step_simple(sqlite3 *handle, const char *sql_str, sqlite3_stmt** stmt)
+int _media_svc_sql_prepare_to_step_simple(sqlite3 *handle, const char *sql_str, sqlite3_stmt **stmt)
 {
 	int err = -1;
 
 	media_svc_sec_debug("[SQL query] : %s", sql_str);
 
-	if(!STRING_VALID(sql_str))
-	{
+	if (!STRING_VALID(sql_str)) {
 		media_svc_error("invalid query");
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -856,7 +850,7 @@ int _media_svc_sql_prepare_to_step_simple(sqlite3 *handle, const char *sql_str, 
 	sqlite3_free((char *)sql_str);
 
 	if (err != SQLITE_OK) {
-		media_svc_error ("prepare error %d[%s]", err, sqlite3_errmsg(handle));
+		media_svc_error("prepare error %d[%s]", err, sqlite3_errmsg(handle));
 		if (err == SQLITE_CORRUPT) {
 			return MS_MEDIA_ERR_DB_CORRUPT;
 		} else if (err == SQLITE_PERM) {
@@ -908,9 +902,9 @@ int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 	media_svc_debug("query list length : [%d]", length);
 
 	for (idx = 0; idx < length; idx++) {
-		sql = (char*)g_list_nth_data(*query_list, idx);
-		if(sql != NULL) {
-			//ret = _media_svc_sql_query(handle, sql);
+		sql = (char *)g_list_nth_data(*query_list, idx);
+		if (sql != NULL) {
+			/*ret = _media_svc_sql_query(handle, sql); */
 			ret = media_db_request_update_db_batch(sql, uid);
 			if (ret != MS_MEDIA_ERR_NONE) {
 				media_svc_error("media_db_request_update_db_batch failed : %d", ret);
@@ -928,7 +922,7 @@ int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 
 void _media_svc_sql_query_add(GList **query_list, char **query)
 {
-	*query_list = g_list_append( *query_list, *query);
+	*query_list = g_list_append(*query_list, *query);
 }
 
 void _media_svc_sql_query_release(GList **query_list)
@@ -982,7 +976,7 @@ int _media_db_check_corrupt(sqlite3 *db_handle)
 	result = (char *)sqlite3_column_text(sql_stmt, 0);
 	SQLITE3_FINALIZE(sql_stmt);
 
-	if(result != NULL) {
+	if (result != NULL) {
 		media_svc_debug("result %s", result);
 		if (strcasecmp(result, "OK"))
 			ret = MS_MEDIA_ERR_DB_CORRUPT;
@@ -1025,12 +1019,12 @@ int _media_svc_drop_media_table(sqlite3 *handle, const char *storage_id, uid_t u
 int _media_svc_update_media_view(sqlite3 *db_handle, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	char * sql = NULL;
+	char *sql = NULL;
 	sqlite3_stmt *sql_stmt = NULL;
 	int item_cnt = 0;
 	int idx = 0;
 	GList *storage_list = NULL;
-	char view_query[4096] = {0,};
+	char view_query[4096] = {0, };
 	memset(view_query, 0x00, sizeof(view_query));
 
 	snprintf(view_query, sizeof(view_query),  "DROP VIEW IF EXISTS %s; CREATE VIEW IF NOT EXISTS %s AS SELECT * from %s ", MEDIA_SVC_DB_VIEW_MEDIA, MEDIA_SVC_DB_VIEW_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA);
@@ -1040,32 +1034,26 @@ int _media_svc_update_media_view(sqlite3 *db_handle, uid_t uid)
 	ret = _media_svc_sql_prepare_to_step_simple(db_handle, sql, &sql_stmt);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	while (sqlite3_step(sql_stmt) == SQLITE_ROW)
-	{
-		if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
-		{
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
+		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0))) {
 			storage_list = g_list_append(storage_list, strdup((char *)sqlite3_column_text(sql_stmt, 0)));
 		}
 	}
 	SQLITE3_FINALIZE(sql_stmt);
 
-	if((storage_list != NULL) && ( g_list_length(storage_list) > 0))
-	{
+	if ((storage_list != NULL) && (g_list_length(storage_list) > 0)) {
 		item_cnt = g_list_length(storage_list);
 
-		for(idx = 0; idx < item_cnt; idx++)
-		{
+		for (idx = 0; idx < item_cnt; idx++) {
 			int table_cnt = 0;
-			char * storage_id = NULL;
+			char *storage_id = NULL;
 			storage_id = g_list_nth_data(storage_list, idx);
 
-			if(STRING_VALID(storage_id))
-			{
+			if (STRING_VALID(storage_id)) {
 				/*Select list of storage*/
 				sql = sqlite3_mprintf("SELECT COUNT(*) FROM SQLITE_MASTER WHERE type='table' and name='%q'", storage_id);
 				ret = _media_svc_sql_prepare_to_step(db_handle, sql, &sql_stmt);
-				if(ret != MS_MEDIA_ERR_NONE)
-				{
+				if (ret != MS_MEDIA_ERR_NONE) {
 					SAFE_FREE(storage_id);
 					continue;
 				}
@@ -1073,15 +1061,12 @@ int _media_svc_update_media_view(sqlite3 *db_handle, uid_t uid)
 				table_cnt = sqlite3_column_int(sql_stmt, 0);
 				SQLITE3_FINALIZE(sql_stmt);
 
-				if(table_cnt > 0)
-				{
-					char append_query[128] = {0,};
+				if (table_cnt > 0) {
+					char append_query[128] = {0, };
 					memset(append_query, 0x00, sizeof(append_query));
 					snprintf(append_query, sizeof(append_query), " UNION SELECT * from '%s'", storage_id);
 					strncat(view_query, append_query, strlen(append_query));
-				}
-				else
-				{
+				} else {
 					media_svc_error("media table not exist for storage [%s]", storage_id);
 				}
 

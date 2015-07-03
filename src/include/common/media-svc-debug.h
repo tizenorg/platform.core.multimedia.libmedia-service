@@ -36,68 +36,68 @@
 #define LOG_TAG "MEDIA_SERVICE"
 
 #define media_svc_debug(fmt, arg...) do { \
-			LOGD(" "fmt"", ##arg);     \
-		} while (0)
+		LOGD(" "fmt"", ##arg);     \
+	} while (0)
 
 #define media_svc_error(fmt, arg...) do { \
-			LOGE(" "fmt"", ##arg);     \
-		} while (0)
+		LOGE(" "fmt"", ##arg);     \
+	} while (0)
 
 #define media_svc_debug_func() do { \
-			LOGD("");     \
-		} while (0)
+		LOGD("");     \
+	} while (0)
 
 #define media_svc_retm_if(expr, fmt, arg...) do { \
-			if(expr) { \
-				LOGE(" "fmt"", ##arg);   \
-				return; \
-			} \
-		} while (0)
+		if(expr) { \
+			LOGE(" "fmt"", ##arg);   \
+			return; \
+		} \
+	} while (0)
 #define media_svc_retv_if(expr, val) do { \
-			if(expr) { \
-				LOGE("");     \
-				return (val); \
-			} \
-		} while (0)
+		if(expr) { \
+			LOGE("");     \
+			return (val); \
+		} \
+	} while (0)
 #define media_svc_retvm_if(expr, val, fmt, arg...) do { \
-			if(expr) { \
-				LOGE(" "fmt"", ##arg); 	\
-				return (val); \
-			} \
-		} while (0)
+		if(expr) { \
+			LOGE(" "fmt"", ##arg); 	\
+			return (val); \
+		} \
+	} while (0)
 
 #define media_svc_retv_del_if(expr, val, p_str) do { \
-			if(expr) { \
-				LOGE("");     \
-				_media_svc_destroy_content_info(p_str);        \
-				return (val); \
-			} \
-		} while (0)
+		if(expr) { \
+			LOGE("");     \
+			_media_svc_destroy_content_info(p_str);        \
+			return (val); \
+		} \
+	} while (0)
 
 #define media_svc_sec_debug(fmt, arg...) do { \
-			SECURE_LOGI(" "fmt"", ##arg);	 \
-		} while (0)
+		SECURE_LOGI(" "fmt"", ##arg);	 \
+	} while (0)
 
 #define media_svc_sec_warn(fmt, arg...) do { \
-			SECURE_LOGW(" "fmt"", ##arg); 	\
-		} while (0)
+		SECURE_LOGW(" "fmt"", ##arg); 	\
+	} while (0)
 
 #define media_svct_sec_error(fmt, arg...) do { \
-			SECURE_LOGE(" "fmt"", ##arg);	  \
-		} while (0)
+		SECURE_LOGE(" "fmt"", ##arg);	  \
+	} while (0)
 
 #define ERR_BUF_LENGHT 256
 #define media_svc_stderror(fmt) do { \
-			char buf[ERR_BUF_LENGHT] = {0,}; \
-			strerror_r(errno, buf, ERR_BUF_LENGHT); \
-			LOGE(fmt" : standard error= [%s]", buf); \
-		} while (0)
+		char buf[ERR_BUF_LENGHT] = {0, }; \
+		strerror_r(errno, buf, ERR_BUF_LENGHT); \
+		LOGE(fmt" : standard error= [%s]", buf); \
+	} while (0)
 
 #ifdef _USE_LOG_FILE_
 void mediainfo_init_file_debug();
 void mediainfo_close_file_debug();
-FILE* get_fp();
-#define mediainfo_file_dbg(fmt,arg...)      fprintf( get_fp(), "[%s: %d] [%s]" fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##arg)
+FILE *get_fp();
+#define mediainfo_file_dbg(fmt, arg...)      fprintf( get_fp(), "[%s: %d] [%s]" fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##arg)
 
 #endif
 
@@ -108,9 +108,9 @@ mediainfo_get_debug_time(void);
 void
 mediainfo_reset_debug_time(void);
 void
-mediainfo_print_debug_time(char* time_string);
+mediainfo_print_debug_time(char *time_string);
 void
-mediainfo_print_debug_time_ex(long start, long end, const char* func_name, char* time_string);
+mediainfo_print_debug_time_ex(long start, long end, const char *func_name, char *time_string);
 #endif
 
 #endif /*_MEDIA_SVC_DEBUG_H_*/

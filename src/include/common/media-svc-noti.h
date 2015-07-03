@@ -46,12 +46,12 @@ int _media_svc_destroy_noti_list(int all_cnt);
 int _media_svc_publish_noti_list(int all_cnt);
 int _media_svc_destroy_noti_item(media_svc_noti_item *item);
 int _media_svc_publish_noti(media_item_type_e update_item,
-							media_item_update_type_e update_type,
-							const char *path,
-							media_type_e media_type,
-							const char *uuid,
-							const char *mime_type
-);
+                            media_item_update_type_e update_type,
+                            const char *path,
+                            media_type_e media_type,
+                            const char *uuid,
+                            const char *mime_type
+                           );
 
 #endif /*_MEDIA_SVC_NOTI_H_*/
 

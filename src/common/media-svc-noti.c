@@ -32,21 +32,15 @@ static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	if (noti_item && noti_item->path)
-	{
+	if (noti_item && noti_item->path) {
 		ret = media_db_update_send(noti_item->pid, noti_item->update_item, noti_item->update_type, noti_item->path, noti_item->media_uuid, noti_item->media_type, noti_item->mime_type);
-		if(ret != MS_MEDIA_ERR_NONE)
-		{
+		if (ret != MS_MEDIA_ERR_NONE) {
 			media_svc_error("media_db_update_send failed : %d [%s]", ret, noti_item->path);
 			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
-		}
-		else
-		{
+		} else {
 			media_svc_debug("media_db_update_send success");
 		}
-	}
-	else
-	{
+	} else {
 		media_svc_debug("invalid path");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -55,30 +49,24 @@ static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 }
 
 int _media_svc_publish_noti(media_item_type_e update_item,
-							media_item_update_type_e update_type,
-							const char *path,
-							media_type_e media_type,
-							const char *uuid,
-							const char *mime_type
-)
+                            media_item_update_type_e update_type,
+                            const char *path,
+                            media_type_e media_type,
+                            const char *uuid,
+                            const char *mime_type
+                           )
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	if(STRING_VALID(path))
-	{
+	if (STRING_VALID(path)) {
 		ret = media_db_update_send(getpid(), update_item, update_type, (char *)path, (char *)uuid, media_type, (char *)mime_type);
-		if(ret != MS_MEDIA_ERR_NONE)
-		{
+		if (ret != MS_MEDIA_ERR_NONE) {
 			media_svc_error("Send noti failed : %d [%s]", ret, path);
 			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
-		}
-		else
-		{
+		} else {
 			media_svc_debug("Send noti success [%d][%d]", update_item, update_type);
 		}
-	}
-	else
-	{
+	} else {
 		media_svc_debug("invalid path");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -110,7 +98,7 @@ int _media_svc_insert_item_to_noti_list(media_svc_content_info_s *content_info, 
 
 	if (noti_list && content_info) {
 		noti_list[cnt].pid = g_noti_from_pid;
-		noti_list[cnt].update_item = MS_MEDIA_ITEM_INSERT; // INSERT
+		noti_list[cnt].update_item = MS_MEDIA_ITEM_INSERT; /* INSERT */
 		noti_list[cnt].update_type = MS_MEDIA_ITEM_FILE;
 		noti_list[cnt].media_type = content_info->media_type;
 		if (content_info->media_uuid)

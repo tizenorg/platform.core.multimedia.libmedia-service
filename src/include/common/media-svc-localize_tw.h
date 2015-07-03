@@ -24,7 +24,7 @@
 typedef struct {
 	char *bpmf_initial;
 	char *bpmf_name;
-}media_svc_bpmf_name_s;
+} media_svc_bpmf_name_s;
 
 int _media_svc_get_bopomofo(const char *src, char **dest);
 int _media_svc_convert_chinese_to_bpmf(const char *src, media_svc_bpmf_name_s **dest);
@@ -32,4 +32,4 @@ void _media_svc_bpmf_name_destroy(media_svc_bpmf_name_s *bpmf);
 bool _media_svc_bpmf_is_bpmf(const char *src);
 char _media_svc_bpmf_get_fuzzy_number(const char *src);
 
-#endif		//__MEDIA_SERVICE_LOCALIZE_TW_H__
+#endif		/*__MEDIA_SERVICE_LOCALIZE_TW_H__ */
