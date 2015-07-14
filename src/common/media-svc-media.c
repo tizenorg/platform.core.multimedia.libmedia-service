@@ -178,6 +178,8 @@ char *_media_svc_get_thumb_default_path(uid_t uid)
 		grpinfo = getgrnam("users");
 		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
+			if(result_psswd)
+				free(result_psswd);
 			return NULL;
 		}
 	} else {
