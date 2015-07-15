@@ -178,7 +178,7 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_PLAYLIST_MAP], i);
 		if (col_ptr->isView) {
 			if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
-				snprintf(temp, sizeof(temp), ", playlist_map.%s AS pm_id", col_ptr->name);
+				snprintf(temp, sizeof(temp), ", media_count IS NOT NULL AS media_count, playlist_map.%s AS pm_id", col_ptr->name);
 			else
 				snprintf(temp, sizeof(temp), ", playlist_map.%s", col_ptr->name);
 			strncat(table_query, temp, strlen(temp));
@@ -227,7 +227,7 @@ static int __media_svc_rebuild_view_query(sqlite3 *db_handle, uid_t uid)
 		col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_TAG_MAP], i);
 		if (col_ptr->isView) {
 			if (strncmp(col_ptr->name, MEDIA_SVC_DB_COLUMN_MAP_ID, strlen(MEDIA_SVC_DB_COLUMN_MAP_ID)) == 0)
-				snprintf(temp, sizeof(temp), ", tag_map.%s AS tm_id", col_ptr->name);
+				snprintf(temp, sizeof(temp), ", media_count IS NOT NULL AS media_count, tag_map.%s AS tm_id", col_ptr->name);
 			else
 				snprintf(temp, sizeof(temp), ", tag_map.%s", col_ptr->name);
 			strncat(table_query, temp, strlen(temp));
