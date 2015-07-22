@@ -1,6 +1,6 @@
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications
-Version: 0.2.48
+Version: 0.2.49
 Release:    3
 Group:      System/Libraries
 License:    Apache-2.0 and public domain
@@ -66,6 +66,10 @@ cp -rf %{_builddir}/%{name}-%{version}/LICENSE %{buildroot}/%{_datadir}/license/
 %{_libdir}/libmedia-content-plugin.so
 %{_libdir}/libmedia-content-plugin.so.1
 %{_libdir}/libmedia-content-plugin.so.1.0.0
+/usr/lib/libmedia-content-plugin.so
+/usr/lib/libmedia-content-plugin.so.1
+/usr/lib/libmedia-content-plugin.so.1.0.0
+
 #License
 %{_datadir}/license/%{name}
 
