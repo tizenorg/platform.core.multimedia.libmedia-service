@@ -169,7 +169,7 @@ int main()
 #endif
 
 	/*folder test ================================================== */
-	char *folder_path = tzplatform_mkpath(TZ_USER_CONTENT, "Sounds"));
+	char *folder_path = tzplatform_mkpath(TZ_USER_CONTENT, "Sounds");
 	ret = svc_set_folder_item_validity(db_handle, folder_path, 0, 1, &err_msg);
 	if (ret < 0) {
 	msg_print(__LINE__, "svc_set_folder_item_validity error");
