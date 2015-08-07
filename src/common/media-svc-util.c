@@ -689,25 +689,6 @@ int _media_svc_remove_all_files_in_dir(const char *dir_path)
 	return MS_MEDIA_ERR_NONE;
 }
 
-static int _mkdir(const char *dir, mode_t mode)
-{
-	char tmp[256];
-	char *p = NULL;
-	size_t len;
-
-	snprintf(tmp, sizeof(tmp), "%s", dir);
-	len = strlen(tmp);
-	if (tmp[len - 1] == '/')
-		tmp[len - 1] = 0;
-	for (p = tmp + 1; *p; p++)
-		if (*p == '/') {
-			*p = 0;
-			mkdir(tmp, mode);
-			*p = '/';
-		}
-	return mkdir(tmp, mode);
-}
-
 char *_media_svc_get_thumb_internal_path(uid_t uid)
 {
 	char *result_psswd = NULL;
@@ -739,8 +720,6 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 		}
 		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/phone", userinfo->pw_dir);
 	}
-
-	_mkdir(result_psswd, S_IRWXU | S_IRWXG | S_IRWXO);
 
 	return result_psswd;
 }
@@ -776,8 +755,6 @@ char *_media_svc_get_thumb_external_path(uid_t uid)
 		}
 		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/mmc", userinfo->pw_dir);
 	}
-
-	_mkdir(result_psswd, S_IRWXU | S_IRWXG | S_IRWXO);
 
 	return result_psswd;
 }
@@ -850,8 +827,6 @@ static char *_media_svc_get_thumb_path(uid_t uid)
 		}
 		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb", userinfo->pw_dir);
 	}
-
-	_mkdir(result_psswd, S_IRWXU | S_IRWXG | S_IRWXO);
 
 	return result_psswd;
 }
