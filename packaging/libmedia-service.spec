@@ -1,6 +1,6 @@
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications
-Version: 0.2.49
+Version: 0.2.50
 Release:    3
 Group:      System/Libraries
 License:    Apache-2.0 and public domain
