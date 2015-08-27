@@ -50,14 +50,14 @@ static __thread int g_insert_with_noti = FALSE;
 
 #define DEFAULT_MEDIA_SVC_STORAGE_ID "media"
 
-int media_svc_connect(MediaSvcHandle **handle, uid_t uid, bool needWrite)
+int media_svc_connect(MediaSvcHandle **handle, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	MediaDBHandle *db_handle = NULL;
 
 	media_svc_debug_func();
 
-	ret = media_db_connect(&db_handle, uid, needWrite);
+	ret = media_db_connect(&db_handle, uid, FALSE);
 	if (ret != MS_MEDIA_ERR_NONE)
 		return ret;
 
