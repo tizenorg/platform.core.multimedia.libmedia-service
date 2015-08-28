@@ -119,11 +119,11 @@ LEFT OUTER JOIN (SELECT count(tag_id) as media_count, tag_id FROM tag_map group 
 #define MEDIA_SVC_UUID_SIZE		    				36 						/**< Length of UUID*/
 
 #define MEDIA_SVC_TAG_UNKNOWN				"Unknown"
-#define MEDIA_SVC_MEDIA_PATH				tzplatform_mkpath(TZ_USER_DATA, "file-manager-service")			/**<  Media path*/
-#define MEDIA_SVC_THUMB_PATH_PREFIX			tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb")			/**< Thumbnail path prefix*/
-#define MEDIA_SVC_THUMB_INTERNAL_PATH 		tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb/phone")	/**<  Phone thumbnail path*/
-#define MEDIA_SVC_THUMB_EXTERNAL_PATH 		tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb/mmc")		/**<  MMC thumbnail path*/
-#define MEDIA_SVC_THUMB_DEFAULT_PATH		tzplatform_mkpath(TZ_USER_DATA, "file-manager-service/.thumb/thumb_default.png") /** default thumbnail */
+#define MEDIA_SVC_MEDIA_PATH				tzplatform_mkpath(TZ_USER_SHARE, "media")			/**<  Media path*/
+#define MEDIA_SVC_THUMB_PATH_PREFIX			tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb")			/**< Thumbnail path prefix*/
+#define MEDIA_SVC_THUMB_INTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/phone")	/**<  Phone thumbnail path*/
+#define MEDIA_SVC_THUMB_EXTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/mmc")		/**<  MMC thumbnail path*/
+#define MEDIA_SVC_THUMB_DEFAULT_PATH		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/thumb_default.png") /** default thumbnail */
 
 #define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
 #define THUMB_EXT 	"jpg"

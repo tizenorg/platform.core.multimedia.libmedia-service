@@ -718,7 +718,7 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/phone", userinfo->pw_dir);
+		asprintf(&result_psswd, "%s/share/media/.thumb/phone", userinfo->pw_dir);
 	}
 
 	return result_psswd;
@@ -753,7 +753,7 @@ char *_media_svc_get_thumb_external_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/mmc", userinfo->pw_dir);
+		asprintf(&result_psswd, "%s/share/media/.thumb/mmc", userinfo->pw_dir);
 	}
 
 	return result_psswd;
@@ -825,7 +825,7 @@ static char *_media_svc_get_thumb_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb", userinfo->pw_dir);
+		asprintf(&result_psswd, "%s/share/media/.thumb", userinfo->pw_dir);
 	}
 
 	return result_psswd;

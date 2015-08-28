@@ -198,7 +198,7 @@ char *_media_svc_get_thumb_default_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/data/file-manager-service/.thumb/thumb_default.png", userinfo->pw_dir);
+		asprintf(&result_psswd, "%s/share/media/.thumb/thumb_default.png", userinfo->pw_dir);
 	}
 
 	return result_psswd;
