@@ -28,7 +28,7 @@
 #include <tzplatform_config.h>
 
 #define PLUGIN_SO_FILE_NAME  "/usr/lib/libmedia-content-plugin.so"
-#define MEDIA_ROOT_PATH_SDCARD	tzplatform_mkpath(TZ_SYS_STORAGE, "sdcard")
+#define MEDIA_ROOT_PATH_SDCARD	tzplatform_getenv(TZ_SYS_STORAGE)
 void *funcHandle = NULL;
 
 static void msg_print(int line, char *msg);
