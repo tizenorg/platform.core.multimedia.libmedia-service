@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 
-int media_svc_connect(MediaSvcHandle **handle, uid_t uid);
+int media_svc_connect(MediaSvcHandle **handle, uid_t uid, bool need_write);
 int media_svc_disconnect(MediaSvcHandle *handle);
 int media_svc_create_table(MediaSvcHandle *handle, uid_t uid);
 int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *path);

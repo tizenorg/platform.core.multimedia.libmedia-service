@@ -91,7 +91,7 @@ static void __set_error_message(int err_type, char **err_msg)
 
 int connect_db(void **handle, uid_t uid, char **err_msg)
 {
-	int ret = media_svc_connect(handle, uid);
+	int ret = media_svc_connect(handle, uid, true);
 
 	if (ret < 0) {
 		__set_error_message(ret, err_msg);

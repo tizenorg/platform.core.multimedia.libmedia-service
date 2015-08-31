@@ -227,7 +227,7 @@ int test_noti()
 int main()
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	ret = media_svc_connect(&g_db_handle, tzplatform_getuid(TZ_USER_NAME));
+	ret = media_svc_connect(&g_db_handle, tzplatform_getuid(TZ_USER_NAME), true);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("media_svc_connect failed : %d", ret);
 	} else {
