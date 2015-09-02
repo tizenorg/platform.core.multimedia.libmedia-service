@@ -47,15 +47,17 @@ extern "C" {
  * Table Name
  */
 #define MEDIA_SVC_DB_TABLE_MEDIA				"media"				/**<  media table*/
-#define MEDIA_SVC_DB_TABLE_FOLDER				"folder"			/**<  media_folder table*/
+#define MEDIA_SVC_DB_TABLE_FOLDER				"folder"				/**<  media_folder table*/
 #define MEDIA_SVC_DB_TABLE_PLAYLIST				"playlist"			/**<  playlist table*/
 #define MEDIA_SVC_DB_TABLE_PLAYLIST_MAP			"playlist_map"		/**<  playlist_map table*/
 #define MEDIA_SVC_DB_TABLE_ALBUM				"album"				/**<  album table*/
-#define MEDIA_SVC_DB_TABLE_TAG					"tag"				/**<  tag table*/
-#define MEDIA_SVC_DB_TABLE_TAG_MAP				"tag_map"			/**<  tag_map table*/
-#define MEDIA_SVC_DB_TABLE_BOOKMARK				"bookmark"			/**<  bookmark table*/
-#define MEDIA_SVC_DB_TABLE_CUSTOM				"custom"				/**<  custom table*/
+#define MEDIA_SVC_DB_TABLE_TAG					"tag"			/**<  tag table*/
+#define MEDIA_SVC_DB_TABLE_TAG_MAP				"tag_map"		/**<  tag_map table*/
+#define MEDIA_SVC_DB_TABLE_BOOKMARK				"bookmark"		/**<  bookmark table*/
+#define MEDIA_SVC_DB_TABLE_CUSTOM				"custom"			/**<  custom table*/
 #define MEDIA_SVC_DB_TABLE_STORAGE				"storage"			/**<  storage table*/
+#define MEDIA_SVC_DB_TABLE_FACE					"face"			/**<  face table*/
+#define MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST			"face_scan_list"	/**<  face_scan_list table*/
 
 /**
  * View Name
@@ -76,6 +78,9 @@ extern "C" {
 #define MEDIA_SVC_DB_TRIGGER_BOOKMARK			"bookmark_cleanup"
 #define MEDIA_SVC_DB_TRIGGER_STORAGE			"storage_folder_cleanup"
 #define MEDIA_SVC_DB_TRIGGER_CUSTOM			"custom_cleanup"
+#define MEDIA_SVC_DB_TRIGGER_FACE_SCAN_LIST	"face_scan_list_cleanup"
+#define MEDIA_SVC_DB_TRIGGER_FACE				"face_cleanup"
+
 
 /**
  * Trigger Name
@@ -153,12 +158,14 @@ typedef enum {
 	MEDIA_SVC_DB_LIST_PLAYLIST_MAP = 2,
 	MEDIA_SVC_DB_LIST_PLAYLIST 	= 3,
 	MEDIA_SVC_DB_LIST_ALBUM		= 4,
-	MEDIA_SVC_DB_LIST_TAG_MAP 		= 5,
+	MEDIA_SVC_DB_LIST_TAG_MAP	= 5,
 	MEDIA_SVC_DB_LIST_TAG 			= 6,
 	MEDIA_SVC_DB_LIST_BOOKMARK 	= 7,
-	MEDIA_SVC_DB_LIST_STORAGE 		= 8,
-	MEDIA_SVC_DB_LIST_CUSTOM 		= 9,
-	MEDIA_SVC_DB_LIST_MAX			= 10,
+	MEDIA_SVC_DB_LIST_STORAGE 	= 8,
+	MEDIA_SVC_DB_LIST_FACE_SCAN_LIST	= 9,
+	MEDIA_SVC_DB_LIST_FACE			= 10,
+	MEDIA_SVC_DB_LIST_CUSTOM,
+	MEDIA_SVC_DB_LIST_MAX	,
 } media_svc_table_slist_e;
 
 typedef struct table_inform {

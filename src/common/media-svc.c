@@ -121,12 +121,19 @@ int media_svc_create_table(MediaSvcHandle *handle, uid_t uid)
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_BOOKMARK, MEDIA_SVC_DB_LIST_BOOKMARK, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	/*create storage table*/
+	/*create storage table. from tizen 2.4*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_LIST_STORAGE, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*init storage table*/
 	ret = _media_svc_init_storage(db_handle, uid);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	/*create face table. from tizen 3.0*/
+	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, MEDIA_SVC_DB_LIST_FACE_SCAN_LIST, uid);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_FACE, MEDIA_SVC_DB_LIST_FACE, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	_media_svc_destroy_table_query();

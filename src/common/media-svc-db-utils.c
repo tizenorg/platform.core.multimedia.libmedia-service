@@ -572,6 +572,8 @@ int _media_svc_init_table_query()
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_TAG, MEDIA_SVC_DB_TRIGGER_TAG_MAP1, MEDIA_SVC_DB_TABLE_TAG, MEDIA_SVC_DB_TABLE_TAG_MAP, MEDIA_SVC_DB_VIEW_TAG);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_BOOKMARK, MEDIA_SVC_DB_TRIGGER_BOOKMARK, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_BOOKMARK, NULL);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TRIGGER_STORAGE, MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_FOLDER, NULL);
+	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, MEDIA_SVC_DB_TRIGGER_FACE_SCAN_LIST, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, NULL);
+	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_FACE, MEDIA_SVC_DB_TRIGGER_FACE, MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, MEDIA_SVC_DB_TABLE_FACE, NULL);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_CUSTOM, MEDIA_SVC_DB_TRIGGER_CUSTOM, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_CUSTOM, NULL);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
@@ -714,6 +716,21 @@ int _media_svc_init_table_query()
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_STORAGE], "storage_type", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_STORAGE], "scan_status", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_STORAGE], "validity", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 1", 0, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	/*face scan list*/
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE_SCAN_LIST], "media_uuid", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", 0, NULL, true, true, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE_SCAN_LIST], "storage_uuid", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", 0, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	/*face*/
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_uuid", MEDIA_SVC_DB_TYPE_TEXT, "PRIMARY KEY", 0, NULL, true, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "media_uuid", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", 0, NULL, false, true, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_rect_x", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_rect_y", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_rect_w", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_rect_h", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "orientation", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*custom*/
