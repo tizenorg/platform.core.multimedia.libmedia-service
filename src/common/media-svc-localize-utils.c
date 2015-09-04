@@ -24,6 +24,8 @@
 #include <unicode/ustring.h>
 #include <unicode/ucol.h>
 
+#include <vconf.h>
+
 #include "media-util-err.h"
 #include "media-svc-debug.h"
 #include "media-svc-localize-utils.h"
@@ -50,14 +52,14 @@ int _media_svc_check_utf8(char c)
 
 int SAFE_SNPRINTF(char **buf, int *buf_size, int len, const char *src)
 {
-	int remain;
-	int temp_len;
+	int remain = 0;
+	int temp_len = 0;
 
 	if (len < 0)
 		return -1;
 
 	remain = *buf_size - len;
-	if (remain > strlen(src) + 1) {
+	if (remain > (int)strlen(src) + 1) {
 		temp_len = snprintf((*buf) + len, remain, "%s", src);
 		return temp_len;
 	} else {
@@ -69,7 +71,7 @@ int SAFE_SNPRINTF(char **buf, int *buf_size, int len, const char *src)
 			*buf = temp;
 			*buf_size = *buf_size * 2;
 			remain = *buf_size - len;
-			if (remain > strlen(src) + 1)
+			if (remain > (int)strlen(src) + 1)
 				break;
 		}
 		temp_len = snprintf((*buf) + len, remain, "%s", src);
@@ -114,6 +116,7 @@ static inline int __media_svc_collation_str(const char *src, char **dest)
 	UCollator *collator;
 	char region[50] = {0};
 	char *lang = NULL;
+	const char *en_us = "en_US.UTF-8";
 
 	/*lang = vconf_get_str(VCONFKEY_LANGSET); */
 	if (lang != NULL) {
@@ -125,7 +128,7 @@ static inline int __media_svc_collation_str(const char *src, char **dest)
 			free(lang);
 		}
 	} else {
-		strncpy(region, "en_US.UTF-8", strlen("en_US.UTF-8"));
+		strncpy(region, en_us, strlen(en_us));
 	}
 
 	char *dot = strchr(region, '.');

@@ -25,8 +25,18 @@
 #include <sqlite3.h>
 
 int _media_svc_init_storage(sqlite3 *handle, uid_t uid);
+int _media_svc_get_mmc_info(MediaSvcHandle *handle, char **storage_name, char **storage_path, int *validity, bool *info_exist);
+int _media_svc_check_storage(sqlite3 *handle, const char *storage_id, const char *storage_name, char **storage_path, int *validity);
 int _media_svc_append_storage(sqlite3 *handle, const char *storage_id, const char *storage_name, const char *storage_path, const char *storage_account, media_svc_storage_type_e storage_type, uid_t uid);
-int _media_svc_delete_storage(sqlite3 *handle, const char *storage_id, uid_t uid);
+int _media_svc_update_storage_path(sqlite3 *handle, const char *storage_id, const char *path, uid_t uid);
+int _media_svc_delete_storage(sqlite3 *handle, const char *storage_id, const char *storage_name, uid_t uid);
 int _media_svc_update_storage_validity(sqlite3 *handle, const char *storage_id, int validity, uid_t uid);
+int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage_id);
+int _media_svc_get_storage_type(sqlite3 *handle, const char *storage_id, media_svc_storage_type_e *storage_type);
+int _media_svc_get_storage_path(sqlite3 *handle, const char *storage_id, char **storage_path);
+int _media_svc_get_storage_scan_status(sqlite3 *handle, const char*storage_id, media_svc_scan_status_type_e *scan_status);
+int _media_svc_set_storage_scan_status(sqlite3 *handle, const char*storage_id, media_svc_scan_status_type_e scan_status, uid_t uid);
+int _media_svc_get_all_storage(sqlite3 *handle, char ***storage_list, char ***storage_id_list, int **scan_status_list, int *count);
+
 
 #endif /*_MEDIA_SVC_STORAGE_H_*/

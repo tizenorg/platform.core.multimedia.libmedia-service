@@ -45,17 +45,47 @@ static __thread int g_media_svc_insert_item_cur_data_cnt = 0;
 static __thread int g_media_svc_update_item_data_cnt = 1;
 static __thread int g_media_svc_update_item_cur_data_cnt = 0;
 
+static __thread int g_media_svc_insert_folder_data_cnt = 1;
+static __thread int g_media_svc_insert_folder_cur_data_cnt = 0;
+
 /* Flag for items to be published by notification */
 static __thread int g_insert_with_noti = FALSE;
 
 #define DEFAULT_MEDIA_SVC_STORAGE_ID "media"
+
+typedef struct{
+	int media_type;
+	char *path;
+}media_svc_item_info_s;
+
+static bool __media_svc_check_storage(media_svc_storage_type_e storage_type, bool check_all)
+{
+	if (check_all == TRUE) {
+		if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL)
+			&& (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)
+			&& (storage_type != MEDIA_SVC_STORAGE_EXTERNAL_USB)
+			&& (storage_type != MEDIA_SVC_STORAGE_CLOUD)) {
+			media_svc_error("storage type is incorrect[%d]", storage_type);
+			return FALSE;
+		}
+	} else {
+		if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL)
+			&& (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)
+			&& (storage_type != MEDIA_SVC_STORAGE_EXTERNAL_USB)) {
+			media_svc_error("storage type is incorrect[%d]", storage_type);
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
 
 int media_svc_connect(MediaSvcHandle **handle, uid_t uid, bool need_write)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	MediaDBHandle *db_handle = NULL;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	ret = media_db_connect(&db_handle, uid, need_write);
 	if (ret != MS_MEDIA_ERR_NONE)
@@ -69,7 +99,7 @@ int media_svc_disconnect(MediaSvcHandle *handle)
 {
 	MediaDBHandle *db_handle = (MediaDBHandle *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
@@ -84,9 +114,9 @@ int media_svc_create_table(MediaSvcHandle *handle, uid_t uid)
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
-	ret = _media_svc_init_table_query();
+	ret = _media_svc_init_table_query(MEDIA_SVC_DB_TABLE_MEDIA);
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
 	/*create media table*/
@@ -125,10 +155,11 @@ int media_svc_create_table(MediaSvcHandle *handle, uid_t uid)
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_LIST_STORAGE, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
+#if 0
 	/*init storage table*/
 	ret = _media_svc_init_storage(db_handle, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-
+#endif
 	/*create face table. from tizen 3.0*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, MEDIA_SVC_DB_LIST_FACE_SCAN_LIST, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -138,7 +169,7 @@ int media_svc_create_table(MediaSvcHandle *handle, uid_t uid)
 
 	_media_svc_destroy_table_query();
 
-	media_svc_debug_func();
+	media_svc_debug_fleave();
 
 	return MS_MEDIA_ERR_NONE;
 }
@@ -148,36 +179,38 @@ int media_svc_get_storage_type(const char *path, media_svc_storage_type_e *stora
 	int ret = MS_MEDIA_ERR_NONE;
 	media_svc_storage_type_e type;
 
-	ret = _media_svc_get_store_type_by_path(path, &type, uid);
-	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_get_store_type_by_path failed : %d", ret);
+	ret = _media_svc_get_storage_type_by_path(path, &type, uid);
+	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_get_storage_type_by_path failed : %d", ret);
 
 	*storage_type = type;
 
 	return ret;
 }
 
-int media_svc_get_file_info(MediaSvcHandle *handle, const char *path, time_t *modified_time, unsigned long long *size)
+int media_svc_get_file_info(MediaSvcHandle *handle, const char *storage_id, const char *path, time_t *modified_time, unsigned long long *size)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 
-	ret = _media_svc_get_fileinfo_by_path(db_handle, path, modified_time, size);
+	ret = _media_svc_get_fileinfo_by_path(db_handle, storage_id, path, modified_time, size);
 
 	return ret;
 }
 
-int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *path)
+int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *storage_id, const char *path)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 	int count = -1;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "Path is NULL");
 
-	ret = _media_svc_count_record_with_path(db_handle, path, &count);
+	ret = _media_svc_count_record_with_path(db_handle, storage_id, path, &count);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	if (count > 0) {
@@ -222,7 +255,7 @@ int media_svc_insert_item_end(MediaSvcHandle *handle, uid_t uid)
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
@@ -244,7 +277,7 @@ int media_svc_insert_item_end(MediaSvcHandle *handle, uid_t uid)
 	return ret;
 }
 
-int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, int is_burst, uid_t uid)
+int media_svc_insert_item_bulk(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, int is_burst, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -252,19 +285,16 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 	media_svc_media_type_e media_type;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
-
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
 	media_svc_content_info_s content_info;
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
 	/* if drm_contentinfo is not NULL, the file is OMA DRM.*/
-	ret = _media_svc_set_media_info(&content_info, DEFAULT_MEDIA_SVC_STORAGE_ID, storage_type, path, &media_type, FALSE);
+	ret = _media_svc_set_media_info(&content_info, storage_id, storage_type, path, &media_type, FALSE);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		return ret;
 	}
@@ -272,14 +302,14 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
 		/*Do nothing.*/
 	} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
-		ret = _media_svc_extract_image_metadata(handle, &content_info, media_type, uid);
+		ret = _media_svc_extract_image_metadata(db_handle, &content_info);
 	} else {
-		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, uid);
+		ret = _media_svc_extract_media_metadata(db_handle, &content_info, uid);
 	}
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 	/*Set or Get folder id*/
-	ret = _media_svc_get_and_append_folder_id_by_path(handle, DEFAULT_MEDIA_SVC_STORAGE_ID, path, storage_type, folder_uuid, uid);
+	ret = _media_svc_get_and_append_folder_id_by_path(db_handle, storage_id, path, storage_type, folder_uuid, uid);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info.folder_uuid, folder_uuid);
@@ -287,7 +317,7 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 
 	if (g_media_svc_insert_item_data_cnt == 1) {
 
-		ret = _media_svc_insert_item_with_data(db_handle, &content_info, is_burst, FALSE, uid);
+		ret = _media_svc_insert_item_with_data(db_handle, storage_id, &content_info, is_burst, FALSE, uid);
 		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 		if (g_insert_with_noti)
@@ -295,7 +325,7 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 
 	} else if (g_media_svc_insert_item_cur_data_cnt  < (g_media_svc_insert_item_data_cnt  - 1)) {
 
-		ret = _media_svc_insert_item_with_data(db_handle, &content_info, is_burst, TRUE, uid);
+		ret = _media_svc_insert_item_with_data(db_handle, storage_id, &content_info, is_burst, TRUE, uid);
 		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 		if (g_insert_with_noti)
@@ -305,7 +335,7 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 
 	} else if (g_media_svc_insert_item_cur_data_cnt  == (g_media_svc_insert_item_data_cnt  - 1)) {
 
-		ret = _media_svc_insert_item_with_data(db_handle, &content_info, is_burst, TRUE, uid);
+		ret = _media_svc_insert_item_with_data(db_handle, storage_id, &content_info, is_burst, TRUE, uid);
 		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 		if (g_insert_with_noti)
@@ -336,7 +366,7 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, media_svc_storage_type_e 
 	return MS_MEDIA_ERR_NONE;
 }
 
-int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, uid_t uid)
+int media_svc_insert_item_immediately(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -344,20 +374,15 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 	media_svc_media_type_e media_type;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
-
-#if 0
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
-#endif
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
 	media_svc_content_info_s content_info;
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
-	ret = _media_svc_set_media_info(&content_info, DEFAULT_MEDIA_SVC_STORAGE_ID, storage_type, path, &media_type, FALSE);
+	ret = _media_svc_set_media_info(&content_info, storage_id, storage_type, path, &media_type, FALSE);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		return ret;
 	}
@@ -365,15 +390,15 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
 		/*Do nothing.*/
 	} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
-		ret = _media_svc_extract_image_metadata(handle, &content_info, media_type, uid);
+		ret = _media_svc_extract_image_metadata(db_handle, &content_info);
 	} else {
-		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, uid);
+		ret = _media_svc_extract_media_metadata(db_handle, &content_info, uid);
 	}
 
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 	/*Set or Get folder id*/
-	ret = _media_svc_get_and_append_folder_id_by_path(handle, DEFAULT_MEDIA_SVC_STORAGE_ID, path, storage_type, folder_uuid, uid);
+	ret = _media_svc_get_and_append_folder_id_by_path(db_handle, storage_id, path, storage_type, folder_uuid, uid);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
 
 	ret = __media_svc_malloc_and_strncpy(&content_info.folder_uuid, folder_uuid);
@@ -400,7 +425,7 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 	}
 #endif
 
-	ret = _media_svc_insert_item_with_data(db_handle, &content_info, FALSE, FALSE, uid);
+	ret = _media_svc_insert_item_with_data(db_handle, storage_id, &content_info, FALSE, FALSE, uid);
 
 	if (ret == MS_MEDIA_ERR_NONE) {
 		media_svc_debug("Insertion is successful. Sending noti for this");
@@ -413,28 +438,7 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, media_svc_storage_
 	return ret;
 }
 
-int media_svc_insert_folder(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *path, uid_t uid)
-{
-	int ret = MS_MEDIA_ERR_NONE;
-	sqlite3 *db_handle = (sqlite3 *)handle;
-	char folder_uuid[MEDIA_SVC_UUID_SIZE + 1] = {0, };
-	memset(folder_uuid, 0, sizeof(folder_uuid));
-
-	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
-	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
-
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
-
-	media_svc_debug("storage[%d], folder_path[%s]", storage_type, path);
-
-	ret = _media_svc_get_and_append_folder(db_handle, DEFAULT_MEDIA_SVC_STORAGE_ID, path, storage_type, folder_uuid, uid);
-
-	return ret;
-}
-
+#if 0
 int media_svc_move_item_begin(MediaSvcHandle *handle, int data_cnt)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -455,7 +459,7 @@ int media_svc_move_item_end(MediaSvcHandle *handle, uid_t uid)
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
@@ -465,7 +469,8 @@ int media_svc_move_item_end(MediaSvcHandle *handle, uid_t uid)
 	}
 
 	/*clean up old folder path*/
-	ret = _media_svc_update_folder_table(handle, uid);
+	//need to check it. but media_svc_move_item_end API not used.
+	ret = _media_svc_update_folder_table(db_handle, DEFAULT_MEDIA_SVC_STORAGE_ID, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	g_media_svc_move_item_data_cnt  = 1;
@@ -473,9 +478,10 @@ int media_svc_move_item_end(MediaSvcHandle *handle, uid_t uid)
 
 	return ret;
 }
+#endif
 
-int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_storage, const char *src_path,
-                        media_svc_storage_type_e dest_storage, const char *dest_path, uid_t uid)
+int media_svc_move_item(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e src_storage, const char *src_path,
+			media_svc_storage_type_e dest_storage, const char *dest_path, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -487,23 +493,16 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 	char new_thumb_path[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 	int media_type = -1;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(src_path), MS_MEDIA_ERR_INVALID_PARAMETER, "src_path is NULL");
 	media_svc_retvm_if(!STRING_VALID(dest_path), MS_MEDIA_ERR_INVALID_PARAMETER, "dest_path is NULL");
-
-	if ((src_storage != MEDIA_SVC_STORAGE_INTERNAL) && (src_storage != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("src_storage type is incorrect[%d]", src_storage);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
-	if ((dest_storage != MEDIA_SVC_STORAGE_INTERNAL) && (dest_storage != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("dest_storage type is incorrect[%d]", dest_storage);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
+	media_svc_retvm_if(__media_svc_check_storage(src_storage, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid src_storage");
+	media_svc_retvm_if(__media_svc_check_storage(dest_storage, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid dest_storage");
 
 	/*check and update folder*/
-	ret = _media_svc_get_and_append_folder_id_by_path(handle, DEFAULT_MEDIA_SVC_STORAGE_ID, dest_path, dest_storage, folder_uuid, uid);
+	ret = _media_svc_get_and_append_folder_id_by_path(db_handle, storage_id, dest_path, dest_storage, folder_uuid, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*get filename*/
@@ -513,7 +512,7 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 	modified_time = _media_svc_get_file_time(dest_path);
 
 	/*get thumbnail_path to update. only for Imgae and Video items. Audio share album_art(thumbnail)*/
-	ret = _media_svc_get_media_type_by_path(handle, DEFAULT_MEDIA_SVC_STORAGE_ID, src_path, &media_type);
+	ret = _media_svc_get_media_type_by_path(db_handle, storage_id, src_path, &media_type);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("_media_svc_get_media_type_by_path failed");
 		SAFE_FREE(file_name);
@@ -522,7 +521,7 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 
 	if ((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) || (media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
 		/*get old thumbnail_path*/
-		ret = _media_svc_get_thumbnail_path_by_path(handle, DEFAULT_MEDIA_SVC_STORAGE_ID, src_path, old_thumb_path);
+		ret = _media_svc_get_thumbnail_path_by_path(db_handle, storage_id, src_path, old_thumb_path);
 		if ((ret != MS_MEDIA_ERR_NONE) && (ret != MS_MEDIA_ERR_DB_NO_RECORD)) {
 			media_svc_error("_media_svc_get_thumbnail_path_by_path failed");
 			SAFE_FREE(file_name);
@@ -541,9 +540,9 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 
 		/*update item*/
 		if ((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) || (media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
-			ret = _media_svc_update_item_by_path(handle, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, new_thumb_path, FALSE, uid);
+			ret = _media_svc_update_item_by_path(db_handle, storage_id, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, new_thumb_path, FALSE, uid);
 		} else {
-			ret = _media_svc_update_item_by_path(handle, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, NULL, FALSE, uid);
+			ret = _media_svc_update_item_by_path(db_handle, storage_id, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, NULL, FALSE, uid);
 		}
 		SAFE_FREE(file_name);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -552,7 +551,7 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 
 		/* Get notification info */
 		media_svc_noti_item *noti_item = NULL;
-		ret = _media_svc_get_noti_info(handle, DEFAULT_MEDIA_SVC_STORAGE_ID, dest_path, MS_MEDIA_ITEM_FILE, &noti_item);
+		ret = _media_svc_get_noti_info(db_handle, storage_id, dest_path, MS_MEDIA_ITEM_FILE, &noti_item);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 		/* Send notification for move */
@@ -561,27 +560,27 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 
 		/*update folder modified_time*/
 		folder_path = g_path_get_dirname(dest_path);
-		ret = _media_svc_update_folder_modified_time_by_folder_uuid(handle, folder_uuid, folder_path, FALSE, uid);
+		ret = _media_svc_update_folder_modified_time_by_folder_uuid(db_handle, folder_uuid, folder_path, FALSE, uid);
 		SAFE_FREE(folder_path);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-		ret = _media_svc_update_folder_table(handle, uid);
+		ret = _media_svc_update_folder_table(db_handle, storage_id, uid);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	} else if (g_media_svc_move_item_cur_data_cnt  < (g_media_svc_move_item_data_cnt  - 1)) {
 
 		/*update item*/
 		if ((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) || (media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
-			ret = _media_svc_update_item_by_path(handle, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, new_thumb_path, TRUE, uid);
+			ret = _media_svc_update_item_by_path(db_handle, storage_id, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, new_thumb_path, TRUE, uid);
 		} else {
-			ret = _media_svc_update_item_by_path(handle, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, NULL, TRUE, uid);
+			ret = _media_svc_update_item_by_path(db_handle, storage_id, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, NULL, TRUE, uid);
 		}
 		SAFE_FREE(file_name);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 		/*update folder modified_time*/
 		folder_path = g_path_get_dirname(dest_path);
-		ret = _media_svc_update_folder_modified_time_by_folder_uuid(handle, folder_uuid, folder_path, TRUE, uid);
+		ret = _media_svc_update_folder_modified_time_by_folder_uuid(db_handle, folder_uuid, folder_path, TRUE, uid);
 		SAFE_FREE(folder_path);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
@@ -591,16 +590,16 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 
 		/*update item*/
 		if ((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) || (media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) {
-			ret = _media_svc_update_item_by_path(handle, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, new_thumb_path, TRUE, uid);
+			ret = _media_svc_update_item_by_path(db_handle, storage_id, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, new_thumb_path, TRUE, uid);
 		} else {
-			ret = _media_svc_update_item_by_path(handle, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, NULL, TRUE, uid);
+			ret = _media_svc_update_item_by_path(db_handle, storage_id, src_path, dest_storage, dest_path, file_name, modified_time, folder_uuid, NULL, TRUE, uid);
 		}
 		SAFE_FREE(file_name);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 		/*update folder modified_time*/
 		folder_path = g_path_get_dirname(dest_path);
-		ret = _media_svc_update_folder_modified_time_by_folder_uuid(handle, folder_uuid, folder_path, TRUE, uid);
+		ret = _media_svc_update_folder_modified_time_by_folder_uuid(db_handle, folder_uuid, folder_path, TRUE, uid);
 		SAFE_FREE(folder_path);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
@@ -616,7 +615,7 @@ int media_svc_move_item(MediaSvcHandle *handle, media_svc_storage_type_e src_sto
 	}
 
 	/*rename thumbnail file*/
-/*	if((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) ||(media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) { */
+/*	if ((media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) || (media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO)) { */
 	if ((strlen(old_thumb_path) > 0) && (strncmp(old_thumb_path, MEDIA_SVC_THUMB_DEFAULT_PATH, sizeof(MEDIA_SVC_THUMB_DEFAULT_PATH)) != 0)) {
 		ret = _media_svc_rename_file(old_thumb_path, new_thumb_path);
 		if (ret != MS_MEDIA_ERR_NONE)
@@ -647,7 +646,7 @@ int media_svc_set_item_validity_end(MediaSvcHandle *handle, uid_t uid)
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
@@ -662,30 +661,31 @@ int media_svc_set_item_validity_end(MediaSvcHandle *handle, uid_t uid)
 	return ret;
 }
 
-int media_svc_set_item_validity(MediaSvcHandle *handle, const char *path, int validity, uid_t uid)
+int media_svc_set_item_validity(MediaSvcHandle *handle, const char *storage_id, const char *path, int validity, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
 
 	media_svc_debug("path=[%s], validity=[%d]", path, validity);
 
 	if (g_media_svc_item_validity_data_cnt  == 1) {
 
-		return _media_svc_update_item_validity(db_handle, path, validity, FALSE, uid);
+		return _media_svc_update_item_validity(db_handle, storage_id, path, validity, FALSE, uid);
 
 	} else if (g_media_svc_item_validity_cur_data_cnt  < (g_media_svc_item_validity_data_cnt  - 1)) {
 
-		ret = _media_svc_update_item_validity(db_handle, path, validity, TRUE, uid);
+		ret = _media_svc_update_item_validity(db_handle, storage_id, path, validity, TRUE, uid);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 		g_media_svc_item_validity_cur_data_cnt++;
 
 	} else if (g_media_svc_item_validity_cur_data_cnt  == (g_media_svc_item_validity_data_cnt  - 1)) {
 
-		ret = _media_svc_update_item_validity(db_handle, path, validity, TRUE, uid);
+		ret = _media_svc_update_item_validity(db_handle, storage_id, path, validity, TRUE, uid);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_SET_ITEM_VALIDITY, uid);
@@ -708,7 +708,7 @@ int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *storage_id
 	sqlite3 *db_handle = (sqlite3 *)handle;
 	char thumb_path[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
@@ -770,99 +770,106 @@ int media_svc_delete_item_by_path(MediaSvcHandle *handle, const char *storage_id
 
 	/*Delete thumbnail*/
 	if ((strlen(thumb_path) > 0) && (strncmp(thumb_path, _media_svc_get_thumb_default_path(uid), sizeof(_media_svc_get_thumb_default_path(uid))) != 0)) {
-		ret = _media_svc_remove_file(thumb_path);
-		if (ret != MS_MEDIA_ERR_NONE) {
-			media_svc_error("fail to remove thumbnail file.");
+/*
+		int thumb_count = 1;
+		// Get count of media, which contains same thumbnail for music
+		if ((media_type == MEDIA_SVC_MEDIA_TYPE_SOUND) ||(media_type == MEDIA_SVC_MEDIA_TYPE_MUSIC)) {
+			ret = _media_svc_get_thumbnail_count(db_handle, storage_id, thumb_path, &thumb_count);
+			if (ret != MS_MEDIA_ERR_NONE) {
+				media_svc_error("Failed to get thumbnail count : %d", ret);
+			}
 		}
+
+		if (thumb_count == 1) {
+*/
+			ret = _media_svc_remove_file(thumb_path);
+			if(ret != MS_MEDIA_ERR_NONE) {
+				media_svc_error("fail to remove thumbnail file.");
+			}
+//		}
 	}
 
 	return MS_MEDIA_ERR_NONE;
 }
 
-int media_svc_delete_all_items_in_storage(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, uid_t uid)
+int media_svc_delete_all_items_in_storage(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
-	char *dirpath = NULL;
 
 	media_svc_debug("media_svc_delete_all_items_in_storage [%d]", storage_type);
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+	ret = _media_svc_truncate_table(db_handle, storage_id, storage_type, uid);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	if (storage_type != MEDIA_SVC_STORAGE_EXTERNAL_USB) {
+		const char *dirpath = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? MEDIA_SVC_THUMB_INTERNAL_PATH : MEDIA_SVC_THUMB_EXTERNAL_PATH;
+
+		/* remove thumbnails */
+		ret = _media_svc_remove_all_files_in_dir(dirpath);
+		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	}
-
-	ret = _media_svc_truncate_table(db_handle, storage_type, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-
-	dirpath = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? _media_svc_get_thumb_internal_path(uid) : _media_svc_get_thumb_external_path(uid);
-
-	/* remove thumbnails */
-	ret = _media_svc_remove_all_files_in_dir(dirpath);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	return MS_MEDIA_ERR_NONE;
 }
 
-int media_svc_delete_invalid_items_in_storage(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, uid_t uid)
+int media_svc_delete_invalid_items_in_storage(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
-
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
 	/*Delete from DB and remove thumbnail files*/
-	return _media_svc_delete_invalid_items(db_handle, storage_type, uid);
+	return _media_svc_delete_invalid_items(db_handle, storage_id, storage_type, uid);
 }
 
-int media_svc_delete_invalid_items_in_folder(MediaSvcHandle *handle, const char *folder_path, uid_t uid)
+int media_svc_delete_invalid_items_in_folder(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, bool is_recursive, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 
 	/*Delete from DB and remove thumbnail files*/
-	return _media_svc_delete_invalid_folder_items(db_handle, folder_path, uid);
+	return _media_svc_delete_invalid_folder_items(db_handle, storage_id, folder_path, is_recursive, uid);
 }
 
-int media_svc_set_all_storage_items_validity(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, int validity, uid_t uid)
+int media_svc_set_all_storage_items_validity(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, int validity, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
-
-	return _media_svc_update_storage_item_validity(db_handle, storage_type, validity, uid);
+	return _media_svc_update_storage_item_validity(db_handle, storage_id, storage_type, validity, uid);
 }
 
-int media_svc_set_folder_items_validity(MediaSvcHandle *handle, const char *folder_path, int validity, int recursive, uid_t uid)
+int media_svc_set_folder_items_validity(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int validity, int recursive, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(!STRING_VALID(folder_path), MS_MEDIA_ERR_INVALID_PARAMETER, "folder_path is NULL");
 
 	if (recursive)
-		return _media_svc_update_recursive_folder_item_validity(db_handle, folder_path, validity, uid);
+		return _media_svc_update_recursive_folder_item_validity(db_handle, storage_id, folder_path, validity, uid);
 	else
-		return _media_svc_update_folder_item_validity(db_handle, folder_path, validity, uid);
+		return _media_svc_update_folder_item_validity(db_handle, storage_id, folder_path, validity, uid);
 }
 
-int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e storage_type, const char *storage_id, const char *path, uid_t uid)
+int media_svc_refresh_item(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -871,17 +878,13 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
-
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL) && (storage_type != MEDIA_SVC_STORAGE_CLOUD)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
 	media_svc_content_info_s content_info;
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
-	ret = _media_svc_set_media_info(&content_info, DEFAULT_MEDIA_SVC_STORAGE_ID, storage_type, path, &media_type, TRUE);
+	ret = _media_svc_set_media_info(&content_info, storage_id, storage_type, path, &media_type, TRUE);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		return ret;
 	}
@@ -909,20 +912,21 @@ int media_svc_refresh_item(MediaSvcHandle *handle, media_svc_storage_type_e stor
 
 	/* Get notification info */
 	media_svc_noti_item *noti_item = NULL;
-	ret = _media_svc_get_noti_info(handle, storage_id, path, MS_MEDIA_ITEM_FILE, &noti_item);
+	ret = _media_svc_get_noti_info(db_handle, storage_id, path, MS_MEDIA_ITEM_FILE, &noti_item);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		_media_svc_destroy_content_info(&content_info);
 		return ret;
 	}
 
 	media_type = noti_item->media_type;
+	content_info.media_type = media_type;
 
 	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
 		/*Do nothing.*/
 	} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
-		ret = _media_svc_extract_image_metadata(handle, &content_info, media_type, uid);
+		ret = _media_svc_extract_image_metadata(db_handle, &content_info);
 	} else {
-		ret = _media_svc_extract_media_metadata(handle, &content_info, media_type, uid);
+		ret = _media_svc_extract_media_metadata(db_handle, &content_info, uid);
 	}
 
 	if (ret != MS_MEDIA_ERR_NONE) {
@@ -979,44 +983,23 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 
 	media_svc_debug("Src path : %s,  Dst Path : %s", src_path, dst_path);
 
-	ret = _media_svc_sql_begin_trans(handle, uid);
+	ret = _media_svc_sql_begin_trans(db_handle, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-
-	/* Update all folder record's path, which are matched by old parent path */
-	char *update_folder_path_sql = NULL;
-	char src_path_slash[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
-	char dst_path_slash[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
-
-	snprintf(src_path_slash, sizeof(src_path_slash), "%s/", src_path);
-	snprintf(dst_path_slash, sizeof(dst_path_slash), "%s/", dst_path);
-
-	update_folder_path_sql = sqlite3_mprintf("UPDATE folder SET path = REPLACE( path, '%q', '%q');", src_path_slash, dst_path_slash);
-
-	/*ret = _media_svc_sql_query(handle, update_folder_path_sql, uid); */
-	ret = media_db_request_update_db_batch(update_folder_path_sql, uid);
-	sqlite3_free(update_folder_path_sql);
-
-	if (ret != SQLITE_OK) {
-		media_svc_error("failed to update folder path");
-		_media_svc_sql_rollback_trans(handle, uid);
-
-		return MS_MEDIA_ERR_DB_INTERNAL;
-	}
 
 	/* Update all folder record's modified date, which are changed above */
 	char *update_folder_modified_time_sql = NULL;
 	time_t date;
 	time(&date);
 
-	update_folder_modified_time_sql = sqlite3_mprintf("UPDATE folder SET modified_time = %d where path like '%q';", date, dst_path);
+	update_folder_modified_time_sql = sqlite3_mprintf("UPDATE folder SET modified_time = %d WHERE path LIKE '%q';", date, dst_path);
 
 	ret = media_db_request_update_db_batch(update_folder_modified_time_sql, uid);
-	/*ret = _media_svc_sql_query(handle, update_folder_modified_time_sql, uid); */
+	//ret = _media_svc_sql_query(db_handle, update_folder_modified_time_sql, uid);
 	sqlite3_free(update_folder_modified_time_sql);
 
 	if (ret != SQLITE_OK) {
 		media_svc_error("failed to update folder modified time");
-		_media_svc_sql_rollback_trans(handle, uid);
+		_media_svc_sql_rollback_trans(db_handle, uid);
 
 		return MS_MEDIA_ERR_DB_INTERNAL;
 	}
@@ -1032,20 +1015,14 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 
 	media_svc_debug("[SQL query] : %s", select_all_sql);
 
-	ret = _media_svc_sql_prepare_to_step(db_handle, select_all_sql, &sql_stmt);
+	ret = _media_svc_sql_prepare_to_step_simple(db_handle, select_all_sql, &sql_stmt);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("error when media_svc_rename_folder. err = [%d]", ret);
 		_media_svc_sql_rollback_trans(db_handle, uid);
 		return ret;
 	}
 
-	while (1) {
-		ret = sqlite3_step(sql_stmt);
-		if (ret != SQLITE_ROW) {
-			media_svc_debug("end of iteration");
-			break;
-		}
-
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
 		char media_uuid[MEDIA_SVC_UUID_SIZE + 1] = {0, };
 		char media_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
 		char media_thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
@@ -1085,7 +1062,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 		if (replaced_path == NULL) {
 			media_svc_error("_media_svc_replace_path failed");
 			SQLITE3_FINALIZE(sql_stmt);
-			_media_svc_sql_rollback_trans(handle, uid);
+			_media_svc_sql_rollback_trans(db_handle, uid);
 			return MS_MEDIA_ERR_INTERNAL;
 		}
 
@@ -1097,11 +1074,11 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 			if (strncmp(media_thumb_path, _media_svc_get_thumb_default_path(uid), sizeof(_media_svc_get_thumb_default_path(uid))) == 0) {
 				strncpy(media_new_thumb_path, _media_svc_get_thumb_default_path(uid), sizeof(media_new_thumb_path));
 			} else {
-				ret = _media_svc_get_store_type_by_path(replaced_path, &storage_type, uid);
+				ret = _media_svc_get_storage_type_by_path(replaced_path, &storage_type, uid);
 				if (ret != MS_MEDIA_ERR_NONE) {
-					media_svc_error("_media_svc_get_store_type_by_path failed : %d", ret);
+					media_svc_error("_media_svc_get_storage_type_by_path failed : %d", ret);
 					SAFE_FREE(replaced_path);
-					_media_svc_sql_rollback_trans(handle, uid);
+					_media_svc_sql_rollback_trans(db_handle, uid);
 					return ret;
 				}
 
@@ -1110,7 +1087,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 					media_svc_error("_media_svc_get_thumbnail_path failed : %d", ret);
 					SAFE_FREE(replaced_path);
 					SQLITE3_FINALIZE(sql_stmt);
-					_media_svc_sql_rollback_trans(handle, uid);
+					_media_svc_sql_rollback_trans(db_handle, uid);
 					return ret;
 				}
 			}
@@ -1135,14 +1112,14 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 		}
 
 		ret = media_db_request_update_db_batch(update_item_sql, uid);
-		/*ret = _media_svc_sql_query(handle, update_item_sql, uid); */
+		/*ret = _media_svc_sql_query(db_handle, update_item_sql, uid); */
 		sqlite3_free(update_item_sql);
 		SAFE_FREE(replaced_path);
 
 		if (ret != SQLITE_OK) {
 			media_svc_error("failed to update item");
 			SQLITE3_FINALIZE(sql_stmt);
-			_media_svc_sql_rollback_trans(handle, uid);
+			_media_svc_sql_rollback_trans(db_handle, uid);
 
 			return MS_MEDIA_ERR_DB_INTERNAL;
 		}
@@ -1160,10 +1137,10 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 
 	SQLITE3_FINALIZE(sql_stmt);
 
-	ret = _media_svc_sql_end_trans(handle, uid);
+	ret = _media_svc_sql_end_trans(db_handle, uid);
 	if (ret != MS_MEDIA_ERR_NONE) {
-		media_svc_error("mb_svc_sqlite3_commit_trans failed.. Now start to rollback\n");
-		_media_svc_sql_rollback_trans(handle, uid);
+		media_svc_error("mb_svc_sqlite3_commit_trans failed.. Now start to rollback");
+		_media_svc_sql_rollback_trans(db_handle, uid);
 		return ret;
 	}
 
@@ -1186,7 +1163,7 @@ int media_svc_request_update_db(const char *db_query, uid_t uid)
 	return _media_svc_sql_query(NULL, db_query, uid);
 }
 
-int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
+int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *storage_id, const char *dir_path)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -1196,7 +1173,7 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
 
 	/* Get notification info */
 	media_svc_noti_item *noti_item = NULL;
-	ret = _media_svc_get_noti_info(db_handle, DEFAULT_MEDIA_SVC_STORAGE_ID, dir_path, MS_MEDIA_ITEM_DIRECTORY, &noti_item);
+	ret = _media_svc_get_noti_info(db_handle, storage_id, dir_path, MS_MEDIA_ITEM_DIRECTORY, &noti_item);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	ret = _media_svc_publish_noti(MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, dir_path, -1, noti_item->media_uuid, NULL);
@@ -1205,34 +1182,37 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *dir_path)
 	return ret;
 }
 
-int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *folder_path, int *count)
+int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int *count)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(folder_path == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "folder_path is NULL");
 	media_svc_retvm_if(count == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "count is NULL");
 
-	return _media_svc_count_invalid_folder_items(db_handle, folder_path, count);
+	return _media_svc_count_invalid_folder_items(db_handle, storage_id, folder_path, count);
 }
 
-int media_svc_check_db_upgrade(MediaSvcHandle *handle, uid_t uid)
+int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
+
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
-	return _media_svc_check_db_upgrade(db_handle, uid);
+	return _media_svc_check_db_upgrade(db_handle, need_full_scan, uid);
 }
 
 int media_svc_check_db_corrupt(MediaSvcHandle *handle)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
+
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
 	return _media_db_check_corrupt(db_handle);
@@ -1242,7 +1222,7 @@ int media_svc_get_folder_list(MediaSvcHandle *handle, char *start_path, char ***
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(count == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "count is NULL");
@@ -1290,7 +1270,7 @@ int media_svc_update_item_end(MediaSvcHandle *handle, uid_t uid)
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
-	media_svc_debug_func();
+	media_svc_debug_fenter();
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
@@ -1317,11 +1297,7 @@ int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, in
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(!STRING_VALID(file_path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
-
-	if ((storage_type != MEDIA_SVC_STORAGE_INTERNAL) && (storage_type != MEDIA_SVC_STORAGE_EXTERNAL)) {
-		media_svc_error("storage type is incorrect[%d]", storage_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
 	media_svc_content_info_s content_info;
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
@@ -1337,6 +1313,7 @@ int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, in
 	} else {
 		return MS_MEDIA_ERR_NONE;
 	}
+
 	if (ret != MS_MEDIA_ERR_NONE) {
 		_media_svc_destroy_content_info(&content_info);
 		return ret;
@@ -1393,6 +1370,86 @@ int media_svc_check_pinyin_support(bool *support)
 
 	return MS_MEDIA_ERR_NONE;
 }
+
+int media_svc_set_storage_validity(MediaSvcHandle *handle, const char *storage_id, int validity, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = _media_svc_update_storage_validity(db_handle, storage_id, validity, uid);
+	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "update storage validity failed: %d", ret);
+
+	ret = _media_svc_update_media_view(db_handle, uid);
+	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "update media view failed : %d", ret);
+
+	return ret;
+}
+
+int media_svc_get_storage_id(MediaSvcHandle *handle, const char *path, char *storage_id)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(path == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
+
+	ret = _media_svc_get_storage_uuid(db_handle, path, storage_id);
+
+	return ret;
+}
+
+int media_svc_get_storage_path(MediaSvcHandle *handle, const char *storage_uuid, char **storage_path)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(storage_uuid == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_uuid is NULL");
+
+	ret = _media_svc_get_storage_path(db_handle, storage_uuid, storage_path);
+
+	return ret;
+}
+
+int media_svc_get_storage_scan_status(MediaSvcHandle *handle, const char *storage_uuid, media_svc_scan_status_type_e *storage_status)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(storage_uuid == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_uuid is NULL");
+
+	ret = _media_svc_get_storage_scan_status(db_handle, storage_uuid, storage_status);
+
+	return ret;
+}
+
+int media_svc_set_storage_scan_status(MediaSvcHandle *handle, const char *storage_uuid, media_svc_scan_status_type_e storage_status, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = _media_svc_set_storage_scan_status(db_handle, storage_uuid, storage_status, uid);
+
+	return ret;
+}
+
+int media_svc_get_storage_list(MediaSvcHandle *handle, char ***storage_list, char ***storage_id_list, int **scan_status_list, int *count)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_debug_fenter();
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(count == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "count is NULL");
+
+	return _media_svc_get_all_storage(db_handle, storage_list, storage_id_list, scan_status_list, count);
+}
+
 
 static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_info, media_svc_content_info_s *new_content_info)
 {
@@ -1507,14 +1564,14 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 			media_svc_error("strcpy artist failed");
 	}
 
-	/*
-		if(STRING_VALID(content_info->media_meta.album_artist))
-		{
-			ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.album_artist, content_info->media_meta.album_artist);
-			if(ret != MS_MEDIA_ERR_NONE)
-				media_svc_error("strcpy album_artist failed");
-		}
-	*/
+/*
+	if(STRING_VALID(content_info->media_meta.album_artist))
+	{
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.album_artist, content_info->media_meta.album_artist);
+		if(ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy album_artist failed");
+	}
+*/
 
 	if (STRING_VALID(content_info->media_meta.genre)) {
 		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.genre, content_info->media_meta.genre);
@@ -1678,7 +1735,7 @@ int media_svc_insert_item_immediately_with_data(MediaSvcHandle *handle, media_sv
 	}
 
 	/* Insert to db - calling _media_svc_insert_item_with_data */
-	ret = _media_svc_insert_item_with_data(db_handle, &_new_content_info, FALSE, FALSE, uid);
+	ret = _media_svc_insert_item_with_data(db_handle, _new_content_info.storage_uuid, &_new_content_info, FALSE, FALSE, uid);
 
 	if (ret == MS_MEDIA_ERR_NONE) {
 		media_svc_debug("Insertion is successful.");
@@ -1699,9 +1756,47 @@ void media_svc_destroy_content_info(media_svc_content_info_s *content_info)
 	_media_svc_destroy_content_info(content_info);
 }
 
-char *media_info_generate_uuid(void)
+int media_svc_generate_uuid(char **uuid)
 {
-	return _media_info_generate_uuid();
+	char *gen_uuid = NULL;
+	gen_uuid = _media_info_generate_uuid();
+	media_svc_retvm_if(gen_uuid == NULL, MS_MEDIA_ERR_INTERNAL, "Fail to generate uuid");
+
+	*uuid = strdup(gen_uuid);
+
+	return MS_MEDIA_ERR_NONE;
+}
+
+int media_svc_get_mmc_info(MediaSvcHandle *handle, char **storage_name, char **storage_path, int *validity, bool *info_exist)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	return _media_svc_get_mmc_info(db_handle, storage_name, storage_path, validity, info_exist);
+}
+
+int media_svc_check_storage(MediaSvcHandle *handle, const char *storage_id, const char *storage_name, char **storage_path, int *validity)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(storage_id == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(storage_path == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_path is NULL");
+	media_svc_retvm_if(validity == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "validity is NULL");
+
+	return _media_svc_check_storage(db_handle, storage_id, storage_name, storage_path, validity);
+}
+
+int media_svc_update_storage(MediaSvcHandle *handle, const char *storage_id, const char *storage_path, uid_t uid)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(storage_id == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(storage_path == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_path is NULL");
+
+	return _media_svc_update_storage_path(db_handle, storage_id, storage_path, uid);
 }
 
 int media_svc_insert_storage(MediaSvcHandle *handle, const char *storage_id, const char *storage_name, const char *storage_path, const char *storage_account, media_svc_storage_type_e storage_type, uid_t uid)
@@ -1712,14 +1807,15 @@ int media_svc_insert_storage(MediaSvcHandle *handle, const char *storage_id, con
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(storage_id == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 	media_svc_retvm_if(storage_path == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_path is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
 
 	ret = _media_svc_append_storage(db_handle, storage_id, storage_name, storage_path, storage_account, storage_type, uid);
 	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "append storage failed : %d", ret);
 
-	ret = _media_svc_create_media_table_with_id(db_handle, storage_id, uid);
-	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "create media table failed : %d", ret);
+	if(strcmp(storage_id, MEDIA_SVC_DB_TABLE_MEDIA)) {
+		ret = _media_svc_create_media_table_with_id(db_handle, storage_id, uid);
+		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "create media table failed : %d", ret);
 
-	if (storage_type == MEDIA_SVC_STORAGE_CLOUD) {
 		ret = _media_svc_update_media_view(db_handle, uid);
 		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "update media view failed : %d", ret);
 	}
@@ -1727,32 +1823,329 @@ int media_svc_insert_storage(MediaSvcHandle *handle, const char *storage_id, con
 	return ret;
 }
 
-int media_svc_delete_storage(MediaSvcHandle *handle, const char *storage_id, uid_t uid)
+int media_svc_delete_storage(MediaSvcHandle *handle, const char *storage_id, const char *storage_name, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
+	media_svc_storage_type_e storage_type;
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(storage_id == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
 
-	ret = _media_svc_delete_storage(db_handle, storage_id, uid);
+	ret = _media_svc_get_storage_type(db_handle, storage_id, &storage_type);
+	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_get_storage_type_by_path failed : %d", ret);
+
+	ret = _media_svc_delete_storage(db_handle, storage_id, storage_name, uid);
 	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "remove storage failed : %d", ret);
 
-	ret = _media_svc_drop_media_table(db_handle, storage_id, uid);
-	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "drop table failed : %d", ret);
+	ret = _media_svc_delete_folder_by_storage_id(db_handle, storage_id, storage_type, uid);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("fail to _media_svc_delete_folder_by_storage_id. error : [%d]", ret);
+	}
 
-	ret = _media_svc_update_media_view(db_handle, uid);
-	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "update media view failed : %d", ret);
+	if (storage_type == MEDIA_SVC_STORAGE_EXTERNAL_USB) {
+		ret = _media_svc_drop_media_table(db_handle, storage_id, uid);
+		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "drop table failed : %d", ret);
+
+		ret = _media_svc_update_media_view(db_handle, uid);
+		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "update media view failed : %d", ret);
+	}
 
 	return ret;
 }
 
-int media_svc_request_extract_all_thumbs(uid_t uid)
+int media_svc_insert_folder_begin(MediaSvcHandle *handle, int data_cnt)
+{
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_debug("Transaction data count : [%d]", data_cnt);
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(data_cnt < 1, MS_MEDIA_ERR_INVALID_PARAMETER, "data_cnt shuld be bigger than 1");
+
+	g_media_svc_insert_folder_data_cnt = data_cnt;
+	g_media_svc_insert_folder_cur_data_cnt  = 0;
+
+	return MS_MEDIA_ERR_NONE;
+}
+
+int media_svc_insert_folder_end(MediaSvcHandle *handle, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
 
-	ret =  _media_svc_request_extract_all_thumbs(uid);
-	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_request_extract_all_thumbs failed : %d", ret);
+	media_svc_debug_fenter();
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	if (g_media_svc_insert_folder_cur_data_cnt  > 0) {
+
+		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_INSERT_FOLDER, uid);
+	}
+
+	g_media_svc_insert_folder_data_cnt  = 1;
+	g_media_svc_insert_folder_cur_data_cnt  = 0;
 
 	return ret;
+}
+
+int media_svc_insert_folder(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+	char folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0,};
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
+
+	if (g_media_svc_insert_folder_data_cnt  == 1) {
+
+		ret = _media_svc_get_and_append_folder_id_by_folder_path(handle, storage_id, path, storage_type, folder_uuid, FALSE, uid);
+
+	} else if (g_media_svc_insert_folder_cur_data_cnt  < (g_media_svc_insert_folder_data_cnt  - 1)) {
+
+		ret = _media_svc_get_and_append_folder_id_by_folder_path(handle, storage_id, path, storage_type, folder_uuid, TRUE, uid);
+		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+		g_media_svc_insert_folder_cur_data_cnt ++;
+
+	} else if (g_media_svc_insert_folder_cur_data_cnt  == (g_media_svc_insert_folder_data_cnt  - 1)) {
+
+		ret = _media_svc_get_and_append_folder_id_by_folder_path(handle, storage_id, path, storage_type, folder_uuid, TRUE, uid);
+		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_INSERT_FOLDER, uid);
+		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+		g_media_svc_insert_folder_cur_data_cnt  = 0;
+
+	} else {
+		media_svc_error("Error in media_svc_set_insert_folder");
+		return MS_MEDIA_ERR_INTERNAL;
+	}
+
+	return ret;
+}
+
+int media_svc_delete_invalid_folder(MediaSvcHandle *handle, const char *storage_id, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = _media_svc_delete_invalid_folder(db_handle, storage_id, uid);
+
+	return ret;
+}
+
+int media_svc_set_folder_validity(MediaSvcHandle *handle, const char *storage_id, const char *start_path, int validity, bool is_recursive, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = _media_svc_set_folder_validity(db_handle, storage_id, start_path, validity, is_recursive, uid);
+
+	return ret;
+}
+
+int media_svc_insert_item_pass1(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, int is_burst, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+	char folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0,};
+	media_svc_media_type_e media_type;
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(!STRING_VALID(path), MS_MEDIA_ERR_INVALID_PARAMETER, "path is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
+
+	media_svc_content_info_s content_info;
+	memset(&content_info, 0, sizeof(media_svc_content_info_s));
+
+	/*Set basic media info*/
+	ret = _media_svc_set_media_info(&content_info, storage_id, storage_type, path, &media_type, FALSE);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_set_media_info fail %d", ret);
+		return ret;
+	}
+
+	//media_svc_debug("total %d, cur %d insert flag %d", g_media_svc_insert_item_data_cnt, 	g_media_svc_insert_item_cur_data_cnt, g_insert_with_noti);
+
+	/*Set or Get folder id*/
+	ret = _media_svc_get_and_append_folder_id_by_path(db_handle, storage_id, path, storage_type, folder_uuid, uid);
+	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+
+	ret = __media_svc_malloc_and_strncpy(&content_info.folder_uuid, folder_uuid);
+	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+
+	if (g_media_svc_insert_item_data_cnt == 1) {
+
+		ret = _media_svc_insert_item_pass1(db_handle, storage_id, &content_info, is_burst, FALSE, uid);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti)
+		{
+			_media_svc_insert_item_to_noti_list(&content_info, g_media_svc_insert_item_cur_data_cnt++);
+		}
+	} else if(g_media_svc_insert_item_cur_data_cnt  < (g_media_svc_insert_item_data_cnt  - 1)) {
+
+		ret = _media_svc_insert_item_pass1(db_handle, storage_id, &content_info, is_burst, TRUE, uid);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti)
+		{
+			_media_svc_insert_item_to_noti_list(&content_info, g_media_svc_insert_item_cur_data_cnt);
+		}
+		media_svc_debug("g_media_svc_insert_item_cur_data_cnt %d", g_media_svc_insert_item_cur_data_cnt);
+		g_media_svc_insert_item_cur_data_cnt ++;
+
+	} else if (g_media_svc_insert_item_cur_data_cnt  == (g_media_svc_insert_item_data_cnt  - 1)) {
+
+		ret = _media_svc_insert_item_pass1(db_handle, storage_id, &content_info, is_burst, TRUE, uid);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+
+		if (g_insert_with_noti)
+			_media_svc_insert_item_to_noti_list(&content_info, g_media_svc_insert_item_cur_data_cnt);
+
+		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_INSERT_ITEM, uid);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+
+		media_svc_debug("_media_svc_list_query_do over");
+
+		if (g_insert_with_noti) {
+			media_svc_debug("publish noti list %d", g_media_svc_insert_item_cur_data_cnt);
+			_media_svc_publish_noti_list(g_media_svc_insert_item_cur_data_cnt + 1);
+			_media_svc_destroy_noti_list(g_media_svc_insert_item_cur_data_cnt + 1);
+
+			/* Recreate noti list */
+			ret = _media_svc_create_noti_list(g_media_svc_insert_item_data_cnt);
+			media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, &content_info);
+		}
+
+		g_media_svc_insert_item_cur_data_cnt = 0;
+
+	} else {
+		media_svc_error("Error in media_svc_insert_item_pass1");
+		_media_svc_destroy_content_info(&content_info);
+		return MS_MEDIA_ERR_INTERNAL;
+	}
+
+	_media_svc_destroy_content_info(&content_info);
+
+	return MS_MEDIA_ERR_NONE;
+}
+
+int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, int scan_type, const char *extract_path, int is_burst, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3 * db_handle = (sqlite3 *)handle;
+	sqlite3_stmt *sql_stmt = NULL;
+	media_svc_media_type_e media_type;
+	media_svc_content_info_s content_info;
+	GArray *db_data_array = NULL;
+	media_svc_item_info_s *db_data = NULL;
+	int idx = 0;
+	char *sql = NULL;
+
+	media_svc_debug_fenter();
+
+	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+	media_svc_retvm_if(!STRING_VALID(storage_id), MS_MEDIA_ERR_INVALID_PARAMETER, "storage_id is NULL");
+	media_svc_retvm_if(__media_svc_check_storage(storage_type, FALSE) != TRUE, MS_MEDIA_ERR_INVALID_PARAMETER, "Invalid storage_type");
+
+	if (scan_type == MS_MSG_DIRECTORY_SCANNING) {
+		sql = sqlite3_mprintf("SELECT path, media_type FROM '%s' WHERE validity = 1 AND title IS NULL AND path LIKE '%q/%%'", storage_id, extract_path);
+	} else if (scan_type == MS_MSG_DIRECTORY_SCANNING_NON_RECURSIVE) {
+		char folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0, };
+		ret = _media_svc_get_folder_id_by_foldername(handle, storage_id, extract_path, folder_uuid, uid);
+		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+		sql = sqlite3_mprintf("SELECT path, media_type FROM '%s' WHERE validity = 1 AND title IS NULL AND folder_uuid = '%q'", storage_id, folder_uuid);
+	} else { /*Storage Scanning*/
+		sql = sqlite3_mprintf("SELECT path, media_type FROM '%s' WHERE validity = 1 AND title IS NULL", storage_id);
+	}
+
+	ret = _media_svc_sql_prepare_to_step_simple(handle, sql, &sql_stmt);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("error when get list. err = [%d]", ret);
+		return ret;
+	}
+
+	db_data_array = g_array_new(FALSE, FALSE, sizeof(media_svc_item_info_s*));
+	if (db_data_array == NULL) {
+		media_svc_error("db_data_array is NULL. Out of memory");
+		return MS_MEDIA_ERR_OUT_OF_MEMORY;
+	}
+
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
+		db_data = NULL;
+		db_data = malloc(sizeof(media_svc_item_info_s));
+		if(db_data == NULL) {
+			media_svc_error("Out of memory");
+			continue;
+		}
+
+		if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
+			db_data->path = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
+
+		db_data->media_type = (int)sqlite3_column_int(sql_stmt,1);
+
+		g_array_append_val(db_data_array, db_data);
+	}
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	while (db_data_array->len != 0) {
+		db_data = NULL;
+		db_data = g_array_index(db_data_array, media_svc_item_info_s*, 0);
+		g_array_remove_index (db_data_array, 0);
+
+		if ((db_data == NULL) ||(db_data->path == NULL)) {
+			media_svc_error("invalid db data");
+			continue;
+		}
+
+		media_type = db_data->media_type;
+		media_svc_debug("path is %s, media type %d", db_data->path, media_type);
+		memset(&content_info, 0, sizeof(media_svc_content_info_s));
+		__media_svc_malloc_and_strncpy(&content_info.path, db_data->path);
+
+		content_info.media_type = media_type;
+		content_info.storage_type = storage_type;
+
+		_media_svc_set_default_value(&content_info, FALSE);
+
+		if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
+			/*Do nothing.*/
+		} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
+			ret = _media_svc_extract_image_metadata(db_handle, &content_info);
+		} else {
+			ret = _media_svc_extract_media_metadata(db_handle, &content_info, uid);
+		}
+
+		ret = _media_svc_insert_item_pass2(db_handle, storage_id, &content_info, is_burst, TRUE, uid);
+
+		_media_svc_destroy_content_info(&content_info);
+		SAFE_FREE(db_data->path);
+		SAFE_FREE(db_data);
+		idx++;
+	}
+
+	if (idx > 0)
+	{
+		ret = _media_svc_list_query_do(db_handle, MEDIA_SVC_QUERY_UPDATE_ITEM, uid);
+	}
+
+	g_array_free(db_data_array, FALSE);
+	db_data_array = NULL;
+
+	media_svc_debug_fleave();
+
+	return MS_MEDIA_ERR_NONE;
 }

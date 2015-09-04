@@ -32,10 +32,11 @@ typedef void MediaSvcHandle;		/**< Handle */
  * Type definition for storage type
  */
 typedef enum {
-	MEDIA_SVC_STORAGE_INTERNAL = 0,			/**< Internal storage*/
-	MEDIA_SVC_STORAGE_EXTERNAL = 1,			/**< External storage*/
-	MEDIA_SVC_STORAGE_CLOUD = 100,			/**< Cloud Storage*/
-	MEDIA_SVC_STORAGE_MAX,					/**< Invalid storage*/
+	MEDIA_SVC_STORAGE_INTERNAL = 0,		/**< The device's internal storage */
+	MEDIA_SVC_STORAGE_EXTERNAL = 1,		/**< The device's external storage like sd card*/
+	MEDIA_SVC_STORAGE_EXTERNAL_USB = 2,	/**< The external USB storage (Since 2.4) */
+	MEDIA_SVC_STORAGE_CLOUD = 100,		/**< The Cloud storage (Since 2.4) */
+	MEDIA_SVC_STORAGE_MAX,				/**< Invalid storage*/
 } media_svc_storage_type_e;
 
 /**
@@ -121,5 +122,16 @@ typedef struct {
 	char		*storage_uuid;					/**< Unique ID of storage */
 	media_svc_content_meta_s	media_meta;	/**< meta data structure for audio files */
 } media_svc_content_info_s;
+
+/**
+ * Type definition for scanning status
+ */
+typedef enum{
+	MEDIA_SVC_SCAN_PREPARE		= 0,	/**< Prepare scanning*/
+	MEDIA_SVC_SCAN_PROCESSING	= 1,	/**< Process scanning*/
+	MEDIA_SVC_SCAN_STOP			= 2,	/**< Stop scanning*/
+	MEDIA_SVC_SCAN_COMPLETE		= 3,	/**< Complete scanning*/
+	MEDIA_SVC_SCAN_MAX			= 4,	/**< Invalid status*/
+}media_svc_scan_status_type_e;
 
 #endif /*_MEDIA_SVC_TYPES_H_*/

@@ -172,7 +172,7 @@ int main()
 	char *folder_path = tzplatform_mkpath(TZ_USER_CONTENT, "Sounds");
 	ret = svc_set_folder_item_validity(db_handle, folder_path, 0, 1, &err_msg);
 	if (ret < 0) {
-	msg_print(__LINE__, "svc_set_folder_item_validity error");
+		msg_print(__LINE__, "svc_set_folder_item_validity error");
 		if (err_msg != NULL) {
 			printf("err_msg[%s]\n", err_msg);
 			free(err_msg);
@@ -184,7 +184,7 @@ int main()
 
 	ret = svc_delete_all_invalid_items_in_folder(db_handle, folder_path, &err_msg);
 	if (ret < 0) {
-	msg_print(__LINE__, "svc_delete_all_invalid_items_in_folder error");
+		msg_print(__LINE__, "svc_delete_all_invalid_items_in_folder error");
 		if (err_msg != NULL) {
 			printf("err_msg[%s]\n", err_msg);
 			free(err_msg);
@@ -197,7 +197,7 @@ int main()
 	/*db close ================================================== */
 	ret = svc_disconnect(db_handle, &err_msg);
 	if (ret < 0) {
-	msg_print(__LINE__, "svc_disconnect error");
+		msg_print(__LINE__, "svc_disconnect error");
 		if (err_msg != NULL) {
 			printf("err_msg[%s]\n", err_msg);
 			free(err_msg);

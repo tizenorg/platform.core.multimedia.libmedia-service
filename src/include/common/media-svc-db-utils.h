@@ -29,8 +29,8 @@
 #define SQLITE3_FINALIZE(x)       if(x  != NULL) {sqlite3_finalize(x);}
 
 int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, media_svc_table_slist_e list, uid_t uid);
-int _media_svc_upgrade_table_query(sqlite3 *db_handle, char *table_name, media_svc_table_slist_e list, uid_t uid);
-int _media_svc_init_table_query();
+int _media_svc_upgrade_table_query(sqlite3 *db_handle, const char *table_name, media_svc_table_slist_e list, uid_t uid);
+int _media_svc_init_table_query(const char *event_table_name);
 void _media_svc_destroy_table_query();
 int _media_svc_create_media_table_with_id(sqlite3 *db_handle, const char *table_id, uid_t uid);
 int _media_svc_drop_media_table(sqlite3 *handle, const char *storage_id, uid_t uid);
@@ -44,7 +44,7 @@ int _media_svc_sql_rollback_trans(sqlite3 *handle, uid_t uid);
 int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid);
 void _media_svc_sql_query_add(GList **query_list, char **query);
 void _media_svc_sql_query_release(GList **query_list);
-int _media_svc_check_db_upgrade(sqlite3 *db_handle, uid_t uid);
+int _media_svc_check_db_upgrade(sqlite3 *db_handle, bool *need_full_scan, uid_t uid);
 int _media_db_check_corrupt(sqlite3 *db_handle);
 char *_media_svc_get_path(uid_t uid);
 
