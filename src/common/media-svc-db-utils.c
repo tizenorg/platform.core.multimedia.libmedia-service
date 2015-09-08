@@ -732,6 +732,7 @@ int _media_svc_init_table_query(const char *event_table_name)
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_rect_w", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_rect_h", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "orientation", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", 0, NULL, false, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_tag", MEDIA_SVC_DB_TYPE_TEXT, NULL, 0, NULL, false, false, false);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	return ret;
