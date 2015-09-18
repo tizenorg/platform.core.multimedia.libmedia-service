@@ -1109,18 +1109,14 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 		goto GET_WIDTH_HEIGHT;
 	}
 
-	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_GPS_LATITUDE_REF) == MS_MEDIA_ERR_NONE) {
-		if (strlen(buf) != 0) {
-			if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE) == MS_MEDIA_ERR_NONE) {
-
+	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE) == MS_MEDIA_ERR_NONE) {
+		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE_REF) == MS_MEDIA_ERR_NONE) {
+			if (strlen(buf) > 0) {
 				if (strcmp(buf, "S") == 0) {
 					value = -1 * value;
 				}
-
-				content_info->media_meta.latitude = value;
-			} else {
-				content_info->media_meta.latitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
 			}
+			content_info->media_meta.latitude = value;
 		} else {
 			content_info->media_meta.latitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
 		}
@@ -1130,16 +1126,14 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_GPS_LONGITUDE_REF) == MS_MEDIA_ERR_NONE) {
-		if (strlen(buf) != 0) {
-			if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE) == MS_MEDIA_ERR_NONE) {
+		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE_REF) == MS_MEDIA_ERR_NONE) {
+			if (strlen(buf) > 0) {
 				if (strcmp(buf, "W") == 0) {
 					value = -1 * value;
 				}
-				content_info->media_meta.longitude = value;
-			} else {
-				content_info->media_meta.longitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
 			}
+			content_info->media_meta.longitude = value;
 		} else {
 			content_info->media_meta.longitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
 		}
