@@ -214,6 +214,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *burst_id = NULL;
+	int ini_val = _media_svc_get_ini_value();
 
 	const char *db_fields = "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, folder_uuid, \
 					thumbnail_path, title, album_id, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, description, \
@@ -239,24 +240,25 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 		}
 
 		/* Get thumbnail for burst shot */
-		char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
-		int width = 0;
-		int height = 0;
+		if(ini_val == 1) {
+			char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
+			int width = 0;
+			int height = 0;
 
-		ret = _media_svc_request_thumbnail_with_origin_size(content_info->path, thumb_path, sizeof(thumb_path), &width, &height, uid);
-		if (ret == MS_MEDIA_ERR_NONE) {
-
-			ret = __media_svc_malloc_and_strncpy(&(content_info->thumbnail_path), thumb_path);
-			if (ret != MS_MEDIA_ERR_NONE) {
-				content_info->thumbnail_path = NULL;
+			ret = _media_svc_request_thumbnail_with_origin_size(content_info->path, thumb_path, sizeof(thumb_path), &width, &height, uid);
+			if (ret == MS_MEDIA_ERR_NONE) {
+				ret = __media_svc_malloc_and_strncpy(&(content_info->thumbnail_path), thumb_path);
+				if (ret != MS_MEDIA_ERR_NONE) {
+					content_info->thumbnail_path = NULL;
+				}
 			}
+
+			if (content_info->media_meta.width <= 0)
+				content_info->media_meta.width = width;
+
+			if (content_info->media_meta.height <= 0)
+				content_info->media_meta.height = height;
 		}
-
-		if (content_info->media_meta.width <= 0)
-			content_info->media_meta.width = width;
-
-		if (content_info->media_meta.height <= 0)
-			content_info->media_meta.height = height;
 	}
 
 	/*Update Pinyin If Support Pinyin*/

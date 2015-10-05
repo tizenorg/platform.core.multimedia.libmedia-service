@@ -68,6 +68,14 @@
 #define _3GP_FILE ".3gp"
 #define _MP4_FILE ".mp4"
 #define _ASF_FILE ".asf"
+#define MEDIA_SVC_INI_GET_INT(dict, key, value, default) \
+	do { \
+		value = iniparser_getint(dict, key, default); \
+		media_svc_debug("get %s = %d", key, value); \
+	} while(0)
+#define MEDIA_SVC_INI_DEFAULT_PATH "/usr/etc/media_content_config.ini"
+
+static int g_ini_value = -1;
 
 typedef struct {
 	char content_type[15];
@@ -862,10 +870,10 @@ static char *_media_svc_get_thumb_path(uid_t uid)
 int _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *thumb_path, const char *pathname, const char *img_format, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	char savename[MEDIA_SVC_PATHNAME_SIZE] = {0};
-	char file_ext[MEDIA_SVC_FILE_EXT_LEN_MAX + 1] = {0};
+	char savename[MEDIA_SVC_PATHNAME_SIZE] = {0, };
+	char file_ext[MEDIA_SVC_FILE_EXT_LEN_MAX + 1] = {0, };
 	char *thumb_dir = NULL;
-	char hash[255 + 1];
+	char hash[255 + 1] = {0, };
 	char *thumbfile_ext = NULL;
 
 	thumb_dir = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? _media_svc_get_thumb_internal_path(uid) : _media_svc_get_thumb_external_path(uid);
@@ -2107,6 +2115,25 @@ bool _media_svc_check_pinyin_support(void)
 {
 	/*Check CSC*/
 	return TRUE;
+}
+
+int _media_svc_get_ini_value()
+{
+	if(g_ini_value == -1) {
+		dictionary *dict = NULL;
+
+		dict = iniparser_load(MEDIA_SVC_INI_DEFAULT_PATH);
+		if(!dict) {
+			media_svc_error("%s load failed", MEDIA_SVC_INI_DEFAULT_PATH);
+			return -1;
+		}
+
+		MEDIA_SVC_INI_GET_INT(dict, "media-content-config:thumbnail_activation",g_ini_value, 0);
+		iniparser_freedict(dict);
+	}
+	media_svc_debug("Thumb-server activation level = %d", g_ini_value);
+
+	return g_ini_value;
 }
 
 char* _media_svc_get_title_from_path(const char *path)

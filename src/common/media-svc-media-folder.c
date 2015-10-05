@@ -30,16 +30,16 @@
 extern __thread GList *g_media_svc_move_item_query_list;
 static __thread GList *g_media_svc_insert_folder_query_list;
 
-static int __media_svc_is_root_path(const char *folder_path, bool *is_root)
+static int __media_svc_is_root_path(const char *folder_path, bool *is_root, uid_t uid)
 {
 	media_svc_retvm_if(!STRING_VALID(folder_path), MS_MEDIA_ERR_INVALID_PARAMETER, "folder_path is NULL");
 
 	*is_root = FALSE;
 
-	if (strcmp(folder_path, MEDIA_ROOT_PATH_INTERNAL) == 0 ||
+	if (strcmp(folder_path, _media_svc_get_path(uid)) == 0 ||
 		strcmp(folder_path, MEDIA_ROOT_PATH_SDCARD) == 0 ||
 		strcmp(folder_path, MEDIA_ROOT_PATH_CLOUD) == 0) {
-		media_svc_debug("ROOT PATH [%d]", folder_path);
+		media_svc_debug("ROOT PATH [%s]", folder_path);
 		*is_root = TRUE;
 	}
 
@@ -106,7 +106,7 @@ int _media_svc_get_folder_id_by_foldername(sqlite3 *handle, const char *storage_
 	if(!STRING_VALID(parent_folder_uuid)) {
 		bool is_root = FALSE;
 
-		ret = __media_svc_is_root_path(folder_name, &is_root);
+		ret = __media_svc_is_root_path(folder_name, &is_root, uid);
 		if (is_root)
 			return MS_MEDIA_ERR_NONE;
 
@@ -246,7 +246,6 @@ static int __media_svc_get_and_append_parent_folder(sqlite3 *handle, const char 
 			dir_path = strndup(path, next_pos);
 			next_pos++;
 		} else {
-			media_svc_error("End Path");
 			dir_path = strndup(path, strlen(path));
 			folder_search_end = TRUE;
 			media_svc_error("[No-Error] End Path [%s]", dir_path);
@@ -259,8 +258,6 @@ static int __media_svc_get_and_append_parent_folder(sqlite3 *handle, const char 
 
 		ret = _media_svc_get_folder_id_by_foldername(handle, storage_id, dir_path, parent_folder_uuid, uid);
 		if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
-			media_svc_error("NOT EXIST dir path : %s", dir_path);
-
 			folder_uuid = _media_info_generate_uuid();
 			if (folder_uuid == NULL) {
 				media_svc_error("Invalid UUID");
@@ -273,6 +270,7 @@ static int __media_svc_get_and_append_parent_folder(sqlite3 *handle, const char 
 				media_svc_error("__media_svc_append_folder is failed");
 			}
 
+			media_svc_error("[No-Error] New Appended folder path [%s], folder_uuid [%s], parent_folder_uuid [%s]", dir_path, folder_uuid, parent_folder_uuid);
 			_strncpy_safe(parent_folder_uuid, folder_uuid, MEDIA_SVC_UUID_SIZE + 1);
 		} else {
 			media_svc_error("EXIST dir path : %s\n", dir_path);
@@ -306,14 +304,14 @@ int _media_svc_get_and_append_folder(sqlite3 *handle, const char *storage_id, co
 
 int _media_svc_get_and_append_folder_id_by_path(sqlite3 *handle, const char *storage_id, const char *path, media_svc_storage_type_e storage_type, char *folder_id, uid_t uid)
 {
-	char *path_name = NULL;
+	char *dir_path = NULL;
 	int ret = MS_MEDIA_ERR_NONE;
 
-	path_name = g_path_get_dirname(path);
+	dir_path = g_path_get_dirname(path);
 
-	ret =  _media_svc_get_and_append_folder(handle, storage_id, path_name, storage_type, folder_id, uid);
+	ret =  _media_svc_get_and_append_folder(handle, storage_id, dir_path, storage_type, folder_id, uid);
 
-	SAFE_FREE(path_name);
+	SAFE_FREE(dir_path);
 
 	return ret;
 }
@@ -464,12 +462,12 @@ ERROR:
 	return ret;
 }
 
-int _media_svc_get_folder_info_by_foldername(sqlite3 *handle, const char *folder_name, char *folder_id, time_t *modified_time)
+int _media_svc_get_folder_info_by_foldername(sqlite3 *handle, const char *storage_id, const char *folder_name, char *folder_id, time_t *modified_time)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3_stmt *sql_stmt = NULL;
 
-	char *sql = sqlite3_mprintf("SELECT folder_uuid, modified_time FROM %s WHERE path = '%q';", MEDIA_SVC_DB_TABLE_FOLDER, folder_name);
+	char *sql = sqlite3_mprintf("SELECT folder_uuid, modified_time FROM %s WHERE (storage_uuid = '%q' AND path = '%q');", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_name);
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
@@ -507,7 +505,7 @@ int _media_svc_get_and_append_folder_id_by_folder_path(sqlite3 *handle, const ch
 		bool is_root = FALSE;
 		bool is_parent_root = FALSE;
 
-		ret = __media_svc_is_root_path(path_name, &is_root);
+		ret = __media_svc_is_root_path(path_name, &is_root, uid);
 		ret = __media_svc_parent_is_ext_root_path(path_name, &is_parent_root);
 
 		char parent_folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0, };
@@ -582,17 +580,19 @@ int _media_svc_delete_invalid_folder(sqlite3 *handle, const char *storage_id, ui
 int _media_svc_set_folder_validity(sqlite3 *handle, const char *storage_id, const char *start_path, int validity, bool is_recursive, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	char start_path_id[MEDIA_SVC_UUID_SIZE+1] = {0,};
 	char *sql = NULL;
+	char start_path_id[MEDIA_SVC_UUID_SIZE+1] = {0,};
 
 	if (is_recursive) {
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND path LIKE '%q%%'", MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path);
-	} else {
 		ret = _media_svc_get_folder_id_by_foldername(handle, storage_id, start_path, start_path_id, uid);
 		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_get_folder_id_by_foldername fail");
 		media_svc_retvm_if(!STRING_VALID(start_path_id), MS_MEDIA_ERR_INVALID_PARAMETER, "start_path_id is NULL");
 
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND parent_folder_uuid = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path_id);
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND (parent_folder_uuid = '%q' OR folder_uuid ='%q')",
+						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path_id, start_path_id);
+	} else {
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND path = '%q'",
+						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path);
 	}
 
 	ret = _media_svc_sql_query(handle, sql, uid);
@@ -618,5 +618,98 @@ int _media_svc_delete_folder_by_storage_id(sqlite3 *handle, const char *storage_
 GList ** _media_svc_get_folder_list_ptr(void)
 {
 	return &g_media_svc_insert_folder_query_list;
+}
+
+int _media_svc_delete_invalid_folder_by_path(sqlite3 *handle, const char *storage_id, const char *folder_path, uid_t uid, int *delete_count)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	char *sql = NULL;
+	int del_count = 0;
+	sqlite3_stmt *sql_stmt = NULL;
+
+	if (folder_path == NULL)
+		return MS_MEDIA_ERR_INVALID_PARAMETER;
+
+	/*check the number of the deleted folder*/
+	sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE (storage_uuid = '%q' AND validity = 0 AND PATH LIKE '%q/%%')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_path);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	del_count = sqlite3_column_int(sql_stmt, 0);
+
+	SQLITE3_FINALIZE(sql_stmt);
+	sql = NULL;
+
+	/*delete invalid folder*/
+	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE (storage_uuid = '%q' AND validity = 0 AND PATH LIKE '%q%%')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_path);
+	ret = _media_svc_sql_query(handle, sql, uid);
+
+	sqlite3_free(sql);
+
+	*delete_count = del_count;
+
+	return ret;
+}
+
+int _media_svc_count_folder_with_path(sqlite3 *handle,  const char *storage_id, const char *path, int *count)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+
+	char *sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE (storage_uuid='%q' AND path='%q')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	*count = sqlite3_column_int(sql_stmt, 0);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return MS_MEDIA_ERR_NONE;
+}
+
+int _media_svc_count_subfolder_with_path(sqlite3 *handle,  const char *storage_id, const char *path, int *count)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+
+	char *sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE (storage_uuid='%q' AND path LIKE'%q/%%')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	*count = sqlite3_column_int(sql_stmt, 0);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return MS_MEDIA_ERR_NONE;
+}
+
+int _media_svc_get_folder_uuid(sqlite3 *handle, const char *storage_id, const char *path, char *folder_id)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = NULL;
+
+	sql = sqlite3_mprintf("SELECT folder_uuid FROM '%s' WHERE (storage_uuid='%q' AND path='%q')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	_strncpy_safe(folder_id, (const char *)sqlite3_column_text(sql_stmt, 0), MEDIA_SVC_UUID_SIZE+1);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	if(!STRING_VALID(folder_id))
+	{
+		media_svc_error("Not found valid storage id [%s]", path);
+		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
+	}
+
+	return ret;
 }
 

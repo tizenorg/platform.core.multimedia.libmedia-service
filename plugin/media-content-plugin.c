@@ -498,7 +498,7 @@ int update_end(const char *start_path, uid_t uid)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int send_dir_update_noti(void *handle, const char *storage_id, const char *dir_path, char **err_msg)
+int send_dir_update_noti(void *handle, const char *storage_id, const char *dir_path, const char *folder_id, int update_type, int pid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -507,7 +507,7 @@ int send_dir_update_noti(void *handle, const char *storage_id, const char *dir_p
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = media_svc_send_dir_update_noti(handle, storage_id, dir_path);
+	ret = media_svc_send_dir_update_noti(handle, storage_id, dir_path, folder_id, (media_item_update_type_e)update_type, pid);
 	if (ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -602,7 +602,7 @@ int get_folder_list(void *handle, const char *storage_id, char *start_path, char
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int update_folder_time(void *handle, char *folder_path, uid_t uid, char **err_msg)
+int update_folder_time(void *handle, const char *storage_id, char *folder_path, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -616,7 +616,7 @@ int update_folder_time(void *handle, char *folder_path, uid_t uid, char **err_ms
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = media_svc_update_folder_time(handle, folder_path, uid);
+	ret = media_svc_update_folder_time(handle, storage_id, folder_path, uid);
 	if (ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
@@ -679,7 +679,7 @@ int check_storage(void * handle, const char *storage_id, const char *storage_nam
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int insert_storage(void * handle, const char *storage_id, int storage_type, const char *storage_name, const char *storage_path, uid_t uid, char **err_msg)
+int insert_storage(void *handle, const char *storage_id, int storage_type, const char *storage_name, const char *storage_path, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -697,7 +697,7 @@ int insert_storage(void * handle, const char *storage_id, int storage_type, cons
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int update_storage(void * handle, const char *storage_id, const char *storage_path, uid_t uid, char **err_msg)
+int update_storage(void *handle, const char *storage_id, const char *storage_path, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -808,7 +808,7 @@ int get_storage_scan_status(void * handle, const char *storage_id, int *status, 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int set_storage_scan_status(void * handle, const char *storage_id, int status, uid_t uid, char **err_msg)
+int set_storage_scan_status(void *handle, const char *storage_id, int status, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 	media_svc_scan_status_type_e storage_status = status;
@@ -827,7 +827,7 @@ int set_storage_scan_status(void * handle, const char *storage_id, int status, u
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int get_storage_list(void * handle, char ***storage_list, char ***storage_id_list,int **scan_status_list, int *count, char **err_msg)
+int get_storage_list(void *handle, char ***storage_list, char ***storage_id_list,int **scan_status_list, int *count, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -978,7 +978,7 @@ int insert_folder_begin(void * handle, int item_cnt, char **err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int insert_folder_end(void * handle, uid_t uid, char **err_msg)
+int insert_folder_end(void *handle, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -1059,3 +1059,81 @@ int set_folder_validity(void * handle, const char *storage_id, const char* start
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
+
+int delete_invalid_folder_by_path(void * handle, const char *storage_id, const char *folder_path, uid_t uid, int *delete_count, char **err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	if(handle == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_delete_invalid_folder_by_path(handle, storage_id, folder_path, uid, delete_count);
+	if(ret < 0) {
+		__set_error_message(ret, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
+
+int check_folder_exist(void * handle, const char *storage_id, const char *folder_path, char **err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	if(handle == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_check_folder_exist_by_path(handle, storage_id, folder_path);
+	if(ret < 0) {
+		__set_error_message(ret, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
+
+int count_subfolder(void * handle, const char *storage_id, const char *folder_path, int *count, char **err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+	int cnt = 0;
+
+	if(handle == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_check_subfolder_by_path(handle, storage_id, folder_path, &cnt);
+	if(ret < 0) {
+		__set_error_message(ret, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	*count = cnt;
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
+
+int get_folder_id(void * handle, const char *storage_id, const char *path, char *folder_id, char **err_msg)
+{
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	if(handle == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_get_folder_id(handle, storage_id, path, folder_id);
+	if(ret < 0) {
+		__set_error_message(ret, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	return MEDIA_SVC_PLUGIN_ERROR_NONE;
+}
+
+
+

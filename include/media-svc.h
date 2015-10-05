@@ -42,10 +42,6 @@ int media_svc_insert_item_begin(MediaSvcHandle *handle, int with_noti, int data_
 int media_svc_insert_item_end(MediaSvcHandle *handle, uid_t uid);
 int media_svc_insert_item_bulk(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, int is_burst, uid_t uid);
 int media_svc_insert_item_immediately(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, uid_t uid);
-#if 0
-int media_svc_move_item_begin(MediaSvcHandle *handle, int data_cnt);
-int media_svc_move_item_end(MediaSvcHandle *handle, uid_t uid);
-#endif
 int media_svc_move_item(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e src_storage, const char *src_path, media_svc_storage_type_e dest_storage, const char *dest_path, uid_t uid);
 int media_svc_set_item_validity_begin(MediaSvcHandle *handle, int data_cnt);
 int media_svc_set_item_validity_end(MediaSvcHandle *handle, uid_t uid);
@@ -61,12 +57,12 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 int media_svc_request_update_db(const char *db_query, uid_t uid);
 int media_svc_get_storage_type(const char *path, media_svc_storage_type_e *storage_type, uid_t uid);
 int media_svc_get_file_info(MediaSvcHandle *handle, const char *storage_id, const char *path, time_t *modified_time, unsigned long long *size);
-int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *storage_id, const char *dir_path);
+int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *storage_id, const char *dir_path, const char *folder_id, media_item_update_type_e update_type, int pid);
 int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int *count);
 int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, uid_t uid);
 int media_svc_check_db_corrupt(MediaSvcHandle *handle);
 int media_svc_get_folder_list(MediaSvcHandle *handle, char *start_path, char ***folder_list, time_t **modified_time_list, int **item_num_list, int *count);
-int media_svc_update_folder_time(MediaSvcHandle *handle, const char *folder_path, uid_t uid);
+int media_svc_update_folder_time(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, uid_t uid);
 int media_svc_publish_noti(MediaSvcHandle *handle, media_item_type_e update_item, media_item_update_type_e update_type, const char *path, media_type_e media_type, const char *uuid, const char *mime_type);
 int media_svc_get_pinyin(MediaSvcHandle *handle, const char *src_str, char **pinyin_str);
 int media_svc_check_pinyin_support(bool *support);
@@ -96,6 +92,12 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 
 int media_svc_insert_folder_begin(MediaSvcHandle *handle, int data_cnt);
 int media_svc_insert_folder_end(MediaSvcHandle *handle, uid_t uid);
+
+int media_svc_delete_invalid_folder_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, uid_t uid, int *delete_count);
+int media_svc_check_folder_exist_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path);
+int media_svc_check_subfolder_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int *count);
+int media_svc_get_folder_id(MediaSvcHandle *handle, const char *storage_id, const char *path, char *folder_id);
+
 
 #ifdef __cplusplus
 }

@@ -581,7 +581,7 @@ int _media_svc_init_table_query(const char *event_table_name)
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "media_uuid", MEDIA_SVC_DB_TYPE_TEXT, "PRIMARY KEY", USER_V2, NULL, false, false, true);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "path", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL UNIQUE", USER_V2, NULL, true, false, true);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "file_name", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", USER_V2, "media_file_name_idx", true, false, true);
-	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "media_type", MEDIA_SVC_DB_TYPE_INT, NULL, USER_V2, "media_media_type_idx", false, false, true);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "media_type", MEDIA_SVC_DB_TYPE_INT, NULL, USER_V2, NULL, false, false, true);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "mime_type", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V2, NULL, false, false, true);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "size", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V2, NULL, false, false, true);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "added_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V2, NULL, false, false, true);

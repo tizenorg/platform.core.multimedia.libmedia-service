@@ -54,7 +54,7 @@ extern "C" {
  * Table Name
  */
 #define MEDIA_SVC_DB_TABLE_MEDIA				"media"				/**<  media table*/
-#define MEDIA_SVC_DB_TABLE_FOLDER				"folder"				/**<  media_folder table*/
+#define MEDIA_SVC_DB_TABLE_FOLDER				"folder"			/**<  media_folder table*/
 #define MEDIA_SVC_DB_TABLE_PLAYLIST				"playlist"			/**<  playlist table*/
 #define MEDIA_SVC_DB_TABLE_PLAYLIST_MAP			"playlist_map"		/**<  playlist_map table*/
 #define MEDIA_SVC_DB_TABLE_ALBUM				"album"				/**<  album table*/

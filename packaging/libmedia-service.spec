@@ -1,6 +1,6 @@
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications
-Version: 0.2.53
+Version: 0.2.54
 Release:    3
 Group:      System/Libraries
 License:    Apache-2.0 and public domain
@@ -23,6 +23,7 @@ BuildRequires:  pkgconfig(media-thumbnail)
 BuildRequires:  pkgconfig(libmedia-utils)
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(libtzplatform-config)
+BuildRequires:  pkgconfig(iniparser)
 
 %description
 Media information service library for multimedia applications.

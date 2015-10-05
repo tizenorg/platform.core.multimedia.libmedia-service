@@ -26,6 +26,7 @@
 #include "media-svc-env.h"
 #include "media-svc-debug.h"
 #include <media-util-noti.h>
+#include <media-util-noti-internal.h>
 
 typedef struct _media_svc_noti_item media_svc_noti_item;
 
@@ -46,12 +47,32 @@ int _media_svc_destroy_noti_list(int all_cnt);
 int _media_svc_publish_noti_list(int all_cnt);
 int _media_svc_destroy_noti_item(media_svc_noti_item *item);
 int _media_svc_publish_noti(media_item_type_e update_item,
-                            media_item_update_type_e update_type,
-                            const char *path,
-                            media_type_e media_type,
-                            const char *uuid,
-                            const char *mime_type
-                           );
+							media_item_update_type_e update_type,
+							const char *path,
+							media_type_e media_type,
+							const char *uuid,
+							const char *mime_type
+);
+int _media_svc_publish_dir_noti(media_item_type_e update_item,
+							media_item_update_type_e update_type,
+							const char *path,
+							media_type_e media_type,
+							const char *uuid,
+							const char *mime_type,
+							int pid
+);
+int _media_svc_publish_dir_noti_v2(media_item_type_e update_item,
+							media_item_update_type_e update_type,
+							const char *path,
+							media_type_e media_type,
+							const char *uuid,
+							const char *mime_type,
+							int pid
+);
+
+
+
+
 
 #endif /*_MEDIA_SVC_NOTI_H_*/
 

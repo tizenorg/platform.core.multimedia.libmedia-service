@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sqlite3.h>
+#include <iniparser.h>
 #include "media-svc-types.h"
 #include "media-svc-env.h"
 
@@ -69,6 +70,7 @@ int _media_svc_request_thumbnail_with_origin_size(const char *path, char *thumb_
 int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str);
 bool _media_svc_check_pinyin_support(void);
 int _media_svc_extract_music_metadata_for_update(sqlite3 *handle, media_svc_content_info_s *content_info, media_svc_media_type_e media_type);
+int _media_svc_get_ini_value();
 char *_media_svc_get_title_from_path(const char *path);
 void _media_svc_print_stderror(void);
 
