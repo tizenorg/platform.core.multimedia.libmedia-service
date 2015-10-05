@@ -1003,21 +1003,23 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char
 	int ret = MS_MEDIA_ERR_NONE;
 	char * media_uuid = NULL;
 	char * file_name = NULL;
-	struct stat st;
 	bool drm_type = false;
-	char mime_type[256] = {0};
+	char mime_type[256] = {0, };
 
 	ret = __media_svc_malloc_and_strncpy(&content_info->path, path);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	memset(&st, 0, sizeof(struct stat));
-	if (stat(path, &st) == 0) {
-		content_info->modified_time = st.st_mtime;
-		content_info->timeline = content_info->modified_time;
-		content_info->size = st.st_size;
-		//media_svc_debug("Modified time : [%d] Size : [%lld]", content_info->modified_time, content_info->size);
-	} else {
-		media_svc_stderror("stat failed");
+	if(storage_type != MEDIA_SVC_STORAGE_CLOUD) {
+		struct stat st;
+		memset(&st, 0, sizeof(struct stat));
+		if (stat(path, &st) == 0) {
+			content_info->modified_time = st.st_mtime;
+			content_info->timeline = content_info->modified_time;
+			content_info->size = st.st_size;
+			//media_svc_debug("Modified time : [%d] Size : [%lld]", content_info->modified_time, content_info->size);
+		} else {
+			media_svc_stderror("stat failed");
+		}
 	}
 
 	_media_svc_set_default_value(content_info, refresh);
@@ -1048,28 +1050,30 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char
 	SAFE_FREE(file_name);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	/* if the file is DRM file, drm_type value is DRM_TRUE(1).
-	if drm_contentinfo is not NULL, the file is OMA DRM.*/
-	ret = __media_svc_get_mime_type(path, mime_type);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+	if(storage_type != MEDIA_SVC_STORAGE_CLOUD) {
+		/* if the file is DRM file, drm_type value is DRM_TRUE(1).
+		if drm_contentinfo is not NULL, the file is OMA DRM.*/
+		ret = __media_svc_get_mime_type(path, mime_type);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	media_svc_debug("mime [%s]", mime_type);
-	content_info->is_drm = drm_type;
+		media_svc_debug("mime [%s]", mime_type);
+		content_info->is_drm = drm_type;
 
-	ret = __media_svc_get_media_type(path, mime_type, media_type);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+		ret = __media_svc_get_media_type(path, mime_type, media_type);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	if ((*media_type < MEDIA_SVC_MEDIA_TYPE_IMAGE) || (*media_type > MEDIA_SVC_MEDIA_TYPE_OTHER)) {
-		media_svc_error("invalid media_type condition[%d]", *media_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		if ((*media_type < MEDIA_SVC_MEDIA_TYPE_IMAGE) || (*media_type > MEDIA_SVC_MEDIA_TYPE_OTHER)) {
+			media_svc_error("invalid media_type condition[%d]", *media_type);
+			return MS_MEDIA_ERR_INVALID_PARAMETER;
+		}
+
+		ret = __media_svc_malloc_and_strncpy(&content_info->mime_type, mime_type);
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+
+		media_svc_sec_debug("storage[%d], path[%s], media_type[%d]", storage_type, path, *media_type);
+
+		content_info->media_type = *media_type;
 	}
-
-	ret = __media_svc_malloc_and_strncpy(&content_info->mime_type, mime_type);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
-
-	media_svc_sec_debug("storage[%d], path[%s], media_type[%d]", storage_type, path, *media_type);
-
-	content_info->media_type = *media_type;
 
 	return MS_MEDIA_ERR_NONE;
 }

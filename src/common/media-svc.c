@@ -1634,22 +1634,26 @@ int media_svc_insert_item_immediately_with_data(MediaSvcHandle *handle, media_sv
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(content_info == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "content_info is NULL");
 	media_svc_retvm_if(!STRING_VALID(content_info->path), MS_MEDIA_ERR_INVALID_PARAMETER, "file_path is NULL");
-	media_svc_retvm_if(!STRING_VALID(content_info->mime_type), MS_MEDIA_ERR_INVALID_PARAMETER, "mime_type is NULL");
 
-	if ((content_info->media_type < MEDIA_SVC_MEDIA_TYPE_IMAGE) || (content_info->media_type > MEDIA_SVC_MEDIA_TYPE_OTHER)) {
-		media_svc_error("invalid media_type condition[%d]", content_info->media_type);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+	if (content_info->storage_type == MEDIA_SVC_STORAGE_CLOUD) {
+		media_svc_retvm_if(!STRING_VALID(content_info->mime_type), MS_MEDIA_ERR_INVALID_PARAMETER, "mime_type is NULL");
+
+		if ((content_info->media_type < MEDIA_SVC_MEDIA_TYPE_IMAGE) || (content_info->media_type > MEDIA_SVC_MEDIA_TYPE_OTHER)) {
+			media_svc_error("invalid media_type condition[%d]", content_info->media_type);
+			return MS_MEDIA_ERR_INVALID_PARAMETER;
+		}
+
+		if (content_info->size <= 0) {
+			media_svc_error("invalid size condition[%d]", content_info->size);
+			return MS_MEDIA_ERR_INVALID_PARAMETER;
+		}
+
+		if (content_info->modified_time <= 0) {
+			media_svc_error("invalid modified_time condition[%d]", content_info->modified_time);
+			return MS_MEDIA_ERR_INVALID_PARAMETER;
+		}
 	}
 
-	if (content_info->size <= 0) {
-		media_svc_error("invalid size condition[%d]", content_info->size);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
-
-	if (content_info->modified_time <= 0) {
-		media_svc_error("invalid modified_time condition[%d]", content_info->modified_time);
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
-	}
 	media_svc_debug("storage[%d], path[%s], media_type[%d]", content_info->storage_type, content_info->path, content_info->media_type);
 
 	media_svc_content_info_s _new_content_info;
