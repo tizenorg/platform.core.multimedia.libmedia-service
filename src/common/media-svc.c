@@ -1426,80 +1426,10 @@ int media_svc_get_storage_list(MediaSvcHandle *handle, char ***storage_list, cha
 
 static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_info, media_svc_content_info_s *new_content_info)
 {
+	int ret = MS_MEDIA_ERR_NONE;
+
 	media_svc_retvm_if(content_info == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(new_content_info == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
-
-	/*
-	initialize media content datas
-	*/
-	int ret = MS_MEDIA_ERR_NONE;
-	char *media_uuid = NULL;
-	char *file_name = NULL;
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->path, content_info->path);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->storage_uuid, content_info->storage_uuid);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	/* Set default GPS value before extracting meta information */
-	new_content_info->media_meta.longitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
-	new_content_info->media_meta.latitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
-	new_content_info->media_meta.altitude = MEDIA_SVC_DEFAULT_GPS_VALUE;
-
-	/* Set default value before extracting meta information */
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.title, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.copyright, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.track_num, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-/*	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.album_artist, MEDIA_SVC_TAG_UNKNOWN); */
-/*	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info); */
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.genre, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.composer, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.year, MEDIA_SVC_TAG_UNKNOWN);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	new_content_info->storage_type = content_info->storage_type;
-	time(&new_content_info->added_time);
-
-	media_uuid = _media_info_generate_uuid();
-	media_svc_retvm_if(media_uuid == NULL, MS_MEDIA_ERR_INTERNAL, "Invalid UUID");
-
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->media_uuid, media_uuid);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	file_name = g_path_get_basename(content_info->path);
-	ret = __media_svc_malloc_and_strncpy(&new_content_info->file_name, file_name);
-	SAFE_FREE(file_name);
-	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, new_content_info);
-
-	new_content_info->played_count = 0;
-	new_content_info->last_played_time = 0;
-	new_content_info->last_played_position = 0;
-	new_content_info->favourate = 0;
-	new_content_info->media_meta.rating = 0;
-	/*
-	end of initializing
-	*/
 
 	new_content_info->size = content_info->size;
 	new_content_info->added_time = content_info->added_time;
@@ -1658,6 +1588,11 @@ int media_svc_insert_item_immediately_with_data(MediaSvcHandle *handle, media_sv
 
 	media_svc_content_info_s _new_content_info;
 	memset(&_new_content_info, 0, sizeof(media_svc_content_info_s));
+
+	media_svc_media_type_e media_type;
+
+	ret = _media_svc_set_media_info(&_new_content_info, content_info->storage_uuid, content_info->storage_type, content_info->path, &media_type, FALSE);
+	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "fail _media_svc_set_media_info");
 
 	/* set othere data to the structure, which is passed as parameters */
 	__media_svc_copy_para_to_content(content_info, &_new_content_info);
