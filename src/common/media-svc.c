@@ -1423,7 +1423,6 @@ int media_svc_get_storage_list(MediaSvcHandle *handle, char ***storage_list, cha
 	return _media_svc_get_all_storage(db_handle, storage_list, storage_id_list, scan_status_list, count);
 }
 
-
 static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_info, media_svc_content_info_s *new_content_info)
 {
 	int ret = MS_MEDIA_ERR_NONE;
@@ -1431,22 +1430,27 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 	media_svc_retvm_if(content_info == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 	media_svc_retvm_if(new_content_info == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
-	new_content_info->size = content_info->size;
-	new_content_info->added_time = content_info->added_time;
-	new_content_info->modified_time = content_info->modified_time;
-	new_content_info->is_drm = content_info->is_drm;
-	new_content_info->media_type = content_info->media_type;
+	if (content_info->storage_type == MEDIA_SVC_STORAGE_CLOUD) {
+		new_content_info->size = content_info->size;
+		new_content_info->modified_time = content_info->modified_time;
+		new_content_info->is_drm = content_info->is_drm;
+		new_content_info->media_type = content_info->media_type;
 
-	if (STRING_VALID(content_info->mime_type)) {
-		ret = __media_svc_malloc_and_strncpy(&new_content_info->mime_type, content_info->mime_type);
-		if (ret != MS_MEDIA_ERR_NONE)
-			media_svc_error("strcpy mime_type failed");
-	}
+		if (STRING_VALID(content_info->mime_type)) {
+			ret = __media_svc_malloc_and_strncpy(&new_content_info->mime_type, content_info->mime_type);
+			if (ret != MS_MEDIA_ERR_NONE)
+				media_svc_error("strcpy mime_type failed");
+		}
 
-	if (STRING_VALID(content_info->thumbnail_path)) {
-		ret = __media_svc_malloc_and_strncpy(&new_content_info->thumbnail_path, content_info->thumbnail_path);
-		if (ret != MS_MEDIA_ERR_NONE)
-			media_svc_error("strcpy thumbnail_path failed");
+		if (STRING_VALID(content_info->thumbnail_path)) {
+			ret = __media_svc_malloc_and_strncpy(&new_content_info->thumbnail_path, content_info->thumbnail_path);
+			if (ret != MS_MEDIA_ERR_NONE)
+				media_svc_error("strcpy thumbnail_path failed");
+		}
+
+		new_content_info->media_meta.duration = content_info->media_meta.duration;
+		new_content_info->media_meta.width = content_info->media_meta.width;
+		new_content_info->media_meta.height = content_info->media_meta.height;
 	}
 
 	if (STRING_VALID(content_info->media_meta.title)) {
@@ -1466,15 +1470,6 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 		if (ret != MS_MEDIA_ERR_NONE)
 			media_svc_error("strcpy artist failed");
 	}
-
-/*
-	if(STRING_VALID(content_info->media_meta.album_artist))
-	{
-		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.album_artist, content_info->media_meta.album_artist);
-		if(ret != MS_MEDIA_ERR_NONE)
-			media_svc_error("strcpy album_artist failed");
-	}
-*/
 
 	if (STRING_VALID(content_info->media_meta.genre)) {
 		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.genre, content_info->media_meta.genre);
@@ -1538,16 +1533,19 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 		}
 	}
 
-	new_content_info->media_meta.bitrate = content_info->media_meta.bitrate;
-	new_content_info->media_meta.samplerate = content_info->media_meta.samplerate;
-	new_content_info->media_meta.channel = content_info->media_meta.channel;
-	new_content_info->media_meta.duration = content_info->media_meta.duration;
-	new_content_info->media_meta.longitude = content_info->media_meta.longitude;
-	new_content_info->media_meta.latitude = content_info->media_meta.latitude;
-	new_content_info->media_meta.altitude = content_info->media_meta.altitude;
-	new_content_info->media_meta.width = content_info->media_meta.width;
-	new_content_info->media_meta.height = content_info->media_meta.height;
-	new_content_info->media_meta.orientation = content_info->media_meta.orientation;
+	/*category, favorite, keyword, provider, age_rating, content_name, display_name, location_tag, modified_time, played_time*/
+	//new_content_info->media_meta.bitrate = content_info->media_meta.bitrate;
+	//new_content_info->media_meta.samplerate = content_info->media_meta.samplerate;
+	//new_content_info->media_meta.channel = content_info->media_meta.channel;
+	//new_content_info->media_meta.orientation = content_info->media_meta.orientation;
+
+	if(content_info->media_meta.longitude != MEDIA_SVC_DEFAULT_GPS_VALUE)
+		new_content_info->media_meta.longitude = content_info->media_meta.longitude;
+	if(content_info->media_meta.latitude != MEDIA_SVC_DEFAULT_GPS_VALUE)
+		new_content_info->media_meta.latitude = content_info->media_meta.latitude;
+	if(content_info->media_meta.altitude != MEDIA_SVC_DEFAULT_GPS_VALUE)
+		new_content_info->media_meta.altitude = content_info->media_meta.altitude;
+
 	new_content_info->media_meta.rating = content_info->media_meta.rating;
 
 	return 0;
@@ -1593,6 +1591,41 @@ int media_svc_insert_item_immediately_with_data(MediaSvcHandle *handle, media_sv
 
 	ret = _media_svc_set_media_info(&_new_content_info, content_info->storage_uuid, content_info->storage_type, content_info->path, &media_type, FALSE);
 	media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "fail _media_svc_set_media_info");
+
+	if (content_info->storage_type != MEDIA_SVC_STORAGE_CLOUD) {
+		if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
+			/*Do nothing.*/
+		} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
+			ret = _media_svc_extract_image_metadata(db_handle, &_new_content_info);
+		} else {
+			ret = _media_svc_extract_media_metadata(db_handle, &_new_content_info, uid);
+		}
+
+		media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
+
+		/* Extracting thumbnail */
+		int ini_val = _media_svc_get_ini_value();
+		if (ini_val == 1) {
+			if (_new_content_info.thumbnail_path == NULL) {
+				if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE || media_type == MEDIA_SVC_MEDIA_TYPE_VIDEO) {
+					char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
+					int width = 0;
+					int height = 0;
+
+					ret = _media_svc_request_thumbnail_with_origin_size(_new_content_info.path, thumb_path, sizeof(thumb_path), &width, &height, uid);
+					if (ret == MS_MEDIA_ERR_NONE) {
+						ret = __media_svc_malloc_and_strncpy(&(_new_content_info.thumbnail_path), thumb_path);
+					}
+
+					if (_new_content_info.media_meta.width <= 0)
+						_new_content_info.media_meta.width = width;
+
+					if (_new_content_info.media_meta.height <= 0)
+						_new_content_info.media_meta.height = height;
+				}
+			}
+		}
+	}
 
 	/* set othere data to the structure, which is passed as parameters */
 	__media_svc_copy_para_to_content(content_info, &_new_content_info);
