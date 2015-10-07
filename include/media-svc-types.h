@@ -74,15 +74,22 @@ typedef struct {
 	float		altitude;				/**< altitude*/
 	char		*exposure_time;		/**< exposure_time*/
 	float		fnumber;			/**< fnumber*/
-	int 		iso;				/**< iso*/
+	int 		iso;					/**< iso*/
 	char		*model;				/**< model*/
 	int 		width;				/**< width*/
 	int 		height;				/**< height*/
 	char		*datetaken;			/**< datetaken*/
 	int		orientation;			/**< orientation*/
 	int		rating;				/**< user defined rating */
-	char		*weather;				/**< weather of image */
-	int		bitpersample;				/**< bitrate*/
+	char		*weather;			/**< weather of image */
+	int		bitpersample;		/**< bitrate*/
+	char		*category;			/**< category*/
+	char		*keyword;			/**< keyword*/
+	char		*location_tag;		/**< location_tag*/
+	char		*content_name;		/**< content_name*/
+	char		*age_rating;			/**< age_rating*/
+	char		*author;				/**< author*/
+	char		*provider;			/**< provider*/
 
 	char		*file_name_pinyin;				/**< pinyin for file_name*/
 	char		*title_pinyin;					/**< pinyin for title*/
@@ -115,7 +122,7 @@ typedef struct {
 	int		played_count;				/**< played count */
 	int		last_played_time;				/**< last played time */
 	int		last_played_position;			/**< last played position */
-	int		favourate;					/**< favourate. o or 1 */
+	time_t	favourate;					/**< time favourate set */
 	int		is_drm;						/**< is_drm. o or 1 */
 	int		sync_status;						/**< sync_status  */
 	int		storage_type;					/**< Storage of media file : internal/external */
@@ -133,5 +140,7 @@ typedef enum{
 	MEDIA_SVC_SCAN_COMPLETE		= 3,	/**< Complete scanning*/
 	MEDIA_SVC_SCAN_MAX			= 4,	/**< Invalid status*/
 }media_svc_scan_status_type_e;
+
+#define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
 
 #endif /*_MEDIA_SVC_TYPES_H_*/

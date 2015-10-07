@@ -136,7 +136,6 @@ extern "C" {
 #define MEDIA_SVC_THUMB_EXTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/mmc")		/**<  MMC thumbnail path*/
 #define MEDIA_SVC_THUMB_DEFAULT_PATH		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/thumb_default.png") /** default thumbnail */
 
-#define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
 #define THUMB_EXT 	"jpg"
 
 enum Exif_Orientation {

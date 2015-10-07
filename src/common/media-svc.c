@@ -1453,6 +1453,18 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 		new_content_info->media_meta.height = content_info->media_meta.height;
 	}
 
+	if (content_info->added_time > 0)
+		new_content_info->added_time = content_info->added_time;
+	new_content_info->last_played_time = content_info->last_played_time;
+	new_content_info->played_count = content_info->played_count;
+	new_content_info->favourate= content_info->favourate;
+
+	if (STRING_VALID(content_info->file_name)) {
+			ret = __media_svc_malloc_and_strncpy(&new_content_info->file_name, content_info->file_name);
+			if (ret != MS_MEDIA_ERR_NONE)
+				media_svc_error("strcpy file_name failed");
+	}
+
 	if (STRING_VALID(content_info->media_meta.title)) {
 		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.title, content_info->media_meta.title);
 		if (ret != MS_MEDIA_ERR_NONE)
@@ -1516,7 +1528,49 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 	if (STRING_VALID(content_info->media_meta.weather)) {
 		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.weather, content_info->media_meta.weather);
 		if (ret != MS_MEDIA_ERR_NONE)
-			media_svc_error("strcpy description failed");
+			media_svc_error("strcpy weather failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.category)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.category, content_info->media_meta.category);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy category failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.keyword)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.keyword, content_info->media_meta.keyword);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy keyword failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.location_tag)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.location_tag, content_info->media_meta.location_tag);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy location_tag failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.content_name)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.content_name, content_info->media_meta.content_name);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy content_name failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.age_rating)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.age_rating, content_info->media_meta.age_rating);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy age_rating failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.author)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.author, content_info->media_meta.author);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy author failed");
+	}
+
+	if (STRING_VALID(content_info->media_meta.provider)) {
+		ret = __media_svc_malloc_and_strncpy(&new_content_info->media_meta.provider, content_info->media_meta.provider);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("strcpy provider failed");
 	}
 
 	if (STRING_VALID(content_info->media_meta.datetaken)) {
@@ -1533,7 +1587,6 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 		}
 	}
 
-	/*category, favorite, keyword, provider, age_rating, content_name, display_name, location_tag, modified_time, played_time*/
 	//new_content_info->media_meta.bitrate = content_info->media_meta.bitrate;
 	//new_content_info->media_meta.samplerate = content_info->media_meta.samplerate;
 	//new_content_info->media_meta.channel = content_info->media_meta.channel;

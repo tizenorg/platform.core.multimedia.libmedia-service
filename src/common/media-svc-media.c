@@ -218,6 +218,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 
 	const char *db_fields = "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, folder_uuid, \
 					thumbnail_path, title, album_id, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, description, \
+					category, keyword, location_tag, content_name, age_rating, author, provider, last_played_time, played_count, favourite, \
 					bitrate, bitpersample, samplerate, channel, duration, longitude, latitude, altitude, exposure_time, fnumber, iso, model, width, height, datetaken, orientation, \
 					rating, is_drm, storage_type, burst_id, timeline, weather, sync_status, \
 					file_name_pinyin, title_pinyin, album_pinyin, artist_pinyin, album_artist_pinyin, genre_pinyin, composer_pinyin, copyright_pinyin, description_pinyin, storage_uuid";
@@ -285,6 +286,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 
 	char *sql = sqlite3_mprintf("INSERT INTO '%s' (%s) VALUES (%Q, %Q, %Q, %d, %Q, %lld, %d, %d, %Q, \
 													%Q, %Q, %d, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, \
+													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %d, %d, %d, \
 													%d, %d, %d, %d, %d, %.6f, %.6f, %.6f, %Q, %.6f, %d, %Q, %d, %d, %Q, %d, \
 													%d, %d, %d, %Q, %d, %Q, %d, \
 													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q);",
@@ -297,7 +299,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 								content_info->size,
 								content_info->added_time,
 								content_info->modified_time,
-								content_info->folder_uuid,
+								content_info->folder_uuid,		//
 								content_info->thumbnail_path,
 								content_info->media_meta.title,
 								content_info->album_id,
@@ -310,7 +312,17 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 								content_info->media_meta.recorded_date,
 								content_info->media_meta.copyright,
 								content_info->media_meta.track_num,
-								content_info->media_meta.description,
+								content_info->media_meta.description,	//
+								content_info->media_meta.category,
+								content_info->media_meta.keyword,
+								content_info->media_meta.location_tag,
+								content_info->media_meta.content_name,
+								content_info->media_meta.age_rating,
+								content_info->media_meta.author,
+								content_info->media_meta.provider,
+								content_info->last_played_time,
+								content_info->played_count,
+								content_info->favourate,	//
 								content_info->media_meta.bitrate,
 								content_info->media_meta.bitpersample,
 								content_info->media_meta.samplerate,

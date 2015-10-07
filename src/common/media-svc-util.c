@@ -2001,6 +2001,13 @@ void _media_svc_destroy_content_info(media_svc_content_info_s *content_info)
 	SAFE_FREE(content_info->media_meta.exposure_time);
 	SAFE_FREE(content_info->media_meta.model);
 	SAFE_FREE(content_info->media_meta.weather);
+	SAFE_FREE(content_info->media_meta.category);
+	SAFE_FREE(content_info->media_meta.keyword);
+	SAFE_FREE(content_info->media_meta.location_tag);
+	SAFE_FREE(content_info->media_meta.content_name);
+	SAFE_FREE(content_info->media_meta.age_rating);
+	SAFE_FREE(content_info->media_meta.author);
+	SAFE_FREE(content_info->media_meta.provider);
 
 	SAFE_FREE(content_info->media_meta.title_pinyin);
 	SAFE_FREE(content_info->media_meta.album_pinyin);
