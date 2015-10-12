@@ -932,19 +932,14 @@ int _media_svc_get_noti_info(sqlite3 *handle, const char *storage_id, const char
 	}
 
 	if (update_item == MS_MEDIA_ITEM_FILE) {
-		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
-			(*item)->media_uuid = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
-
+		(*item)->media_uuid = g_strdup((const char *)sqlite3_column_text(sql_stmt, 0));
 		(*item)->media_type = sqlite3_column_int(sql_stmt, 1);
-
-		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 2)))
-			(*item)->mime_type = strdup((const char *)sqlite3_column_text(sql_stmt, 2));
+		(*item)->mime_type = g_strdup((const char *)sqlite3_column_text(sql_stmt, 2));
 	} else if (update_item == MS_MEDIA_ITEM_DIRECTORY) {
 		if (is_root_dir) {
 			(*item)->media_uuid = NULL;
 		} else {
-			if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
-				(*item)->media_uuid = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
+			(*item)->media_uuid = g_strdup((const char *)sqlite3_column_text(sql_stmt, 0));
 		}
 	}
 

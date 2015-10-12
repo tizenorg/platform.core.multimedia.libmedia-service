@@ -2089,9 +2089,7 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 			continue;
 		}
 
-		if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
-			db_data->path = strdup((const char *)sqlite3_column_text(sql_stmt, 0));
-
+		db_data->path = g_strdup((const char *)sqlite3_column_text(sql_stmt, 0));
 		db_data->media_type = (int)sqlite3_column_int(sql_stmt,1);
 
 		g_array_append_val(db_data_array, db_data);

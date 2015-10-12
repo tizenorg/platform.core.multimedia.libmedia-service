@@ -394,14 +394,11 @@ int _media_svc_get_all_folders(sqlite3 *handle, char *start_path, char ***folder
 	media_svc_debug("QEURY OK");
 
 	while (1) {
-		if (STRING_VALID((char *)sqlite3_column_text(sql_stmt, 0)))
-			(*folder_list)[idx] = strdup((char *)sqlite3_column_text(sql_stmt, 0));
-
+		(*folder_list)[idx] = g_strdup((char *)sqlite3_column_text(sql_stmt, 0));
 		(*modified_time_list)[idx] = (int)sqlite3_column_int(sql_stmt, 1);
 
 		/* get the folder's id */
-		if (STRING_VALID((char *)sqlite3_column_text(sql_stmt, 2)))
-			folder_uuid[idx] = strdup((char *)sqlite3_column_text(sql_stmt, 2));
+		folder_uuid[idx] = g_strdup((char *)sqlite3_column_text(sql_stmt, 2));
 
 		idx++;
 

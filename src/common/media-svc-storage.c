@@ -75,12 +75,8 @@ int _media_svc_get_mmc_info(MediaSvcHandle *handle, char **storage_name, char **
 		return ret;
 	}
 
-	if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1)))
-		*storage_name = strdup((const char *)sqlite3_column_text(sql_stmt, 1));
-
-	if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 2)))
-		*storage_path = strdup((const char *)sqlite3_column_text(sql_stmt, 2));
-
+	*storage_name = g_strdup((const char *)sqlite3_column_text(sql_stmt, 1));
+	*storage_path = g_strdup((const char *)sqlite3_column_text(sql_stmt, 2));
 	*validity = sqlite3_column_int(sql_stmt, 6);
 
 	*info_exist = TRUE;
@@ -108,9 +104,7 @@ int _media_svc_check_storage(sqlite3 *handle, const char *storage_id, const char
 
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 2)))
-		*storage_path = strdup((const char *)sqlite3_column_text(sql_stmt, 2));
-
+	*storage_path = g_strdup((const char *)sqlite3_column_text(sql_stmt, 2));
 	*validity = sqlite3_column_int(sql_stmt, 6);
 
 	SQLITE3_FINALIZE(sql_stmt);
@@ -309,7 +303,7 @@ int _media_svc_get_storage_path(sqlite3 *handle, const char *storage_id, char **
 		return ret;
 	}
 
-	*storage_path = strdup((char *)sqlite3_column_text(sql_stmt, 0));
+	*storage_path = g_strdup((char *)sqlite3_column_text(sql_stmt, 0));
 
 	SQLITE3_FINALIZE(sql_stmt);
 
@@ -422,8 +416,8 @@ int _media_svc_get_all_storage(sqlite3 *handle, char ***storage_list, char ***st
 	media_svc_debug("QEURY OK");
 
 	while (1) {
-		(*storage_list)[idx] = strdup((char *)sqlite3_column_text(sql_stmt, 0));
-		(*storage_id_list)[idx] = strdup((char *)sqlite3_column_text(sql_stmt, 1));
+		(*storage_list)[idx] = g_strdup((char *)sqlite3_column_text(sql_stmt, 0));
+		(*storage_id_list)[idx] = g_strdup((char *)sqlite3_column_text(sql_stmt, 1));
 		(*scan_status_list)[idx] = (int)sqlite3_column_int(sql_stmt, 2);
 		if(sqlite3_step(sql_stmt) != SQLITE_ROW)
 			break;
