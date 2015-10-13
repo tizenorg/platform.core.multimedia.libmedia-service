@@ -36,13 +36,16 @@ static int __media_svc_is_root_path(const char *folder_path, bool *is_root, uid_
 
 	*is_root = FALSE;
 
-	if (strcmp(folder_path, _media_svc_get_path(uid)) == 0 ||
+	char *internal_path = _media_svc_get_path(uid);
+
+	if ((STRING_VALID(internal_path) && (strcmp(folder_path, internal_path) == 0)) ||
 		strcmp(folder_path, MEDIA_ROOT_PATH_SDCARD) == 0 ||
-		strcmp(folder_path, MEDIA_ROOT_PATH_CLOUD) == 0) {
+		(STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && strcmp(folder_path, MEDIA_ROOT_PATH_CLOUD) == 0)) {
 		media_svc_debug("ROOT PATH [%s]", folder_path);
 		*is_root = TRUE;
 	}
 
+	SAFE_FREE(internal_path);
 	return MS_MEDIA_ERR_NONE;
 }
 
@@ -62,7 +65,7 @@ static int __media_svc_parent_is_ext_root_path(const char *folder_path, bool *is
 		return MS_MEDIA_ERR_OUT_OF_MEMORY;
 	}
 
-	if (strcmp(parent_folder_path, MEDIA_ROOT_PATH_EXTERNAL) == 0) {
+	if (STRING_VALID(MEDIA_ROOT_PATH_EXTERNAL) && (strcmp(parent_folder_path, MEDIA_ROOT_PATH_EXTERNAL) == 0)) {
 		media_svc_debug("parent folder is ROOT PATH [%s]", parent_folder_path);
 		*is_root = TRUE;
 	}
@@ -223,21 +226,26 @@ static int __media_svc_get_and_append_parent_folder(sqlite3 *handle, const char 
 	char *folder_uuid = NULL;
 	char parent_folder_uuid[MEDIA_SVC_UUID_SIZE + 1] = {0, };
 	bool folder_search_end = FALSE;
+	char *internal_path = NULL;
 
 	memset(parent_folder_uuid, 0, sizeof(parent_folder_uuid));
+	internal_path = _media_svc_get_path(uid);
 
-	if (strncmp(path, _media_svc_get_path(uid), strlen(_media_svc_get_path(uid))) == 0)
-		next_pos = strlen(_media_svc_get_path(uid));
+	if (STRING_VALID(internal_path) && (strncmp(path, internal_path, strlen(internal_path)) == 0))
+		next_pos = strlen(internal_path);
 	else if (strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0)
 		next_pos = strlen(MEDIA_ROOT_PATH_SDCARD);
-	else if (strncmp(path, MEDIA_ROOT_PATH_CLOUD, strlen(MEDIA_ROOT_PATH_CLOUD)) == 0)
+	else if (STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && (strncmp(path, MEDIA_ROOT_PATH_CLOUD, strlen(MEDIA_ROOT_PATH_CLOUD)) == 0))
 		next_pos = strlen(MEDIA_ROOT_PATH_CLOUD);
 	else if (strncmp(path, MEDIA_ROOT_PATH_EXTERNAL, strlen(MEDIA_ROOT_PATH_EXTERNAL)) == 0)
 		next_pos = strlen(MEDIA_ROOT_PATH_EXTERNAL);
 	else {
 		media_svc_error("Invalid Path");
+		SAFE_FREE(internal_path);
 		return MS_MEDIA_ERR_INTERNAL;
 	}
+
+	SAFE_FREE(internal_path);
 
 	while (!folder_search_end) {
 		next = strstr(path + next_pos, token);
@@ -251,7 +259,7 @@ static int __media_svc_get_and_append_parent_folder(sqlite3 *handle, const char 
 			media_svc_error("[No-Error] End Path [%s]", dir_path);
 		}
 
-		if (strcmp(dir_path, MEDIA_ROOT_PATH_EXTERNAL) == 0) {
+		if (STRING_VALID(MEDIA_ROOT_PATH_EXTERNAL) && (strcmp(dir_path, MEDIA_ROOT_PATH_EXTERNAL) == 0)) {
 			/*To avoid insert MEDIA_ROOT_PATH_EXTERNAL path*/
 			continue;
 		}

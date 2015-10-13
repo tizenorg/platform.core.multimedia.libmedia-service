@@ -43,16 +43,17 @@ static GSList *column_list[MEDIA_SVC_DB_LIST_MAX];
 
 char *_media_svc_get_path(uid_t uid)
 {
-	char *result_psswd = NULL;
+	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
-		result_psswd = strdup(MEDIA_ROOT_PATH_INTERNAL);
 		grpinfo = getgrnam("users");
 		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
+		result_passwd = g_strdup(MEDIA_ROOT_PATH_INTERNAL);
 	} else {
+		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
 		if (userinfo == NULL) {
 			media_svc_error("getpwuid(%d) returns NULL !", uid);
@@ -68,10 +69,11 @@ char *_media_svc_get_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/%s", userinfo->pw_dir, MEDIA_CONTENT_PATH);
+		sprintf(passwd_str, "%s/%s", userinfo->pw_dir, MEDIA_CONTENT_PATH);
+		result_passwd = g_strdup(passwd_str);
 	}
 
-	return result_psswd;
+	return result_passwd;
 }
 
 int __media_svc_add_table_info(const char *name, const char *triggerName, const char *eventTable, const char *actionTable, const char *viewName)

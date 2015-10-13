@@ -145,8 +145,6 @@ typedef enum {
 	MEDIA_SVC_EXTRACTED_FIELD_ALBUM_ARTIST		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 11,
 } media_svc_extracted_field_e;
 
-static char *_media_svc_get_thumb_path(uid_t uid);
-
 char *_media_info_generate_uuid(void)
 {
 	uuid_t uuid_value;
@@ -568,6 +566,41 @@ static int __media_svc_get_location_value(MMHandleType tag, double *longitude, d
 	return MS_MEDIA_ERR_NONE;
 }
 
+static char *__media_svc_get_thumb_path(uid_t uid)
+{
+	char *result_passwd = NULL;
+	struct group *grpinfo = NULL;
+	if (uid == getuid()) {
+		grpinfo = getgrnam("users");
+		if (grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+		result_passwd = g_strdup(MEDIA_SVC_THUMB_PATH_PREFIX);
+	} else {
+		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
+		struct passwd *userinfo = getpwuid(uid);
+		if (userinfo == NULL) {
+			media_svc_error("getpwuid(%d) returns NULL !", uid);
+			return NULL;
+		}
+		grpinfo = getgrnam("users");
+		if (grpinfo == NULL) {
+			media_svc_error("getgrnam(users) returns NULL !");
+			return NULL;
+		}
+		/* Compare git_t type and not group name */
+		if (grpinfo->gr_gid != userinfo->pw_gid) {
+			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
+			return NULL;
+		}
+		sprintf(passwd_str, "%s/share/media/.thumb", userinfo->pw_dir);
+		result_passwd = g_strdup(passwd_str);
+	}
+
+	return result_passwd;
+}
+
 static int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid)
 {
 	media_svc_debug("start save image, path [%s] image size [%d]", image_path, size);
@@ -578,10 +611,19 @@ static int _media_svc_save_image(void *image, int size, char *image_path, uid_t 
 	}
 
 	struct statfs fs;
-	if (-1 == statfs(_media_svc_get_thumb_path(uid), &fs)) {
-		media_svc_error("error in statfs");
+	char *thumb_path = __media_svc_get_thumb_path(uid);
+	if(!STRING_VALID(thumb_path)) {
+		media_svc_error("fail to get thumb_path");
 		return MS_MEDIA_ERR_INTERNAL;
 	}
+
+	if (-1 == statfs(thumb_path, &fs)) {
+		media_svc_error("error in statfs");
+		SAFE_FREE(thumb_path);
+		return MS_MEDIA_ERR_INTERNAL;
+	}
+
+	SAFE_FREE(thumb_path);
 
 	long bsize_kbytes = fs.f_bsize >> 10;
 
@@ -727,18 +769,17 @@ int _media_svc_remove_all_files_in_dir(const char *dir_path)
 
 char *_media_svc_get_thumb_internal_path(uid_t uid)
 {
-	char *result_psswd = NULL;
+	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
-		result_psswd = strdup(MEDIA_SVC_THUMB_INTERNAL_PATH);
 		grpinfo = getgrnam("users");
 		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
-			if(result_psswd)
-				free(result_psswd);
 			return NULL;
 		}
+		result_passwd = g_strdup(MEDIA_SVC_THUMB_INTERNAL_PATH);
 	} else {
+		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
 		if (userinfo == NULL) {
 			media_svc_error("getpwuid(%d) returns NULL !", uid);
@@ -754,26 +795,26 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/share/media/.thumb/phone", userinfo->pw_dir);
+		sprintf(passwd_str, "%s/share/media/.thumb/phone", userinfo->pw_dir);
+		result_passwd = g_strdup(passwd_str);
 	}
 
-	return result_psswd;
+	return result_passwd;
 }
 
 char *_media_svc_get_thumb_external_path(uid_t uid)
 {
-	char *result_psswd = NULL;
+	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
-		result_psswd = strdup(MEDIA_SVC_THUMB_EXTERNAL_PATH);
 		grpinfo = getgrnam("users");
 		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
-			if(result_psswd)
-				free(result_psswd);
 			return NULL;
 		}
+		result_passwd = g_strdup(MEDIA_SVC_THUMB_EXTERNAL_PATH);
 	} else {
+		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
 		if (userinfo == NULL) {
 			media_svc_error("getpwuid(%d) returns NULL !", uid);
@@ -789,10 +830,11 @@ char *_media_svc_get_thumb_external_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/share/media/.thumb/mmc", userinfo->pw_dir);
+		sprintf(passwd_str, "%s/share/media/.thumb/mmc", userinfo->pw_dir);
+		result_passwd = g_strdup(passwd_str);
 	}
 
-	return result_psswd;
+	return result_passwd;
 }
 
 static int __media_svc_check_thumb_dir(const char *thumb_dir)
@@ -832,41 +874,6 @@ ERROR:
 	return -1;
 }
 
-static char *_media_svc_get_thumb_path(uid_t uid)
-{
-	char *result_psswd = NULL;
-	struct group *grpinfo = NULL;
-	if (uid == getuid()) {
-		result_psswd = strdup(MEDIA_SVC_THUMB_PATH_PREFIX);
-		grpinfo = getgrnam("users");
-		if (grpinfo == NULL) {
-			media_svc_error("getgrnam(users) returns NULL !");
-			if(result_psswd)
-				free(result_psswd);
-			return NULL;
-		}
-	} else {
-		struct passwd *userinfo = getpwuid(uid);
-		if (userinfo == NULL) {
-			media_svc_error("getpwuid(%d) returns NULL !", uid);
-			return NULL;
-		}
-		grpinfo = getgrnam("users");
-		if (grpinfo == NULL) {
-			media_svc_error("getgrnam(users) returns NULL !");
-			return NULL;
-		}
-		/* Compare git_t type and not group name */
-		if (grpinfo->gr_gid != userinfo->pw_gid) {
-			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
-			return NULL;
-		}
-		asprintf(&result_psswd, "%s/share/media/.thumb", userinfo->pw_dir);
-	}
-
-	return result_psswd;
-}
-
 int _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *thumb_path, const char *pathname, const char *img_format, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
@@ -875,12 +882,23 @@ int _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *t
 	char *thumb_dir = NULL;
 	char hash[255 + 1] = {0, };
 	char *thumbfile_ext = NULL;
+	char *internal_thumb_path = _media_svc_get_thumb_internal_path(uid);
+	char *external_thumb_path = _media_svc_get_thumb_external_path(uid);
 
-	thumb_dir = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? _media_svc_get_thumb_internal_path(uid) : _media_svc_get_thumb_external_path(uid);
+	if (!STRING_VALID(internal_thumb_path) || !STRING_VALID(external_thumb_path)) {
+		media_svc_error("fail to get thumbnail path");
+		SAFE_FREE(internal_thumb_path);
+		SAFE_FREE(external_thumb_path);
+		return MS_MEDIA_ERR_INTERNAL;
+	}
+
+	thumb_dir = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? internal_thumb_path : external_thumb_path;
 
 	ret = __media_svc_check_thumb_dir(thumb_dir);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("__media_svc_check_thumb_dir");
+		SAFE_FREE(internal_thumb_path);
+		SAFE_FREE(external_thumb_path);
 		return MS_MEDIA_ERR_INTERNAL;
 	}
 
@@ -892,6 +910,8 @@ int _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *t
 	ret = mb_svc_generate_hash_code(pathname, hash, sizeof(hash));
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("mb_svc_generate_hash_code failed : %d", ret);
+		SAFE_FREE(internal_thumb_path);
+		SAFE_FREE(external_thumb_path);
 		return MS_MEDIA_ERR_INTERNAL;
 	}
 
@@ -907,12 +927,17 @@ int _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *t
 		thumbfile_ext = (char *)"bmp";
 	} else {
 		media_svc_error("Not proper img format");
+		SAFE_FREE(internal_thumb_path);
+		SAFE_FREE(external_thumb_path);
 		return MS_MEDIA_ERR_INTERNAL;
 	}
 
 	snprintf(savename, sizeof(savename), "%s/.%s-%s.%s", thumb_dir, file_ext, hash, thumbfile_ext);
 	_strncpy_safe(thumb_path, savename, MEDIA_SVC_PATHNAME_SIZE);
 	/*media_svc_debug("thumb_path is [%s]", thumb_path); */
+
+	SAFE_FREE(internal_thumb_path);
+	SAFE_FREE(external_thumb_path);
 
 	return MS_MEDIA_ERR_NONE;
 }
@@ -2024,16 +2049,19 @@ void _media_svc_destroy_content_info(media_svc_content_info_s *content_info)
 int _media_svc_get_storage_type_by_path(const char *path, media_svc_storage_type_e *storage_type, uid_t uid)
 {
 	if (STRING_VALID(path)) {
-		if (strncmp(path, _media_svc_get_path(uid), strlen(_media_svc_get_path(uid))) == 0) {
+		char *internal_path = _media_svc_get_path(uid);
+		if (strncmp(path, internal_path, strlen(internal_path)) == 0) {
 			*storage_type = MEDIA_SVC_STORAGE_INTERNAL;
-		} else if (strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0) {
+		} else if (STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && (strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0)) {
 			*storage_type = MEDIA_SVC_STORAGE_EXTERNAL;
-		} else if (strncmp (path, MEDIA_ROOT_PATH_USB, strlen(MEDIA_ROOT_PATH_USB)) == 0) {
+		} else if (STRING_VALID(MEDIA_ROOT_PATH_USB) && (strncmp (path, MEDIA_ROOT_PATH_USB, strlen(MEDIA_ROOT_PATH_USB)) == 0)) {
 			*storage_type = MEDIA_SVC_STORAGE_EXTERNAL_USB;
 		} else {
 			media_svc_error("Invalid Path");
+			SAFE_FREE(internal_path);
 			return MS_MEDIA_ERR_INVALID_PARAMETER;
 		}
+		SAFE_FREE(internal_path);
 	} else {
 		media_svc_error("INVALID parameter");
 		return MS_MEDIA_ERR_INVALID_PARAMETER;

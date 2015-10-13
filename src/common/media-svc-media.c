@@ -177,18 +177,17 @@ int _media_svc_count_record_with_path(sqlite3 *handle,  const char *storage_id, 
 
 char *_media_svc_get_thumb_default_path(uid_t uid)
 {
-	char *result_psswd = NULL;
+	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
-		result_psswd = strdup(MEDIA_SVC_THUMB_DEFAULT_PATH);
 		grpinfo = getgrnam("users");
 		if (grpinfo == NULL) {
 			media_svc_error("getgrnam(users) returns NULL !");
-			if(result_psswd)
-				free(result_psswd);
 			return NULL;
 		}
+		result_passwd = g_strdup(MEDIA_SVC_THUMB_DEFAULT_PATH);
 	} else {
+		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
 		if (userinfo == NULL) {
 			media_svc_error("getpwuid(%d) returns NULL !", uid);
@@ -204,10 +203,11 @@ char *_media_svc_get_thumb_default_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		asprintf(&result_psswd, "%s/share/media/.thumb/thumb_default.png", userinfo->pw_dir);
+		sprintf(passwd_str, "%s/share/media/.thumb/thumb_default.png", userinfo->pw_dir);
+		result_passwd = g_strdup(passwd_str);
 	}
 
-	return result_psswd;
+	return result_passwd;
 }
 
 int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, media_svc_content_info_s *content_info, int is_burst, bool stack_query, uid_t uid)
@@ -637,8 +637,9 @@ int _media_svc_delete_invalid_items(sqlite3 *handle, const char *storage_id, med
 	}
 
 	/*Delete thumbnails*/
+	char *default_thumbnail_path = _media_svc_get_thumb_default_path(uid);
 	for (idx = 0; idx < invalid_count; idx++) {
-		if ((strlen(thumbpath_record[idx].thumbnail_path) > 0) && (strncmp(thumbpath_record[idx].thumbnail_path, _media_svc_get_thumb_default_path(uid), sizeof(_media_svc_get_thumb_default_path(uid))) != 0)) {
+		if ((strlen(thumbpath_record[idx].thumbnail_path) > 0) && (STRING_VALID(default_thumbnail_path)) && (strncmp(thumbpath_record[idx].thumbnail_path,default_thumbnail_path, strlen(default_thumbnail_path)) != 0)) {
 			ret = _media_svc_remove_file(thumbpath_record[idx].thumbnail_path);
 			if (ret != MS_MEDIA_ERR_NONE) {
 				media_svc_error("fail to remove thumbnail file.");
@@ -647,6 +648,7 @@ int _media_svc_delete_invalid_items(sqlite3 *handle, const char *storage_id, med
 	}
 
 	SAFE_FREE(thumbpath_record);
+	SAFE_FREE(default_thumbnail_path);
 
 	return MS_MEDIA_ERR_NONE;
 }
@@ -701,16 +703,20 @@ int _media_svc_delete_invalid_folder_items(sqlite3 *handle, const char *storage_
 
 	/*Delete thumbnails*/
 	if (thumbpath_record != NULL)	 {
-		for (idx = 0; idx < invalid_count; idx++) {
-			if ((strlen(thumbpath_record[idx].thumbnail_path) > 0) && (strncmp(thumbpath_record[idx].thumbnail_path, _media_svc_get_thumb_default_path(uid), sizeof(_media_svc_get_thumb_default_path(uid))) != 0)) {
-				ret = _media_svc_remove_file(thumbpath_record[idx].thumbnail_path);
-				if (ret != MS_MEDIA_ERR_NONE) {
-					media_svc_error("fail to remove thumbnail file.");
+		char *default_thumbnail_path = _media_svc_get_thumb_default_path(uid);
+		if (STRING_VALID(default_thumbnail_path)) {
+			for (idx = 0; idx < invalid_count; idx++) {
+				if ((strlen(thumbpath_record[idx].thumbnail_path) > 0) && (strncmp(thumbpath_record[idx].thumbnail_path, default_thumbnail_path, strlen(default_thumbnail_path)) != 0)) {
+					ret = _media_svc_remove_file(thumbpath_record[idx].thumbnail_path);
+					if (ret != MS_MEDIA_ERR_NONE) {
+						media_svc_error("fail to remove thumbnail file.");
+					}
 				}
 			}
 		}
 
 		SAFE_FREE(thumbpath_record);
+		SAFE_FREE(default_thumbnail_path);
 	}
 
 	return MS_MEDIA_ERR_NONE;

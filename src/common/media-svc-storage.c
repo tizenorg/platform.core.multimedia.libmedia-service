@@ -42,11 +42,13 @@ int _media_svc_init_storage(sqlite3 *handle, uid_t uid)
 	SQLITE3_FINALIZE(sql_stmt);
 
 	if (storage_cnt == 0) {
+		char *internal_path = _media_svc_get_path(uid);
 		sql = sqlite3_mprintf("INSERT INTO %s (storage_uuid, storage_name, storage_path, storage_type) VALUES ('%s', '%s', '%s', 0);",
-		                      MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, _media_svc_get_path(uid));
+		                      MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, internal_path);
 
 		ret = _media_svc_sql_query(handle, sql, uid);
 		sqlite3_free(sql);
+		SAFE_FREE(internal_path);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	}
 
@@ -210,7 +212,7 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	remain_path = strstr(path+strlen(MEDIA_ROOT_PATH_USB) +1, "/");
+	remain_path = strstr(path + (STRING_VALID(MEDIA_ROOT_PATH_USB) ? strlen(MEDIA_ROOT_PATH_USB) : 0) + 1, "/");
 	if (remain_path != NULL)
 		remain_len = strlen(remain_path);
 
