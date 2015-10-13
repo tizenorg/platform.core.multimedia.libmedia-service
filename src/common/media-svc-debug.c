@@ -41,8 +41,7 @@ FILE *get_fp()
 void mediainfo_init_file_debug()
 {
 	if (g_log_fp == NULL) {
-		snprintf(_g_file_path, sizeof(_g_file_path), "/tmp/%s",
-		         "media-info");
+		snprintf(_g_file_path, sizeof(_g_file_path), "/tmp/%s", "media-info");
 		if (access(_g_file_path, R_OK == 0)) {
 			remove(_g_file_path);
 		}
@@ -88,24 +87,20 @@ void mediainfo_print_debug_time(char *time_string)
 	double totaltime = 0.0;
 
 	gettimeofday(&time, NULL);
-	totaltime =
-	    (double)(time.tv_sec * 1000000 + time.tv_usec -
-	             g_time_usec) / CLOCKS_PER_SEC;
+	totaltime = (double)(time.tv_sec * 1000000 + time.tv_usec - g_time_usec) / CLOCKS_PER_SEC;
 
 	media_svc_debug("time [%s] : %f", time_string, totaltime);
 #endif
 }
 
 void
-mediainfo_print_debug_time_ex(long start, long end, const char *func_name,
-                              char *time_string)
+mediainfo_print_debug_time_ex(long start, long end, const char *func_name, char *time_string)
 {
 #ifdef _PERFORMANCE_CHECK_
 	double totaltime = 0.0;
 
 	totaltime = (double)(end - start) / CLOCKS_PER_SEC;
 
-	media_svc_debug("time [%s: %s] : %f", func_name, time_string,
-	                totaltime);
+	media_svc_debug("time [%s: %s] : %f", func_name, time_string, totaltime);
 #endif
 }

@@ -50,7 +50,7 @@
 #include "media-svc-localize_ch.h"
 #include "media-svc-localize_tw.h"
 
-#define MEDIA_SVC_FILE_EXT_LEN_MAX				6			/**<  Maximum file ext lenth*/
+#define MEDIA_SVC_FILE_EXT_LEN_MAX				6			/**< Maximum file ext lenth*/
 
 /* Define data structures for media type and mime type */
 #define MEDIA_SVC_CATEGORY_UNKNOWN	0x00000000	/**< Default */
@@ -102,7 +102,7 @@ static const char music_mime_table[MUSIC_MIME_NUM][MIME_LENGTH] = {
 	"x-mp3", /*alias of audio/mpeg*/
 	"x-mpeg", /*alias of audio/mpeg*/
 	"3gpp",
-	"x-ogg", /*alias of  audio/ogg*/
+	"x-ogg", /*alias of audio/ogg*/
 	"vnd.ms-playready.media.pya:*.pya", /*playready*/
 	"wma",
 	"aac",
@@ -260,12 +260,7 @@ static int __media_svc_split_to_double(char *input, double *arr)
 	return MS_MEDIA_ERR_NONE;
 }
 
-static int __media_svc_get_exif_info(ExifData *ed,
-                                     char *buf,
-                                     int *i_value,
-                                     double *d_value,
-                                     int ifdtype,
-                                     long tagtype)
+static int __media_svc_get_exif_info(ExifData *ed, char *buf, int *i_value, double *d_value, int ifdtype, long tagtype)
 {
 	ExifEntry *entry;
 	ExifTag tag;
@@ -281,9 +276,9 @@ static int __media_svc_get_exif_info(ExifData *ed,
 	if (entry) {
 		/* Get the contents of the tag in human-readable form */
 		if (tag == EXIF_TAG_ORIENTATION ||
-		    tag == EXIF_TAG_PIXEL_X_DIMENSION ||
-		    tag == EXIF_TAG_PIXEL_Y_DIMENSION ||
-		    tag == EXIF_TAG_ISO_SPEED_RATINGS) {
+			tag == EXIF_TAG_PIXEL_X_DIMENSION ||
+			tag == EXIF_TAG_PIXEL_Y_DIMENSION ||
+			tag == EXIF_TAG_ISO_SPEED_RATINGS) {
 
 			if (i_value == NULL) {
 				media_svc_error("i_value is NULL");
@@ -316,7 +311,7 @@ static int __media_svc_get_exif_info(ExifData *ed,
 
 			*d_value = tmp_arr[0] + tmp_arr[1] / 60 + tmp_arr[2] / 3600;
 			/*media_svc_debug("GPS value is [%f], %f, %f, %f", *d_value, tmp_arr[0], tmp_arr[1], tmp_arr[2]); */
-		}  else if (tag == EXIF_TAG_EXPOSURE_TIME) {
+		} else if (tag == EXIF_TAG_EXPOSURE_TIME) {
 
 			if (buf == NULL) {
 				media_svc_error("buf is NULL");
@@ -612,7 +607,7 @@ static int _media_svc_save_image(void *image, int size, char *image_path, uid_t 
 
 	struct statfs fs;
 	char *thumb_path = __media_svc_get_thumb_path(uid);
-	if(!STRING_VALID(thumb_path)) {
+	if (!STRING_VALID(thumb_path)) {
 		media_svc_error("fail to get thumb_path");
 		return MS_MEDIA_ERR_INTERNAL;
 	}
@@ -1008,7 +1003,7 @@ int _media_svc_set_default_value(media_svc_content_info_s *content_info, bool re
 	ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.year, MEDIA_SVC_TAG_UNKNOWN);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	if(refresh) {
+	if (refresh) {
 		media_svc_debug("refresh");
 		return MS_MEDIA_ERR_NONE;
 	}
@@ -1023,7 +1018,7 @@ int _media_svc_set_default_value(media_svc_content_info_s *content_info, bool re
 }
 
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char *storage_id, media_svc_storage_type_e storage_type,
-			  const char *path, media_svc_media_type_e *media_type, bool refresh)
+			const char *path, media_svc_media_type_e *media_type, bool refresh)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char * media_uuid = NULL;
@@ -1034,7 +1029,7 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char
 	ret = __media_svc_malloc_and_strncpy(&content_info->path, path);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	if(storage_type != MEDIA_SVC_STORAGE_CLOUD) {
+	if (storage_type != MEDIA_SVC_STORAGE_CLOUD) {
 		struct stat st;
 		memset(&st, 0, sizeof(struct stat));
 		if (stat(path, &st) == 0) {
@@ -1075,7 +1070,7 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char
 	SAFE_FREE(file_name);
 	media_svc_retv_del_if(ret != MS_MEDIA_ERR_NONE, ret, content_info);
 
-	if(storage_type != MEDIA_SVC_STORAGE_CLOUD) {
+	if (storage_type != MEDIA_SVC_STORAGE_CLOUD) {
 		/* if the file is DRM file, drm_type value is DRM_TRUE(1).
 		if drm_contentinfo is not NULL, the file is OMA DRM.*/
 		ret = __media_svc_get_mime_type(path, mime_type);
@@ -1201,7 +1196,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	if (!has_datetaken && __media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_DATE_TIME_ORIGINAL) == MS_MEDIA_ERR_NONE) {
 		if (strlen(buf) == 0) {
-			/*media_svc_debug("time  is NULL"); */
+			/*media_svc_debug("time is NULL"); */
 		} else {
 			ret = __media_svc_malloc_and_strncpy_with_size(&content_info->media_meta.datetaken, buf, datetaken_size);
 			if (ret != MS_MEDIA_ERR_NONE) {
@@ -1220,7 +1215,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	if (!has_datetaken && __media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_DATE_TIME) == MS_MEDIA_ERR_NONE) {
 		if (strlen(buf) == 0) {
-			/*media_svc_debug("time  is NULL"); */
+			/*media_svc_debug("time is NULL"); */
 		} else {
 			ret = __media_svc_malloc_and_strncpy_with_size(&content_info->media_meta.datetaken, buf, datetaken_size);
 			if (ret != MS_MEDIA_ERR_NONE) {
@@ -1325,7 +1320,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 GET_WIDTH_HEIGHT:
 
-	if(content_info->media_meta.width == 0 ||
+	if (content_info->media_meta.width == 0 ||
 		content_info->media_meta.height == 0) {
 		/*Get image width, height*/
 		unsigned int img_width = 0;
@@ -1334,10 +1329,10 @@ GET_WIDTH_HEIGHT:
 
 		ret = ImgGetImageInfo(path, &img_type, &img_width, &img_height);
 
-		if(content_info->media_meta.width == 0)
+		if (content_info->media_meta.width == 0)
 			content_info->media_meta.width = img_width;
 
-		if(content_info->media_meta.height == 0)
+		if (content_info->media_meta.height == 0)
 			content_info->media_meta.height = img_height;
 	}
 
@@ -1509,7 +1504,7 @@ int _media_svc_extract_music_metadata_for_update(sqlite3 *handle, media_svc_cont
 		no_tag_title = _media_svc_get_title_from_filepath(content_info->path);
 		if (no_tag_title) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, no_tag_title);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if (ret != MS_MEDIA_ERR_NONE)
 				media_svc_error("strcpy error");
 			SAFE_FREE(no_tag_title);
 		} else {
@@ -1779,7 +1774,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 			append_album = FALSE;
 
 			if ((!strncmp(content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN))) ||
-			    (!strncmp(content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN)))) {
+				(!strncmp(content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN)))) {
 
 				media_svc_debug("Unknown album or artist already exists. Extract thumbnail for Unknown.");
 				extract_thumbnail = TRUE;
@@ -1839,7 +1834,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 		if (append_album == TRUE) {
 			if ((strncmp(content_info->media_meta.album, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN))) &&
-			    (strncmp(content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN))))
+				(strncmp(content_info->media_meta.artist, MEDIA_SVC_TAG_UNKNOWN, strlen(MEDIA_SVC_TAG_UNKNOWN))))
 				ret = _media_svc_append_album(handle, content_info->media_meta.album, content_info->media_meta.artist, content_info->thumbnail_path, &album_id, uid);
 			else
 				ret = _media_svc_append_album(handle, content_info->media_meta.album, content_info->media_meta.artist, NULL, &album_id, uid);
@@ -1878,7 +1873,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		no_tag_title = _media_svc_get_title_from_filepath(content_info->path);
 		if (no_tag_title) {
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, no_tag_title);
-			if(ret != MS_MEDIA_ERR_NONE)
+			if (ret != MS_MEDIA_ERR_NONE)
 				media_svc_error("strcpy error");
 			SAFE_FREE(no_tag_title);
 		} else {
@@ -2094,7 +2089,7 @@ char *_media_svc_replace_path(char *s, const char *olds, const char *news)
 		if (memcmp(s, olds, oldlen) == 0) {
 			memcpy(sr, news, newlen);
 			sr += newlen;
-			s  += oldlen;
+			s += oldlen;
 		} else *sr++ = *s++;
 	}
 
@@ -2139,7 +2134,7 @@ int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str)
 
 	ret = _media_svc_convert_chinese_to_pinyin(src_str, &pinyinname, &size);
 	if (ret == MS_MEDIA_ERR_NONE) {
-		if(STRING_VALID(pinyinname[0].pinyin_name))
+		if (STRING_VALID(pinyinname[0].pinyin_name))
 			*pinyin_str = strdup(pinyinname[0].pinyin_name);
 		else
 			*pinyin_str = strdup(src_str);	//Return Original Non China Character
@@ -2158,11 +2153,11 @@ bool _media_svc_check_pinyin_support(void)
 
 int _media_svc_get_ini_value()
 {
-	if(g_ini_value == -1) {
+	if (g_ini_value == -1) {
 		dictionary *dict = NULL;
 
 		dict = iniparser_load(MEDIA_SVC_INI_DEFAULT_PATH);
-		if(!dict) {
+		if (!dict) {
 			media_svc_error("%s load failed", MEDIA_SVC_INI_DEFAULT_PATH);
 			return -1;
 		}

@@ -26,7 +26,7 @@
 #include <sqlite3.h>
 #include <glib.h>
 
-#define SQLITE3_FINALIZE(x)       if(x  != NULL) {sqlite3_finalize(x);}
+#define SQLITE3_FINALIZE(x)		if (x != NULL) {sqlite3_finalize(x);}
 
 int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, media_svc_table_slist_e list, uid_t uid);
 int _media_svc_upgrade_table_query(sqlite3 *db_handle, const char *table_name, media_svc_table_slist_e list, uid_t uid);

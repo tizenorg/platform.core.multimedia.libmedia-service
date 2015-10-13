@@ -49,12 +49,12 @@ static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 }
 
 int _media_svc_publish_noti(media_item_type_e update_item,
-                            media_item_update_type_e update_type,
-                            const char *path,
-                            media_type_e media_type,
-                            const char *uuid,
-                            const char *mime_type
-                           )
+					media_item_update_type_e update_type,
+					const char *path,
+					media_type_e media_type,
+					const char *uuid,
+					const char *mime_type
+					)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
@@ -85,28 +85,21 @@ int _media_svc_publish_dir_noti(media_item_type_e update_item,
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	if(STRING_VALID(path))
-	{
+	if (STRING_VALID(path)) {
 		ret = media_db_update_send(pid, update_item, update_type, (char *)path, (char *)uuid, media_type, (char *)mime_type);
-		if(ret != MS_MEDIA_ERR_NONE)
-		{
+		if (ret != MS_MEDIA_ERR_NONE) {
 			media_svc_error("Send noti failed : %d [%s]", ret, path);
 			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
-		}
-		else
-		{
+		} else {
 			media_svc_debug("Send noti success [%d][%d]", update_item, update_type);
 		}
-	}
-	else
-	{
+	} else {
 		media_svc_debug("invalid path");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
 	return ret;
 }
-
 
 int _media_svc_publish_dir_noti_v2(media_item_type_e update_item,
 							media_item_update_type_e update_type,
@@ -119,21 +112,15 @@ int _media_svc_publish_dir_noti_v2(media_item_type_e update_item,
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	if(STRING_VALID(path))
-	{
+	if (STRING_VALID(path)) {
 		ret = media_db_update_send_internal(pid, update_item, update_type, (char *)path, (char *)uuid, media_type, (char *)mime_type);
-		if(ret != MS_MEDIA_ERR_NONE)
-		{
+		if (ret != MS_MEDIA_ERR_NONE) {
 			media_svc_error("Send noti failed : %d [%s]", ret, path);
 			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
-		}
-		else
-		{
+		} else {
 			media_svc_debug("Send noti success [%d][%d]", update_item, update_type);
 		}
-	}
-	else
-	{
+	} else {
 		media_svc_debug("invalid path");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}

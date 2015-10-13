@@ -36,13 +36,13 @@ extern "C" {
 #endif
 
 #ifndef FALSE
-#define FALSE  0
+#define FALSE	0
 #endif
 #ifndef TRUE
-#define TRUE   1
+#define TRUE	1
 #endif
 
-#define SAFE_FREE(src)      { if(src) {free(src); src = NULL;}}
+#define SAFE_FREE(src)	{ if (src) {free(src); src = NULL;}}
 #define STRING_VALID(str)	\
 	((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
 
@@ -55,7 +55,7 @@ int _media_svc_get_thumbnail_path(media_svc_storage_type_e storage_type, char *t
 int _media_svc_get_file_time(const char *full_path);
 int _media_svc_set_default_value(media_svc_content_info_s *content_info, bool refresh);
 int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char *storage_id, media_svc_storage_type_e storage_type,
-			  const char *path, media_svc_media_type_e *media_type, bool refresh);
+		const char *path, media_svc_media_type_e *media_type, bool refresh);
 int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s *content_info);
 int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s *content_info, uid_t uid);
 int __media_svc_malloc_and_strncpy(char **dst, const char *src);

@@ -53,35 +53,35 @@ extern "C" {
 /**
  * Table Name
  */
-#define MEDIA_SVC_DB_TABLE_MEDIA				"media"				/**<  media table*/
-#define MEDIA_SVC_DB_TABLE_FOLDER				"folder"			/**<  media_folder table*/
-#define MEDIA_SVC_DB_TABLE_PLAYLIST				"playlist"			/**<  playlist table*/
-#define MEDIA_SVC_DB_TABLE_PLAYLIST_MAP			"playlist_map"		/**<  playlist_map table*/
-#define MEDIA_SVC_DB_TABLE_ALBUM				"album"				/**<  album table*/
-#define MEDIA_SVC_DB_TABLE_TAG					"tag"				/**<  tag table*/
-#define MEDIA_SVC_DB_TABLE_TAG_MAP				"tag_map"			/**<  tag_map table*/
-#define MEDIA_SVC_DB_TABLE_BOOKMARK				"bookmark"			/**<  bookmark table*/
-#define MEDIA_SVC_DB_TABLE_STORAGE				"storage"			/**<  storage table*/
-#define MEDIA_SVC_DB_TABLE_TMP_TABLE				"tmp"			/**<  tmp table for backup*/
-#define MEDIA_SVC_DB_TABLE_FACE					"face"			/**<  face table*/
-#define MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST			"face_scan_list"	/**<  face_scan_list table*/
+#define MEDIA_SVC_DB_TABLE_MEDIA				"media"				/**< media table*/
+#define MEDIA_SVC_DB_TABLE_FOLDER				"folder"			/**< media_folder table*/
+#define MEDIA_SVC_DB_TABLE_PLAYLIST				"playlist"			/**< playlist table*/
+#define MEDIA_SVC_DB_TABLE_PLAYLIST_MAP			"playlist_map"		/**< playlist_map table*/
+#define MEDIA_SVC_DB_TABLE_ALBUM				"album"				/**< album table*/
+#define MEDIA_SVC_DB_TABLE_TAG					"tag"				/**< tag table*/
+#define MEDIA_SVC_DB_TABLE_TAG_MAP				"tag_map"			/**< tag_map table*/
+#define MEDIA_SVC_DB_TABLE_BOOKMARK				"bookmark"			/**< bookmark table*/
+#define MEDIA_SVC_DB_TABLE_STORAGE				"storage"			/**< storage table*/
+#define MEDIA_SVC_DB_TABLE_TMP_TABLE				"tmp"			/**< tmp table for backup*/
+#define MEDIA_SVC_DB_TABLE_FACE					"face"			/**< face table*/
+#define MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST			"face_scan_list"	/**< face_scan_list table*/
 
 /**
  * View Name
  */
-#define MEDIA_SVC_DB_VIEW_MEDIA					"media_view"		/**<  media_view*/
-#define MEDIA_SVC_DB_VIEW_PLAYLIST				"playlist_view"		/**<  playlist_view*/
-#define MEDIA_SVC_DB_VIEW_TAG					"tag_view"		/**<  tag_view*/
+#define MEDIA_SVC_DB_VIEW_MEDIA					"media_view"		/**< media_view*/
+#define MEDIA_SVC_DB_VIEW_PLAYLIST				"playlist_view"		/**< playlist_view*/
+#define MEDIA_SVC_DB_VIEW_TAG					"tag_view"		/**< tag_view*/
 
 /**
  * Trigger Name
  */
 #define MEDIA_SVC_DB_TRIGGER_FOLDER				"folder_cleanup"
-#define MEDIA_SVC_DB_TRIGGER_PLAYLIST_MAP			"playlist_map_cleanup"		/**<  media to map*/
-#define MEDIA_SVC_DB_TRIGGER_PLAYLIST_MAP1			"playlist_map_cleanup_1"	/**<  playlist to map*/
+#define MEDIA_SVC_DB_TRIGGER_PLAYLIST_MAP			"playlist_map_cleanup"		/**< media to map*/
+#define MEDIA_SVC_DB_TRIGGER_PLAYLIST_MAP1			"playlist_map_cleanup_1"	/**< playlist to map*/
 #define MEDIA_SVC_DB_TRIGGER_ALBUM				"album_cleanup"
-#define MEDIA_SVC_DB_TRIGGER_TAG_MAP			"tag_map_cleanup"		/**<  media to map*/
-#define MEDIA_SVC_DB_TRIGGER_TAG_MAP1			"tag_map_cleanup_1"		/**<  tag to map*/
+#define MEDIA_SVC_DB_TRIGGER_TAG_MAP			"tag_map_cleanup"		/**< media to map*/
+#define MEDIA_SVC_DB_TRIGGER_TAG_MAP1			"tag_map_cleanup_1"		/**< tag to map*/
 #define MEDIA_SVC_DB_TRIGGER_BOOKMARK			"bookmark_cleanup"
 #define MEDIA_SVC_DB_TRIGGER_STORAGE			"storage_folder_cleanup"
 #define MEDIA_SVC_DB_TRIGGER_FACE_SCAN_LIST	"face_scan_list_cleanup"
@@ -124,29 +124,29 @@ extern "C" {
 
 
 
-#define MEDIA_SVC_METADATA_LEN_MAX			128						/**<  Length of metadata*/
-#define MEDIA_SVC_METADATA_DESCRIPTION_MAX	512						/**<  Length of description*/
-#define MEDIA_SVC_PATHNAME_SIZE				4096					/**<  Length of Path name. */
-#define MEDIA_SVC_UUID_SIZE		    				36 						/**< Length of UUID*/
+#define MEDIA_SVC_METADATA_LEN_MAX			128						/**< Length of metadata*/
+#define MEDIA_SVC_METADATA_DESCRIPTION_MAX	512						/**< Length of description*/
+#define MEDIA_SVC_PATHNAME_SIZE				4096					/**< Length of Path name. */
+#define MEDIA_SVC_UUID_SIZE						36						/**< Length of UUID*/
 
 #define MEDIA_SVC_TAG_UNKNOWN				"Unknown"
-#define MEDIA_SVC_MEDIA_PATH				tzplatform_mkpath(TZ_USER_SHARE, "media")			/**<  Media path*/
+#define MEDIA_SVC_MEDIA_PATH					tzplatform_mkpath(TZ_USER_SHARE, "media")			/**< Media path*/
 #define MEDIA_SVC_THUMB_PATH_PREFIX			tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb")			/**< Thumbnail path prefix*/
-#define MEDIA_SVC_THUMB_INTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/phone")	/**<  Phone thumbnail path*/
-#define MEDIA_SVC_THUMB_EXTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/mmc")		/**<  MMC thumbnail path*/
-#define MEDIA_SVC_THUMB_DEFAULT_PATH		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/thumb_default.png") /** default thumbnail */
+#define MEDIA_SVC_THUMB_INTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/phone")	/**< Phone thumbnail path*/
+#define MEDIA_SVC_THUMB_EXTERNAL_PATH 		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/mmc")		/**< MMC thumbnail path*/
+#define MEDIA_SVC_THUMB_DEFAULT_PATH		tzplatform_mkpath(TZ_USER_SHARE, "media/.thumb/thumb_default.png") /**< default thumbnail */
 
 #define THUMB_EXT 	"jpg"
 
 enum Exif_Orientation {
 	NOT_AVAILABLE = 0,
-	NORMAL  = 1,
-	HFLIP   = 2,
+	NORMAL = 1,
+	HFLIP = 2,
 	ROT_180 = 3,
-	VFLIP   = 4,
-	TRANSPOSE   = 5,
-	ROT_90  = 6,
-	TRANSVERSE  = 7,
+	VFLIP = 4,
+	TRANSPOSE = 5,
+	ROT_90 = 6,
+	TRANSVERSE = 7,
 	ROT_270 = 8
 };
 

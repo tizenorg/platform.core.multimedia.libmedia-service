@@ -24,19 +24,19 @@
 #include <media-svc.h>
 #include <media-svc-noti.h>
 
-#define SAFE_FREE(src)      		{ if(src) { free(src); src = NULL; } }
+#define SAFE_FREE(src)	{ if (src) { free(src); src = NULL; } }
 
 GMainLoop *g_loop = NULL;
 MediaSvcHandle *g_db_handle = NULL;
 
 void _noti_cb(int pid,
-              media_item_type_e update_item,
-              media_item_update_type_e update_type,
-              char *path,
-              char *uuid,
-              media_type_e content_type,
-              char *mime_type,
-              void *user_data)
+		media_item_type_e update_item,
+		media_item_update_type_e update_type,
+		char *path,
+		char *uuid,
+		media_type_e content_type,
+		char *mime_type,
+		void *user_data)
 {
 	media_svc_debug("Noti from PID(%d)", pid);
 

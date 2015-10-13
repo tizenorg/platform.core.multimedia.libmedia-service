@@ -35,14 +35,14 @@
 
 #define LOG_TAG "MEDIA_SERVICE"
 
-#define FONT_COLOR_RESET    "\033[0m"
-#define FONT_COLOR_RED      "\033[31m"
-#define FONT_COLOR_GREEN    "\033[32m"
-#define FONT_COLOR_YELLOW   "\033[33m"
-#define FONT_COLOR_BLUE     "\033[34m"
-#define FONT_COLOR_PURPLE   "\033[35m"
-#define FONT_COLOR_CYAN     "\033[36m"
-#define FONT_COLOR_GRAY     "\033[37m"
+#define FONT_COLOR_RESET	"\033[0m"
+#define FONT_COLOR_RED		"\033[31m"
+#define FONT_COLOR_GREEN	"\033[32m"
+#define FONT_COLOR_YELLOW	"\033[33m"
+#define FONT_COLOR_BLUE	"\033[34m"
+#define FONT_COLOR_PURPLE	"\033[35m"
+#define FONT_COLOR_CYAN	"\033[36m"
+#define FONT_COLOR_GRAY	"\033[37m"
 
 #define media_svc_debug(fmt, arg...) do { \
 			LOGD(FONT_COLOR_RESET" "fmt"", ##arg);     \
@@ -61,26 +61,26 @@
 		} while (0)
 
 #define media_svc_retm_if(expr, fmt, arg...) do { \
-			if(expr) { \
+			if (expr) { \
 				LOGE(FONT_COLOR_RED" "fmt"", ##arg);   \
 				return; \
 			} \
 		} while (0)
 #define media_svc_retv_if(expr, val) do { \
-			if(expr) { \
+			if (expr) { \
 				LOGE(FONT_COLOR_RED"");     \
 				return (val); \
 			} \
 		} while (0)
 #define media_svc_retvm_if(expr, val, fmt, arg...) do { \
-			if(expr) { \
+			if (expr) { \
 				LOGE(FONT_COLOR_RED" "fmt"", ##arg); 	\
 				return (val); \
 			} \
 		} while (0)
 
 #define media_svc_retv_del_if(expr, val, p_str) do { \
-			if(expr) { \
+			if (expr) { \
 				LOGE(FONT_COLOR_RED"");     \
 				_media_svc_destroy_content_info(p_str);        \
 				return (val); \

@@ -124,7 +124,7 @@ typedef struct {
 	int		last_played_position;			/**< last played position */
 	time_t	favourate;					/**< time favourate set */
 	int		is_drm;						/**< is_drm. o or 1 */
-	int		sync_status;						/**< sync_status  */
+	int		sync_status;						/**< sync_status */
 	int		storage_type;					/**< Storage of media file : internal/external */
 	char		*storage_uuid;					/**< Unique ID of storage */
 	media_svc_content_meta_s	media_meta;	/**< meta data structure for audio files */
@@ -141,6 +141,6 @@ typedef enum{
 	MEDIA_SVC_SCAN_MAX			= 4,	/**< Invalid status*/
 }media_svc_scan_status_type_e;
 
-#define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**<  Default GPS Value*/
+#define MEDIA_SVC_DEFAULT_GPS_VALUE			-200			/**< Default GPS Value*/
 
 #endif /*_MEDIA_SVC_TYPES_H_*/

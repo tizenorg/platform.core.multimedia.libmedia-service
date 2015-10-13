@@ -97,7 +97,7 @@ int __media_svc_add_table_info(const char *name, const char *triggerName, const 
 
 	if (STRING_VALID(triggerName)) {
 		tbl->triggerName = malloc(MEDIA_SVC_PATHNAME_SIZE);
-		if(tbl->triggerName == NULL) {
+		if (tbl->triggerName == NULL) {
 			media_svc_error("MS_MEDIA_ERR_OUT_OF_MEMORY");
 			SAFE_FREE(tbl);
 			return MS_MEDIA_ERR_OUT_OF_MEMORY;
@@ -289,7 +289,7 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 	int i = 0;
 
 	tb = g_hash_table_lookup(table, table_name);
-	if(tb == NULL) {
+	if (tb == NULL) {
 		media_svc_debug("lookup fail.. table name [%s] ", table_name);
 		tb = g_hash_table_lookup(table, MEDIA_SVC_DB_TABLE_MEDIA);
 	}
@@ -305,7 +305,7 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 		col_ptr = g_slist_nth_data(column_list[list], i);
 		/*create table */
 		if (col_ptr->hasOption) {
-			if(sflag == true) {
+			if (sflag == true) {
 				snprintf(temp, sizeof(temp), ", %s %s %s", col_ptr->name, col_ptr->type, col_ptr->option);
 				strncat(table_query, temp, strlen(temp));
 			} else {
@@ -460,7 +460,7 @@ int _media_svc_make_table_query(sqlite3 *db_handle, const char *table_name, medi
 			for (i = 1; i < len; i++) {
 				col_ptr = g_slist_nth_data(column_list[MEDIA_SVC_DB_LIST_TAG], i);
 				if (col_ptr->isView) {
-					if(sflag == true) {
+					if (sflag == true) {
 						snprintf(temp, sizeof(temp), ", tag.%s", col_ptr->name);
 						strncat(table_query, temp, strlen(temp));
 					} else {
@@ -564,7 +564,7 @@ int _media_svc_init_table_query(const char *event_table_name)
 		column_list[i] = g_slist_alloc();
 	}
 
-	/*table specification..    		 (table_name, index, unique set, trigger, view, trigger name, event table, action table, view name) */
+	/*table specification.. (table_name, index, unique set, trigger, view, trigger name, event table, action table, view name) */
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_MEDIA, NULL, NULL, NULL, MEDIA_SVC_DB_VIEW_MEDIA);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_TRIGGER_FOLDER, event_table_name, MEDIA_SVC_DB_TABLE_FOLDER, NULL);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_PLAYLIST_MAP, MEDIA_SVC_DB_TRIGGER_PLAYLIST_MAP, event_table_name, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP, NULL);
@@ -669,7 +669,7 @@ int _media_svc_init_table_query(const char *event_table_name)
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "name_pinyin", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V2, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "storage_type", MEDIA_SVC_DB_TYPE_INT, NULL, USER_V2, NULL, false, false, false);
 	/* storage_uuid column is added in DB v4. When doing DB upgrade to v4, if storage_uuid is NOT NULL, alter table failed. */
-	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "storage_uuid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4,  NULL, true, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "storage_uuid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, true, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "folder_order", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "parent_folder_uuid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "validity", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 1", USER_V4, NULL, false, false, false);
@@ -886,7 +886,7 @@ static int __media_svc_db_upgrade(sqlite3 *db_handle, int cur_version, uid_t uid
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/* Upgrade issue in folder table */
-	if(cur_version < USER_V4) {
+	if (cur_version < USER_V4) {
 		/* Create tmp table */
 		sql = sqlite3_mprintf("CREATE TABLE '%q' AS SELECT * FROM '%q';", MEDIA_SVC_DB_TABLE_TMP_TABLE, MEDIA_SVC_DB_TABLE_FOLDER);
 		media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
@@ -957,15 +957,15 @@ static int __media_svc_db_upgrade(sqlite3 *db_handle, int cur_version, uid_t uid
 	ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_LIST_STORAGE, uid);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	if(cur_version < USER_V4) {
+	if (cur_version < USER_V4) {
 		/* Need to default value in storage_uuid */
-		sql = sqlite3_mprintf("UPDATE %q SET storage_uuid  = '%q';",MEDIA_SVC_DB_TABLE_MEDIA, "media");
+		sql = sqlite3_mprintf("UPDATE %q SET storage_uuid = '%q';",MEDIA_SVC_DB_TABLE_MEDIA, "media");
 		media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
 
 		ret = _media_svc_sql_query(db_handle, sql, uid);
 		sqlite3_free(sql);
 
-		sql = sqlite3_mprintf("UPDATE %q SET storage_uuid  = '%q';",MEDIA_SVC_DB_TABLE_FOLDER, "media");
+		sql = sqlite3_mprintf("UPDATE %q SET storage_uuid = '%q';",MEDIA_SVC_DB_TABLE_FOLDER, "media");
 		media_svc_retv_if(sql == NULL, MS_MEDIA_ERR_OUT_OF_MEMORY);
 
 		ret = _media_svc_sql_query(db_handle, sql, uid);
@@ -1149,7 +1149,7 @@ int _media_svc_check_db_upgrade(sqlite3 *db_handle, bool *need_full_scan, uid_t 
 	SQLITE3_FINALIZE(sql_stmt);
 
 	if (cur_version < LATEST_VERSION_NUMBER) {
-		if(cur_version < USER_V4) {
+		if (cur_version < USER_V4) {
 			*need_full_scan = true;
 		}
 		media_svc_error("Current DB is out of date(%d).. So start to upgrade DB(%d)", cur_version, LATEST_VERSION_NUMBER);
@@ -1242,7 +1242,7 @@ int _media_svc_update_media_view(sqlite3 *db_handle, uid_t uid)
 	char view_query[4096] = {0, };
 	memset(view_query, 0x00, sizeof(view_query));
 
-	snprintf(view_query, sizeof(view_query),  "DROP VIEW IF EXISTS %s; CREATE VIEW IF NOT EXISTS %s AS SELECT * from %s ", MEDIA_SVC_DB_VIEW_MEDIA, MEDIA_SVC_DB_VIEW_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA);
+	snprintf(view_query, sizeof(view_query), "DROP VIEW IF EXISTS %s; CREATE VIEW IF NOT EXISTS %s AS SELECT * from %s ", MEDIA_SVC_DB_VIEW_MEDIA, MEDIA_SVC_DB_VIEW_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA);
 
 	/*Select list of storage*/
 	sql = sqlite3_mprintf("SELECT storage_uuid FROM '%s' WHERE validity=1 AND storage_uuid != '%s'", MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA);

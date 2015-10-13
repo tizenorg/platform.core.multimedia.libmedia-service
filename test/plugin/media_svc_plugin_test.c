@@ -27,7 +27,7 @@
 
 #include <tzplatform_config.h>
 
-#define PLUGIN_SO_FILE_NAME  "/usr/lib/libmedia-content-plugin.so"
+#define PLUGIN_SO_FILE_NAME	"/usr/lib/libmedia-content-plugin.so"
 #define MEDIA_ROOT_PATH_SDCARD	tzplatform_getenv(TZ_SYS_STORAGE)
 void *funcHandle = NULL;
 
@@ -56,12 +56,7 @@ int __load_functions()
 	svc_set_folder_item_validity	= dlsym(funcHandle, "set_folder_item_validity");
 	svc_delete_all_invalid_items_in_folder	= dlsym(funcHandle, "delete_all_invalid_items_in_folder");
 
-	if (!svc_connect ||
-	    !svc_disconnect ||
-	    !svc_insert_item_immediately ||
-	    !svc_set_folder_item_validity ||
-	    !svc_delete_all_invalid_items_in_folder ||
-	    !svc_check_item_exist) {
+	if (!svc_connect || !svc_disconnect ||!svc_insert_item_immediately ||!svc_set_folder_item_validity ||!svc_delete_all_invalid_items_in_folder ||!svc_check_item_exist) {
 		fprintf(stderr, "error: %s\n", dlerror());
 		return -1;
 	}
@@ -160,7 +155,7 @@ int main()
 		}
 	} /* End of While */
 
-	ret = media_svc_insert_folder(db_handle, 0,  path);
+	ret = media_svc_insert_folder(db_handle, 0, path);
 	if (ret < 0) {
 		msg_print(__LINE__, "media_svc_insert_folder error ");
 	} else {
