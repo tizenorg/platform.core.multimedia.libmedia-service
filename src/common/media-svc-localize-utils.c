@@ -118,7 +118,7 @@ static inline int __media_svc_collation_str(const char *src, char **dest)
 	char *lang = NULL;
 	const char *en_us = "en_US.UTF-8";
 
-	/*lang = vconf_get_str(VCONFKEY_LANGSET); */
+	lang = vconf_get_str(VCONFKEY_LANGSET);
 	if (lang != NULL) {
 		if (strlen(lang) < 50) {
 			strncpy(region, lang, strlen(lang));
