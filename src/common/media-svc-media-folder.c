@@ -181,13 +181,10 @@ static int __media_svc_append_folder(sqlite3 *handle, const char *storage_id, me
 							values (%Q, %Q, %Q, %Q, '%d', '%d', %Q, %Q); ",
 							MEDIA_SVC_DB_TABLE_FOLDER, folder_id, folder_path, folder_name, storage_id, storage_type, folder_modified_date, folder_name_pinyin, parent_folder_uuid);
 
-	if (!stack_query)
-	{
+	if (!stack_query) {
 		ret = _media_svc_sql_query(handle, sql, uid);
 		sqlite3_free(sql);
-	}
-	else
-	{
+	} else {
 		_media_svc_sql_query_add(&g_media_svc_insert_folder_query_list, &sql);
 	}
 
@@ -553,13 +550,10 @@ int _media_svc_get_and_append_folder_id_by_folder_path(sqlite3 *handle, const ch
 	} else {
 		sql = sqlite3_mprintf("UPDATE '%s' SET validity=1 WHERE storage_uuid = '%q' AND path = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
 
-		if (!stack_query)
-		{
+		if (!stack_query) {
 			ret = _media_svc_sql_query(handle, sql, uid);
 			sqlite3_free(sql);
-		}
-		else
-		{
+		} else {
 			_media_svc_sql_query_add(&g_media_svc_insert_folder_query_list, &sql);
 		}
 	}
@@ -709,8 +703,7 @@ int _media_svc_get_folder_uuid(sqlite3 *handle, const char *storage_id, const ch
 
 	SQLITE3_FINALIZE(sql_stmt);
 
-	if (!STRING_VALID(folder_id))
-	{
+	if (!STRING_VALID(folder_id)) {
 		media_svc_error("Not found valid storage id [%s]", path);
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}

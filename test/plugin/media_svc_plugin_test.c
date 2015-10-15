@@ -56,7 +56,7 @@ int __load_functions()
 	svc_set_folder_item_validity	= dlsym(funcHandle, "set_folder_item_validity");
 	svc_delete_all_invalid_items_in_folder	= dlsym(funcHandle, "delete_all_invalid_items_in_folder");
 
-	if (!svc_connect || !svc_disconnect ||!svc_insert_item_immediately ||!svc_set_folder_item_validity ||!svc_delete_all_invalid_items_in_folder ||!svc_check_item_exist) {
+	if (!svc_connect || !svc_disconnect || !svc_insert_item_immediately || !svc_set_folder_item_validity || !svc_delete_all_invalid_items_in_folder || !svc_check_item_exist) {
 		fprintf(stderr, "error: %s\n", dlerror());
 		return -1;
 	}

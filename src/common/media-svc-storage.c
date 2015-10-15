@@ -70,9 +70,8 @@ int _media_svc_get_mmc_info(MediaSvcHandle *handle, char **storage_name, char **
 		*validity = 0;
 		*info_exist = FALSE;
 
-		if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+		if (ret == MS_MEDIA_ERR_DB_NO_RECORD)
 			*info_exist = FALSE;
-		}
 
 		return ret;
 	}
@@ -179,11 +178,10 @@ int _media_svc_update_storage_validity(sqlite3 *handle, const char *storage_id, 
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
 
-	if (storage_id == NULL) {
+	if (storage_id == NULL)
 		sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_uuid != 'media' AND storage_type != %d", MEDIA_SVC_DB_TABLE_STORAGE, validity, MEDIA_SVC_STORAGE_CLOUD);
-	} else {
+	else
 		sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, validity, storage_id);
-	}
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -200,8 +198,7 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 	char *remain_path = NULL;
 	int remain_len = 0;
 
-	if (strncmp(path, MEDIA_ROOT_PATH_INTERNAL, strlen(MEDIA_ROOT_PATH_INTERNAL)) == 0)
-	{
+	if (strncmp(path, MEDIA_ROOT_PATH_INTERNAL, strlen(MEDIA_ROOT_PATH_INTERNAL)) == 0) {
 		_strncpy_safe(storage_id, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_UUID_SIZE+1);
 		return MS_MEDIA_ERR_NONE;
 	}
@@ -218,14 +215,10 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 
 	storage_path = strndup(path, strlen(path) - remain_len);
 
-	while(sqlite3_step(sql_stmt) == SQLITE_ROW)
-	{
-		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1)))
-		{
-			if (strlen(storage_path) == strlen((const char *)sqlite3_column_text(sql_stmt, 1)))
-			{
-				if (strncmp(storage_path, (const char *)sqlite3_column_text(sql_stmt, 1), strlen(storage_path)) == 0)
-				{
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) 	{
+		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1))) {
+			if (strlen(storage_path) == strlen((const char *)sqlite3_column_text(sql_stmt, 1))) {
+				if (strncmp(storage_path, (const char *)sqlite3_column_text(sql_stmt, 1), strlen(storage_path)) == 0) {
 					_strncpy_safe(storage_id, (const char *)sqlite3_column_text(sql_stmt, 0), MEDIA_SVC_UUID_SIZE+1);
 					break;
 				}
@@ -237,8 +230,7 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 	SQLITE3_FINALIZE(sql_stmt);
 	SAFE_FREE(storage_path);
 
-	if (!STRING_VALID(storage_id))
-	{
+	if (!STRING_VALID(storage_id)) {
 		media_svc_error("Not found valid storage id [%s]", path);
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -252,8 +244,7 @@ int _media_svc_get_storage_type(sqlite3 *handle, const char *storage_id, media_s
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
 
-	if (!STRING_VALID(storage_id))
-	{
+	if (!STRING_VALID(storage_id)) {
 		media_svc_error("Invalid storage_idid");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -263,12 +254,11 @@ int _media_svc_get_storage_type(sqlite3 *handle, const char *storage_id, media_s
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != MS_MEDIA_ERR_NONE) {
-		if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+		if (ret == MS_MEDIA_ERR_DB_NO_RECORD)
 			media_svc_debug("there is no storage.");
-		}
-		else {
+		else
 			media_svc_error("error when _media_svc_get_storage_type. err = [%d]", ret);
-		}
+
 		return ret;
 	}
 
@@ -285,8 +275,7 @@ int _media_svc_get_storage_path(sqlite3 *handle, const char *storage_id, char **
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
 
-	if (!STRING_VALID(storage_id))
-	{
+	if (!STRING_VALID(storage_id)) {
 		media_svc_error("Invalid storage_idid");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -296,12 +285,11 @@ int _media_svc_get_storage_path(sqlite3 *handle, const char *storage_id, char **
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != MS_MEDIA_ERR_NONE) {
-		if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+		if (ret == MS_MEDIA_ERR_DB_NO_RECORD)
 			media_svc_debug("there is no storage.");
-		}
-		else {
+		else
 			media_svc_error("error when _media_svc_get_storage_type. err = [%d]", ret);
-		}
+
 		return ret;
 	}
 
@@ -318,8 +306,7 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
 
-	if (!STRING_VALID(storage_id))
-	{
+	if (!STRING_VALID(storage_id)) {
 		media_svc_error("Invalid storage_id");
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
@@ -329,12 +316,11 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	if (ret != MS_MEDIA_ERR_NONE) {
-		if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+		if (ret == MS_MEDIA_ERR_DB_NO_RECORD)
 			media_svc_debug("there is no storage.");
-		}
-		else {
+		else
 			media_svc_error("error when _media_svc_get_storage_scan_status. err = [%d]", ret);
-		}
+
 		return ret;
 	}
 
@@ -350,11 +336,10 @@ int _media_svc_set_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
 
-	if (storage_id == NULL) {
+	if (storage_id == NULL)
 		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid != 'media'", MEDIA_SVC_DB_TABLE_STORAGE, scan_status);
-	} else {
+	else
 		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_STORAGE, scan_status, storage_id);
-	}
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -387,7 +372,7 @@ int _media_svc_get_all_storage(sqlite3 *handle, char ***storage_list, char ***st
 	int idx = 0;
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
-	int cnt =0;
+	int cnt = 0;
 
 	ret = __media_svc_count_all_storage(handle, &cnt);
 	if (ret != MS_MEDIA_ERR_NONE) {
@@ -431,8 +416,8 @@ int _media_svc_get_all_storage(sqlite3 *handle, char ***storage_list, char ***st
 		media_svc_debug("OK");
 	} else {
 		/* free all data */
-		int i =0;
-		for (i = 0; i < idx; i ++) {
+		int i = 0;
+		for (i = 0; i < idx; i++) {
 			SAFE_FREE((*storage_list)[i]);
 			SAFE_FREE((*storage_id_list)[i]);
 		}

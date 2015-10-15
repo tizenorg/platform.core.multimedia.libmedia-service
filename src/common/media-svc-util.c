@@ -72,7 +72,7 @@
 	do { \
 		value = iniparser_getint(dict, key, default); \
 		media_svc_debug("get %s = %d", key, value); \
-	} while(0)
+	} while (0)
 #define MEDIA_SVC_INI_DEFAULT_PATH "/usr/etc/media_content_config.ini"
 
 static int g_ini_value = -1;
@@ -1009,9 +1009,9 @@ int _media_svc_set_default_value(media_svc_content_info_s *content_info, bool re
 	}
 
 	content_info->played_count = 0;
-	content_info->last_played_time= 0;
-	content_info->last_played_position= 0;
-	content_info->favourate= 0;
+	content_info->last_played_time = 0;
+	content_info->last_played_position = 0;
+	content_info->favourate = 0;
 	content_info->media_meta.rating = 0;
 
 	return MS_MEDIA_ERR_NONE;
@@ -2049,7 +2049,7 @@ int _media_svc_get_storage_type_by_path(const char *path, media_svc_storage_type
 			*storage_type = MEDIA_SVC_STORAGE_INTERNAL;
 		} else if (STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && (strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0)) {
 			*storage_type = MEDIA_SVC_STORAGE_EXTERNAL;
-		} else if (STRING_VALID(MEDIA_ROOT_PATH_USB) && (strncmp (path, MEDIA_ROOT_PATH_USB, strlen(MEDIA_ROOT_PATH_USB)) == 0)) {
+		} else if (STRING_VALID(MEDIA_ROOT_PATH_USB) && (strncmp(path, MEDIA_ROOT_PATH_USB, strlen(MEDIA_ROOT_PATH_USB)) == 0)) {
 			*storage_type = MEDIA_SVC_STORAGE_EXTERNAL_USB;
 		} else {
 			media_svc_error("Invalid Path");
@@ -2162,7 +2162,7 @@ int _media_svc_get_ini_value()
 			return -1;
 		}
 
-		MEDIA_SVC_INI_GET_INT(dict, "media-content-config:thumbnail_activation",g_ini_value, 0);
+		MEDIA_SVC_INI_GET_INT(dict, "media-content-config:thumbnail_activation", g_ini_value, 0);
 		iniparser_freedict(dict);
 	}
 	media_svc_debug("Thumb-server activation level = %d", g_ini_value);

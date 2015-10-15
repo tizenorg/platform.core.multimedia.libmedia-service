@@ -827,7 +827,7 @@ int set_storage_scan_status(void *handle, const char *storage_id, int status, ui
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int get_storage_list(void *handle, char ***storage_list, char ***storage_id_list,int **scan_status_list, int *count, char **err_msg)
+int get_storage_list(void *handle, char ***storage_list, char ***storage_id_list, int **scan_status_list, int *count, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
