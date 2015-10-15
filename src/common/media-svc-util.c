@@ -131,18 +131,18 @@ static const char sound_mime_table[SOUND_MIME_NUM][MIME_LENGTH] = {
 };
 
 typedef enum {
-	MEDIA_SVC_EXTRACTED_FIELD_NONE 			= 0x00000001,
-	MEDIA_SVC_EXTRACTED_FIELD_TITLE 		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 1,
-	MEDIA_SVC_EXTRACTED_FIELD_DESC 			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 2,
+	MEDIA_SVC_EXTRACTED_FIELD_NONE			= 0x00000001,
+	MEDIA_SVC_EXTRACTED_FIELD_TITLE			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 1,
+	MEDIA_SVC_EXTRACTED_FIELD_DESC			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 2,
 	MEDIA_SVC_EXTRACTED_FIELD_COPYRIGHT		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 3,
 	MEDIA_SVC_EXTRACTED_FIELD_AUTHOR		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 4,
-	MEDIA_SVC_EXTRACTED_FIELD_ARTIST		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 5,
+	MEDIA_SVC_EXTRACTED_FIELD_ARTIST			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 5,
 	MEDIA_SVC_EXTRACTED_FIELD_GENRE			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 6,
 	MEDIA_SVC_EXTRACTED_FIELD_ALBUM			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 7,
 	MEDIA_SVC_EXTRACTED_FIELD_TRACKNUM		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 8,
 	MEDIA_SVC_EXTRACTED_FIELD_YEAR			= MEDIA_SVC_EXTRACTED_FIELD_NONE << 9,
 	MEDIA_SVC_EXTRACTED_FIELD_CATEGORY		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 10,
-	MEDIA_SVC_EXTRACTED_FIELD_ALBUM_ARTIST		= MEDIA_SVC_EXTRACTED_FIELD_NONE << 11,
+	MEDIA_SVC_EXTRACTED_FIELD_ALBUM_ARTIST	= MEDIA_SVC_EXTRACTED_FIELD_NONE << 11,
 } media_svc_extracted_field_e;
 
 char *_media_info_generate_uuid(void)
@@ -1408,7 +1408,7 @@ int _media_svc_extract_music_metadata_for_update(sqlite3 *handle, media_svc_cont
 		}
 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_TITLE, &p, &size, NULL);
-		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == MM_ERROR_NONE) && (size > 0)/* && 	(!isspace(*p))*/) {
+		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == MM_ERROR_NONE) && (size > 0)/* && (!isspace(*p))*/) {
 			if (!isspace(*p)) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, p);
 				if (ret != MS_MEDIA_ERR_NONE)
@@ -1591,7 +1591,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		}
 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_TITLE, &p, &size, NULL);
-		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == MM_ERROR_NONE) && (size > 0)/* && 	(!isspace(*p))*/) {
+		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == MM_ERROR_NONE) && (size > 0)/* && (!isspace(*p))*/) {
 			if (!isspace(*p)) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, p);
 				if (ret != MS_MEDIA_ERR_NONE)

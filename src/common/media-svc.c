@@ -1986,7 +1986,7 @@ int media_svc_insert_item_pass1(MediaSvcHandle *handle, const char *storage_id, 
 		return ret;
 	}
 
-	//media_svc_debug("total %d, cur %d insert flag %d", g_media_svc_insert_item_data_cnt, 	g_media_svc_insert_item_cur_data_cnt, g_insert_with_noti);
+	//media_svc_debug("total %d, cur %d insert flag %d", g_media_svc_insert_item_data_cnt, g_media_svc_insert_item_cur_data_cnt, g_insert_with_noti);
 
 	/*Set or Get folder id*/
 	ret = _media_svc_get_and_append_folder_id_by_path(db_handle, storage_id, path, storage_type, folder_uuid, uid);

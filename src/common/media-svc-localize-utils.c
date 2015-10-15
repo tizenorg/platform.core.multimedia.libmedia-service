@@ -137,8 +137,7 @@ static inline int __media_svc_collation_str(const char *src, char **dest)
 
 	collator = ucol_open(region, &status);
 
-	media_svc_retvm_if(U_FAILURE(status), MS_MEDIA_ERR_INTERNAL,
-	                   "ucol_open() Failed(%s)", u_errorName(status));
+	media_svc_retvm_if(U_FAILURE(status), MS_MEDIA_ERR_INTERNAL, "ucol_open() Failed(%s)", u_errorName(status));
 
 	u_strFromUTF8(NULL, 0, &size, src, strlen(src), &status);
 	if (U_FAILURE(status) && status != U_BUFFER_OVERFLOW_ERROR) {

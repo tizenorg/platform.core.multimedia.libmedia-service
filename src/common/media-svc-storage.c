@@ -215,7 +215,7 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 
 	storage_path = strndup(path, strlen(path) - remain_len);
 
-	while (sqlite3_step(sql_stmt) == SQLITE_ROW) 	{
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
 		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1))) {
 			if (strlen(storage_path) == strlen((const char *)sqlite3_column_text(sql_stmt, 1))) {
 				if (strncmp(storage_path, (const char *)sqlite3_column_text(sql_stmt, 1), strlen(storage_path)) == 0) {
