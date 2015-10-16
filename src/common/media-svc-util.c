@@ -589,7 +589,7 @@ static char *__media_svc_get_thumb_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		sprintf(passwd_str, "%s/share/media/.thumb", userinfo->pw_dir);
+		snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb", userinfo->pw_dir);
 		result_passwd = g_strdup(passwd_str);
 	}
 
@@ -727,7 +727,7 @@ int _media_svc_remove_all_files_in_dir(const char *dir_path)
 	struct dirent entry;
 	struct dirent *result;
 	struct stat st;
-	char filename[MEDIA_SVC_PATHNAME_SIZE] = {0};
+	char filename[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 	DIR *dir = NULL;
 
 	dir = opendir(dir_path);
@@ -790,7 +790,7 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		sprintf(passwd_str, "%s/share/media/.thumb/phone", userinfo->pw_dir);
+		snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb/phone", userinfo->pw_dir);
 		result_passwd = g_strdup(passwd_str);
 	}
 
@@ -825,7 +825,7 @@ char *_media_svc_get_thumb_external_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		sprintf(passwd_str, "%s/share/media/.thumb/mmc", userinfo->pw_dir);
+		snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb/mmc", userinfo->pw_dir);
 		result_passwd = g_strdup(passwd_str);
 	}
 
@@ -2045,7 +2045,7 @@ int _media_svc_get_storage_type_by_path(const char *path, media_svc_storage_type
 {
 	if (STRING_VALID(path)) {
 		char *internal_path = _media_svc_get_path(uid);
-		if (strncmp(path, internal_path, strlen(internal_path)) == 0) {
+		if (STRING_VALID(internal_path) && (strncmp(path, internal_path, strlen(internal_path)) == 0)) {
 			*storage_type = MEDIA_SVC_STORAGE_INTERNAL;
 		} else if (STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && (strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0)) {
 			*storage_type = MEDIA_SVC_STORAGE_EXTERNAL;

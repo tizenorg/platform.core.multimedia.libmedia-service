@@ -39,7 +39,7 @@ static int __media_svc_is_root_path(const char *folder_path, bool *is_root, uid_
 	char *internal_path = _media_svc_get_path(uid);
 
 	if ((STRING_VALID(internal_path) && (strcmp(folder_path, internal_path) == 0)) ||
-		strcmp(folder_path, MEDIA_ROOT_PATH_SDCARD) == 0 ||
+		(STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && strcmp(folder_path, MEDIA_ROOT_PATH_SDCARD) == 0) ||
 		(STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && strcmp(folder_path, MEDIA_ROOT_PATH_CLOUD) == 0)) {
 		media_svc_debug("ROOT PATH [%s]", folder_path);
 		*is_root = TRUE;
@@ -230,11 +230,11 @@ static int __media_svc_get_and_append_parent_folder(sqlite3 *handle, const char 
 
 	if (STRING_VALID(internal_path) && (strncmp(path, internal_path, strlen(internal_path)) == 0))
 		next_pos = strlen(internal_path);
-	else if (strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0)
+	else if (STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && strncmp(path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0)
 		next_pos = strlen(MEDIA_ROOT_PATH_SDCARD);
 	else if (STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && (strncmp(path, MEDIA_ROOT_PATH_CLOUD, strlen(MEDIA_ROOT_PATH_CLOUD)) == 0))
 		next_pos = strlen(MEDIA_ROOT_PATH_CLOUD);
-	else if (strncmp(path, MEDIA_ROOT_PATH_EXTERNAL, strlen(MEDIA_ROOT_PATH_EXTERNAL)) == 0)
+	else if (STRING_VALID(MEDIA_ROOT_PATH_EXTERNAL) && strncmp(path, MEDIA_ROOT_PATH_EXTERNAL, strlen(MEDIA_ROOT_PATH_EXTERNAL)) == 0)
 		next_pos = strlen(MEDIA_ROOT_PATH_EXTERNAL);
 	else {
 		media_svc_error("Invalid Path");

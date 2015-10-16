@@ -198,7 +198,7 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 	char *remain_path = NULL;
 	int remain_len = 0;
 
-	if (strncmp(path, MEDIA_ROOT_PATH_INTERNAL, strlen(MEDIA_ROOT_PATH_INTERNAL)) == 0) {
+	if (STRING_VALID(MEDIA_ROOT_PATH_INTERNAL) && strncmp(path, MEDIA_ROOT_PATH_INTERNAL, strlen(MEDIA_ROOT_PATH_INTERNAL)) == 0) {
 		_strncpy_safe(storage_id, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_UUID_SIZE+1);
 		return MS_MEDIA_ERR_NONE;
 	}

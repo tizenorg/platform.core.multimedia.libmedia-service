@@ -776,7 +776,8 @@ int media_svc_delete_all_items_in_storage(MediaSvcHandle *handle, const char *st
 		const char *dirpath = (storage_type == MEDIA_SVC_STORAGE_INTERNAL) ? internal_thumb_path : external_thumb_path;
 
 		/* remove thumbnails */
-		ret = _media_svc_remove_all_files_in_dir(dirpath);
+		if (STRING_VALID(dirpath))
+			ret = _media_svc_remove_all_files_in_dir(dirpath);
 		SAFE_FREE(internal_thumb_path);
 		SAFE_FREE(external_thumb_path);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -1046,7 +1047,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 			/* If old thumb path is default or not */
 			char *default_thumbnail_path = _media_svc_get_thumb_default_path(uid);
 			if (STRING_VALID(default_thumbnail_path) && (strncmp(media_thumb_path, default_thumbnail_path, strlen(default_thumbnail_path)) == 0)) {
-				strncpy(media_new_thumb_path, default_thumbnail_path, sizeof(media_new_thumb_path));
+				strncpy(media_new_thumb_path, default_thumbnail_path, sizeof(media_new_thumb_path) - 1);
 			} else {
 				ret = _media_svc_get_storage_type_by_path(replaced_path, &storage_type, uid);
 				if (ret != MS_MEDIA_ERR_NONE) {

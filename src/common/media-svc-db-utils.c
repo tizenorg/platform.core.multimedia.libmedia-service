@@ -69,7 +69,7 @@ char *_media_svc_get_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		sprintf(passwd_str, "%s/%s", userinfo->pw_dir, MEDIA_CONTENT_PATH);
+		snprintf(passwd_str, sizeof(passwd_str), "%s/%s", userinfo->pw_dir, MEDIA_CONTENT_PATH);
 		result_passwd = g_strdup(passwd_str);
 	}
 
