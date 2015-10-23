@@ -37,6 +37,7 @@
 #include <media-util.h>
 #include <uuid/uuid.h>
 #include <img-codec-parser.h>
+#include <image_util.h>
 #include <grp.h>
 #include <pwd.h>
 #include "media-util-err.h"
@@ -74,6 +75,7 @@
 		media_svc_debug("get %s = %d", key, value); \
 	} while (0)
 #define MEDIA_SVC_INI_DEFAULT_PATH "/usr/etc/media_content_config.ini"
+#define MEDIA_SVC_ARTWORK_SIZE 2000
 
 static int g_ini_value = -1;
 
@@ -594,6 +596,85 @@ static char *__media_svc_get_thumb_path(uid_t uid)
 	}
 
 	return result_passwd;
+}
+
+static int __media_svc_resize_artwork(void *image, int size, const char *img_format, void **resize_image, int *resize_size)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	void *raw_image = NULL;
+	int width = 0;
+	int height = 0;
+	unsigned int raw_size = 0;
+	void *resized_raw_image = NULL;
+	int resized_width = 0;
+	int resized_height = 0;
+	unsigned int buf_size = 0;
+
+	if ((strstr(img_format, "jpeg") != NULL) || (strstr(img_format, "jpg") != NULL) || (strstr(img_format, "JPG") != NULL)) {
+		media_svc_debug("type [jpeg] size [%d]", size);
+		/* decoding */
+		ret = image_util_decode_jpeg_from_memory(image, size, IMAGE_UTIL_COLORSPACE_RGB888, &raw_image, &width, &height, &raw_size);
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("image_util_decode_jpeg_from_memory failed");
+			*resize_image = image;
+			*resize_size = size;
+			return MS_MEDIA_ERR_NONE;
+		}
+
+		if (width <= MEDIA_SVC_ARTWORK_SIZE || height <= MEDIA_SVC_ARTWORK_SIZE) {
+			media_svc_debug("No need resizing");
+			*resize_image = image;
+			*resize_size = size;
+			SAFE_FREE(raw_image);
+			return MS_MEDIA_ERR_NONE;
+		}
+		/* resizing */
+		if (width > height) {
+			resized_height = MEDIA_SVC_ARTWORK_SIZE;
+			resized_width = width * MEDIA_SVC_ARTWORK_SIZE / height;
+		} else {
+			resized_width = MEDIA_SVC_ARTWORK_SIZE;
+			resized_height =height * MEDIA_SVC_ARTWORK_SIZE / width;
+		}
+
+		image_util_calculate_buffer_size(resized_width, resized_height, IMAGE_UTIL_COLORSPACE_RGB888 , &buf_size);
+
+		resized_raw_image = malloc(buf_size);
+		memset(resized_raw_image, 0, buf_size);
+
+		ret = image_util_resize(resized_raw_image, &resized_width, &resized_height, raw_image, width, height, IMAGE_UTIL_COLORSPACE_RGB888);
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("image_util_resize failed");
+			*resize_image = image;
+			*resize_size = size;
+			SAFE_FREE(raw_image);
+			return MS_MEDIA_ERR_NONE;
+		}
+		SAFE_FREE(raw_image);
+
+		/* encoding */
+		ret = image_util_encode_jpeg_to_memory(resized_raw_image, resized_width, resized_height, IMAGE_UTIL_COLORSPACE_RGB888, 90,  resize_image, resize_size);
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("image_util_encode_jpeg_to_memory failed");
+			*resize_image = image;
+			*resize_size = size;
+			return MS_MEDIA_ERR_NONE;
+			SAFE_FREE(resized_raw_image);
+		}
+		SAFE_FREE(resized_raw_image);
+
+	} else if ((strstr(img_format, "png") != NULL) || (strstr(img_format, "PNG") != NULL)) {
+		media_svc_debug("type [png] size [%d]", size);
+		*resize_image = image;
+		*resize_size = size;
+
+	} else {
+		media_svc_debug("Not proper img format");
+		*resize_image = image;
+		*resize_size = size;
+	}
+
+	return ret;
 }
 
 static int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid)
@@ -1533,6 +1614,8 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	int album_id = 0;
 	int ret = MS_MEDIA_ERR_NONE;
 	int cdis_value = 0;
+	int resize_size = -1;
+	void *resize_image = NULL;
 
 	/*Get Content Tag attribute ===========*/
 	mmf_error = mm_file_create_tag_attrs(&tag, content_info->path);
@@ -1815,12 +1898,14 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 					if (ret != MS_MEDIA_ERR_NONE) {
 						media_svc_error("Fail to Get Thumbnail Path");
 					}
+					/* albumart resizing */
+					__media_svc_resize_artwork(image, size, p, &resize_image, &resize_size);
 				} else {
 					SAFE_FREE(err_attr_name);
 				}
 
 				if (strlen(thumb_path) > 0) {
-					ret = _media_svc_save_image(image, size, thumb_path, uid);
+					ret = _media_svc_save_image(resize_image, resize_size, thumb_path, uid);
 					if (ret != MS_MEDIA_ERR_NONE) {
 						media_svc_error("Fail to Save Thumbnail Image");
 					} else {

@@ -24,6 +24,7 @@ BuildRequires:  pkgconfig(libmedia-utils)
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  pkgconfig(iniparser)
+BuildRequires:  pkgconfig(capi-media-image-util)
 
 %description
 Media information service library for multimedia applications.
