@@ -35,6 +35,7 @@ extern "C" {
 
 int media_svc_connect(MediaSvcHandle **handle, uid_t uid, bool need_write);
 int media_svc_disconnect(MediaSvcHandle *handle);
+int media_svc_get_user_version(MediaSvcHandle *handle, int *user_version);
 int media_svc_create_table(MediaSvcHandle *handle, uid_t uid);
 int media_svc_check_item_exist_by_path(MediaSvcHandle *handle, const char *storage_id, const char *path);
 int media_svc_insert_folder(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, uid_t uid);
@@ -59,7 +60,7 @@ int media_svc_get_storage_type(const char *path, media_svc_storage_type_e *stora
 int media_svc_get_file_info(MediaSvcHandle *handle, const char *storage_id, const char *path, time_t *modified_time, unsigned long long *size);
 int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *storage_id, const char *dir_path, const char *folder_id, media_item_update_type_e update_type, int pid);
 int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int *count);
-int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, uid_t uid);
+int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, int user_version, uid_t uid);
 int media_svc_check_db_corrupt(MediaSvcHandle *handle);
 int media_svc_get_folder_list(MediaSvcHandle *handle, char *start_path, char ***folder_list, time_t **modified_time_list, int **item_num_list, int *count);
 int media_svc_update_folder_time(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, uid_t uid);

@@ -547,19 +547,28 @@ int count_delete_items_in_folder(void *handle, const char *storage_id, const cha
 int check_db(void *handle, bool *need_full_scan, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+	int user_version = -1;
 
-	/*check db schema*/
-	ret = media_svc_create_table(handle, uid);
+	ret = media_svc_get_user_version(handle, &user_version);
 	if (ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	/*check db version*/
-	ret = media_svc_check_db_upgrade(handle, need_full_scan, uid);
-	if (ret < 0) {
-		__set_error_message(ret, err_msg);
-		return MEDIA_SVC_PLUGIN_ERROR;
+	if (user_version == 0) {
+		/*check db schema*/
+		ret = media_svc_create_table(handle, uid);
+		if (ret < 0) {
+			__set_error_message(ret, err_msg);
+			return MEDIA_SVC_PLUGIN_ERROR;
+		}
+	} else {
+		/*check db version*/
+		ret = media_svc_check_db_upgrade(handle, need_full_scan, user_version, uid);
+		if (ret < 0) {
+			__set_error_message(ret, err_msg);
+			return MEDIA_SVC_PLUGIN_ERROR;
+		}
 	}
 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;

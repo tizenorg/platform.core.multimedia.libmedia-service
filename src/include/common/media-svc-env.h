@@ -173,25 +173,25 @@ typedef enum {
 	MEDIA_SVC_DB_LIST_MAX,
 } media_svc_table_slist_e;
 
-typedef struct table_inform {
-	char *triggerName;
-	char *viewName;
-	char *eventTable;
-	char *actionTable;
-} table_info;
+typedef struct {
+	char *trigger_name;
+	char *view_name;
+	char *event_table;
+	char *action_table;
+} table_info_s;
 
-typedef struct column_inform {
+typedef struct {
 	char *name;
 	char *type;
-	bool hasOption;
+	bool has_option;
 	char *option;
 	int version;
-	bool isIndex;
-	char *indexName;
-	bool isUnique;
-	bool isTrigger;
-	bool isView;
-} column_info;
+	bool is_index;
+	char *index_name;
+	bool is_unique;
+	bool is_trigger;
+	bool is_view;
+} column_info_s;
 
 
 #ifdef __cplusplus

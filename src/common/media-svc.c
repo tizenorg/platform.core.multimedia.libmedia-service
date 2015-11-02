@@ -109,69 +109,132 @@ int media_svc_disconnect(MediaSvcHandle *handle)
 	return ret;
 }
 
+int media_svc_get_user_version(MediaSvcHandle *handle, int *user_version)
+{
+	sqlite3 *db_handle = (sqlite3 *)handle;
+
+	return _media_svc_get_user_version(db_handle, user_version);
+}
+
 int media_svc_create_table(MediaSvcHandle *handle, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
+	char *sql = NULL;
 
 	media_svc_debug_fenter();
 
-	ret = _media_svc_init_table_query(MEDIA_SVC_DB_TABLE_MEDIA);
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
+
+	ret = _media_svc_init_table_query(MEDIA_SVC_DB_TABLE_MEDIA);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_init_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create media table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_LIST_MEDIA, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create folder table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_LIST_FOLDER, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create playlist_map table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_PLAYLIST_MAP, MEDIA_SVC_DB_LIST_PLAYLIST_MAP, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create playlist table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_PLAYLIST, MEDIA_SVC_DB_LIST_PLAYLIST, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/* create album table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_ALBUM, MEDIA_SVC_DB_LIST_ALBUM, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create tag_map table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_TAG_MAP, MEDIA_SVC_DB_LIST_TAG_MAP, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create tag table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_TAG, MEDIA_SVC_DB_LIST_TAG, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create bookmark table*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_BOOKMARK, MEDIA_SVC_DB_LIST_BOOKMARK, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	/*create storage table. from tizen 2.4*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_LIST_STORAGE, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 #if 0
 	/*init storage table*/
 	ret = _media_svc_init_storage(db_handle, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
+
 #endif
 	/*create face table. from tizen 3.0*/
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, MEDIA_SVC_DB_LIST_FACE_SCAN_LIST, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 
 	ret = _media_svc_make_table_query(db_handle, MEDIA_SVC_DB_TABLE_FACE, MEDIA_SVC_DB_LIST_FACE, uid);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
+
+	sql = sqlite3_mprintf("pragma user_version = %d;", LATEST_VERSION_NUMBER);
+	ret = _media_svc_sql_query(db_handle, sql, uid);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("user_version update fail.");
+		goto ERROR;
+	}
 
 	_media_svc_destroy_table_query();
 
 	media_svc_debug_fleave();
 
 	return MS_MEDIA_ERR_NONE;
+ERROR :
+	_media_svc_destroy_table_query();
+
+	media_svc_debug_fleave();
+
+	return ret;
 }
 
 int media_svc_get_storage_type(const char *path, media_svc_storage_type_e *storage_type, uid_t uid)
@@ -1184,7 +1247,7 @@ int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *
 	return _media_svc_count_invalid_folder_items(db_handle, storage_id, folder_path, count);
 }
 
-int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, uid_t uid)
+int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, int user_version, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
@@ -1192,7 +1255,7 @@ int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, uid
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
-	return _media_svc_check_db_upgrade(db_handle, need_full_scan, uid);
+	return _media_svc_check_db_upgrade(db_handle, need_full_scan, user_version, uid);
 }
 
 int media_svc_check_db_corrupt(MediaSvcHandle *handle)
