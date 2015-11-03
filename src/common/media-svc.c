@@ -229,7 +229,7 @@ int media_svc_create_table(MediaSvcHandle *handle, uid_t uid)
 	media_svc_debug_fleave();
 
 	return MS_MEDIA_ERR_NONE;
-ERROR :
+ERROR:
 	_media_svc_destroy_table_query();
 
 	media_svc_debug_fleave();

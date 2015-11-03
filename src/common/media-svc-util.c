@@ -633,7 +633,7 @@ static int __media_svc_resize_artwork(void *image, int size, const char *img_for
 			resized_width = width * MEDIA_SVC_ARTWORK_SIZE / height;
 		} else {
 			resized_width = MEDIA_SVC_ARTWORK_SIZE;
-			resized_height =height * MEDIA_SVC_ARTWORK_SIZE / width;
+			resized_height = height * MEDIA_SVC_ARTWORK_SIZE / width;
 		}
 
 		image_util_calculate_buffer_size(resized_width, resized_height, IMAGE_UTIL_COLORSPACE_RGB888 , &buf_size);
