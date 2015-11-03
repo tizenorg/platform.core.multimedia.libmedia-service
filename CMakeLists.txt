@@ -55,7 +55,7 @@ EXEC_PROGRAM("${UNAME}" ARGS "-m" OUTPUT_VARIABLE "ARCH")
 
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-common mm-fileinfo media-thumbnail libmedia-utils aul uuid vconf iniparser capi-media-image-util)
+pkg_check_modules(pkgs REQUIRED glib-2.0 dlog sqlite3 db-util libexif mm-fileinfo media-thumbnail libmedia-utils aul uuid vconf iniparser capi-media-image-util)
 
 FOREACH(flag ${pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
