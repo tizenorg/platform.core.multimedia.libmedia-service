@@ -99,6 +99,8 @@ int media_svc_check_folder_exist_by_path(MediaSvcHandle *handle, const char *sto
 int media_svc_check_subfolder_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int *count);
 int media_svc_get_folder_id(MediaSvcHandle *handle, const char *storage_id, const char *path, char *folder_id);
 
+int media_svc_append_query(const char *query, uid_t uid);
+int media_svc_send_query(uid_t uid);
 
 #ifdef __cplusplus
 }

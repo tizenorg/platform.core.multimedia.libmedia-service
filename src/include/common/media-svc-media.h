@@ -55,4 +55,6 @@ int _media_svc_update_meta_with_data(sqlite3 *handle, media_svc_content_info_s *
 int _media_svc_insert_item_pass1(sqlite3 *handle, const char *storage_id, media_svc_content_info_s *content_info, int is_burst, bool stack_query, uid_t uid);
 int _media_svc_insert_item_pass2(sqlite3 *handle, const char *storage_id, media_svc_content_info_s *content_info, int is_burst, bool stack_query, uid_t uid);
 
+int _media_svc_append_query_list(const char *query, uid_t uid);
+
 #endif /*_MEDIA_SVC_MEDIA_H_*/

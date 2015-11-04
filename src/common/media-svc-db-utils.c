@@ -1297,19 +1297,41 @@ int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 	int idx = 0;
 	int length = g_list_length(*query_list);
 	char *sql = NULL;
+	char query_bundle[8000] = {0, };
+	int query_len = 0;
+	int total_len =0;
 
 	media_svc_debug("query list length : [%d]", length);
 
 	for (idx = 0; idx < length; idx++) {
 		sql = (char *)g_list_nth_data(*query_list, idx);
 		if (sql != NULL) {
-			/*ret = _media_svc_sql_query(handle, sql); */
-			ret = media_db_request_update_db_batch(sql, uid);
-			if (ret != MS_MEDIA_ERR_NONE)
-				media_svc_error("media_db_request_update_db_batch failed : %d", ret);
+			query_len = strlen(sql);
+			if ((total_len + query_len) >= (sizeof(query_bundle) - 1)) {
+				ret = media_db_request_update_db_batch(query_bundle, uid);
+				if (ret != MS_MEDIA_ERR_NONE)
+					media_svc_error("media_db_request_update_db_batch failed : %d", ret);
+				memset(query_bundle, 0, sizeof(query_bundle));
+				total_len = 0;
+				strncpy(query_bundle, sql, query_len);
+				total_len = query_len;
+			} else {
+				strncat(query_bundle, sql, query_len);
+				total_len += query_len;
+			}
+
 			sqlite3_free(sql);
 			sql = NULL;
 		}
+	}
+
+	if (total_len > 0) {
+		ret = media_db_request_update_db_batch(query_bundle, uid);
+		if (ret != MS_MEDIA_ERR_NONE)
+			media_svc_error("media_db_request_update_db_batch failed : %d", ret);
+
+		memset(query_bundle, 0, sizeof(query_bundle));
+		total_len = 0;
 	}
 
 	_media_svc_sql_query_release(query_list);

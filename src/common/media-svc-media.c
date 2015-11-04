@@ -32,6 +32,8 @@
 #include "media-svc-db-utils.h"
 #include "media-svc-noti.h"
 
+#define MEDIA_SVC_MAX_COMMIT_SIZE 200
+
 typedef struct {
 	char thumbnail_path[MEDIA_SVC_PATHNAME_SIZE];
 } media_svc_thumbnailpath_s;
@@ -40,6 +42,8 @@ static __thread GList *g_media_svc_item_validity_query_list = NULL;
 static __thread GList *g_media_svc_insert_item_query_list = NULL;
 __thread GList *g_media_svc_move_item_query_list = NULL;
 static __thread GList *g_media_svc_update_item_query_list = NULL;
+static __thread GList *g_media_svc_update_list = NULL;
+static __thread int g_media_svc_update_list_count = 0;
 
 static int __media_svc_count_invalid_records_with_thumbnail(sqlite3 *handle, const char *storage_id, media_svc_storage_type_e storage_type, int *count);
 static int __media_svc_get_invalid_records_with_thumbnail(sqlite3 *handle, const char *storage_id, media_svc_storage_type_e storage_type, int count, media_svc_thumbnailpath_s *thumb_path);
@@ -406,7 +410,7 @@ int _media_svc_update_meta_with_data(sqlite3 *handle, media_svc_content_info_s *
 
 	char *sql = sqlite3_mprintf("UPDATE %s SET title=%Q, album=%Q, artist=%Q, album_artist=%Q, genre=%Q, composer=%Q, copyright=%Q, description=%Q, \
 		file_name_pinyin=%Q, title_pinyin=%Q, album_pinyin=%Q, artist_pinyin=%Q, album_artist_pinyin=%Q, genre_pinyin=%Q, composer_pinyin=%Q, copyright_pinyin=%Q, description_pinyin=%Q \
-		WHERE path=%Q",
+		WHERE path=%Q;",
 								MEDIA_SVC_DB_TABLE_MEDIA,
 								content_info->media_meta.title,
 								content_info->media_meta.album,
@@ -474,7 +478,7 @@ int _media_svc_update_item_with_data(sqlite3 *handle, const char *storage_id, me
 		size=%lld, modified_time=%d, thumbnail_path=%Q, title=%Q, album_id=%d, album=%Q, artist=%Q, album_artist=%Q, genre=%Q, \
 		composer=%Q, year=%Q, recorded_date=%Q, copyright=%Q, track_num=%Q, description=%Q, \
 		bitrate=%d, bitpersample=%d, samplerate=%d, channel=%d, duration=%d, longitude=%f, latitude=%f, altitude=%f, exposure_time=%Q, fnumber=%f, iso=%d, model=%Q, width=%d, height=%d, datetaken=%Q, \
-													orientation=%d WHERE path=%Q",
+													orientation=%d WHERE path=%Q;",
 								storage_id,
 								content_info->size,
 								content_info->modified_time,
@@ -564,7 +568,7 @@ int _media_svc_get_media_type_by_path(sqlite3 *handle, const char *storage_id, c
 int _media_svc_delete_item_by_path(sqlite3 *handle, const char *storage_id, const char *path, bool stack_query, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	char *sql = sqlite3_mprintf("DELETE FROM '%s' WHERE path='%q'", storage_id, path);
+	char *sql = sqlite3_mprintf("DELETE FROM '%s' WHERE path='%q';", storage_id, path);
 
 	if (!stack_query) {
 		ret = _media_svc_sql_query(handle, sql, uid);
@@ -585,7 +589,7 @@ int _media_svc_truncate_table(sqlite3 *handle, const char *storage_id, media_svc
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	char *sql = sqlite3_mprintf("DELETE FROM '%s' where storage_type=%d", storage_id, storage_type);
+	char *sql = sqlite3_mprintf("DELETE FROM '%s' where storage_type=%d;", storage_id, storage_type);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -622,7 +626,7 @@ int _media_svc_delete_invalid_items(sqlite3 *handle, const char *storage_id, med
 		media_svc_debug("There is no item with thumbnail");
 	}
 
-	char *sql = sqlite3_mprintf("DELETE FROM '%s' WHERE validity = 0", storage_id);
+	char *sql = sqlite3_mprintf("DELETE FROM '%s' WHERE validity = 0;", storage_id);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -683,9 +687,9 @@ int _media_svc_delete_invalid_folder_items(sqlite3 *handle, const char *storage_
 	}
 
 	if (is_recursive)
-		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE validity = 0 AND path LIKE '%q/%%'", storage_id, folder_path);
+		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE validity = 0 AND path LIKE '%q/%%';", storage_id, folder_path);
 	else
-		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE validity = 0 AND folder_uuid='%q'", storage_id, folder_uuid);
+		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE validity = 0 AND folder_uuid='%q';", storage_id, folder_uuid);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -718,7 +722,7 @@ int _media_svc_update_item_validity(sqlite3 *handle, const char *storage_id, con
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE path= '%q'", storage_id, validity, path);
+	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE path= '%q';", storage_id, validity, path);
 
 	if (!stack_query) {
 		ret = _media_svc_sql_query(handle, sql, uid);
@@ -734,7 +738,7 @@ int _media_svc_update_thumbnail_path(sqlite3 *handle, const char *storage_id, co
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	char *sql = sqlite3_mprintf("UPDATE '%s' SET thumbnail_path=%Q WHERE path= %Q", storage_id, thumb_path, path);
+	char *sql = sqlite3_mprintf("UPDATE '%s' SET thumbnail_path=%Q WHERE path= %Q;", storage_id, thumb_path, path);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -746,7 +750,7 @@ int _media_svc_update_storage_item_validity(sqlite3 *handle, const char *storage
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_type=%d", storage_id, validity, storage_type);
+	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_type=%d;", storage_id, validity, storage_type);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -778,7 +782,7 @@ int _media_svc_update_folder_item_validity(sqlite3 *handle, const char *storage_
 	SQLITE3_FINALIZE(sql_stmt);
 
 	/*Update folder item validity*/
-	sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE folder_uuid='%q'", storage_id, validity, folder_uuid);
+	sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE folder_uuid='%q';", storage_id, validity, folder_uuid);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -791,7 +795,7 @@ int _media_svc_update_recursive_folder_item_validity(sqlite3 *handle, const char
 	int ret = MS_MEDIA_ERR_NONE;
 
 	/*Update folder item validity*/
-	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE (storage_type = 0 OR storage_type = 1) AND path LIKE '%q/%%'", storage_id, validity, folder_path);
+	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE (storage_type = 0 OR storage_type = 1) AND path LIKE '%q/%%';", storage_id, validity, folder_path);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -812,13 +816,13 @@ int _media_svc_update_item_by_path(sqlite3 *handle, const char *storage_id, cons
 		sql = sqlite3_mprintf("UPDATE '%s' SET \
 					path=%Q, file_name=%Q, modified_time=%d, folder_uuid=%Q, thumbnail_path=%Q, storage_type=%d, \
 					played_count=0, last_played_time=0, last_played_position=0 \
-					WHERE path=%Q",
+					WHERE path=%Q;",
 					storage_id, dest_path, file_name, modified_time, folder_uuid, thumb_path, dest_storage, src_path);
 	} else {
 		sql = sqlite3_mprintf("UPDATE '%s' SET \
 					path=%Q, file_name=%Q, modified_time=%d, folder_uuid=%Q, storage_type=%d, \
 					played_count=0, last_played_time=0, last_played_position=0 \
-					WHERE path=%Q",
+					WHERE path=%Q;",
 					storage_id, dest_path, file_name, modified_time, folder_uuid, dest_storage, src_path);
 	}
 
@@ -849,6 +853,8 @@ int _media_svc_list_query_do(sqlite3 *handle, media_svc_query_type_e query_type,
 		ret = _media_svc_sql_query_list(handle, &g_media_svc_update_item_query_list, uid);
 	else if (query_type == MEDIA_SVC_QUERY_INSERT_FOLDER)
 		ret = _media_svc_sql_query_list(handle, _media_svc_get_folder_list_ptr(), uid);
+	else if (query_type == MEDIA_SVC_QUERY_UPDATE_COMMON)
+		ret = _media_svc_sql_query_list(handle, &g_media_svc_update_list, uid);
 	else
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 
@@ -866,6 +872,22 @@ int _media_svc_list_query_do(sqlite3 *handle, media_svc_query_type_e query_type,
 	}
 
 	return MS_MEDIA_ERR_NONE;
+}
+
+int _media_svc_append_query_list(const char *query, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+
+	g_media_svc_update_list = g_list_append(g_media_svc_update_list, query);
+
+	g_media_svc_update_list_count++;
+
+	if (g_media_svc_update_list_count >= MEDIA_SVC_MAX_COMMIT_SIZE) {
+		ret = _media_svc_list_query_do(NULL, MEDIA_SVC_QUERY_UPDATE_COMMON, uid);
+		g_media_svc_update_list_count = 0;
+	}
+
+	return ret;
 }
 
 int _media_svc_get_burst_id(sqlite3 *handle, const char *storage_id, int *id)
@@ -1130,7 +1152,7 @@ int _media_svc_insert_item_pass2(sqlite3 *handle, const char *storage_id, media_
 		recorded_date=%Q, copyright=%Q, track_num=%Q, description=%Q, bitrate=%d, bitpersample=%d, samplerate=%d, channel=%d, \
 		duration=%d, longitude=%.6f, latitude=%.6f, altitude=%.6f, width=%d, height=%d, datetaken=%Q, orientation=%d, exposure_time=%Q,\
 		fnumber=%.6f, iso=%d, model=%Q,	rating=%d, weather=%Q, file_name_pinyin=%Q, title_pinyin=%Q, album_pinyin=%Q, \
-		artist_pinyin=%Q, album_artist_pinyin=%Q, genre_pinyin=%Q, composer_pinyin=%Q, copyright_pinyin=%Q, description_pinyin=%Q WHERE path=%Q",
+		artist_pinyin=%Q, album_artist_pinyin=%Q, genre_pinyin=%Q, composer_pinyin=%Q, copyright_pinyin=%Q, description_pinyin=%Q WHERE path=%Q;",
 		storage_id,
 		//content_info->folder_uuid,
 		content_info->thumbnail_path,		/**/

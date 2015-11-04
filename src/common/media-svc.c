@@ -2293,3 +2293,23 @@ int media_svc_get_folder_id(MediaSvcHandle *handle, const char *storage_id, cons
 	return ret;
 }
 
+int media_svc_append_query(const char *query, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+
+	media_svc_retvm_if(query == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "query is NULL");
+
+	ret = _media_svc_append_query_list(query, uid);
+
+	return ret;
+}
+
+int media_svc_send_query(uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+
+	ret = _media_svc_list_query_do(NULL, MEDIA_SVC_QUERY_UPDATE_COMMON, uid);
+
+	return ret;
+}
+
