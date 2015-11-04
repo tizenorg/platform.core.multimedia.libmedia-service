@@ -261,13 +261,12 @@ static int __media_svc_split_to_double(char *input, double *arr)
 	return MS_MEDIA_ERR_NONE;
 }
 
-static int __media_svc_get_exif_info(ExifData *ed, char *buf, int *i_value, double *d_value, int ifdtype, long tagtype)
+static int __media_svc_get_exif_info(ExifData *ed, char *buf, int *i_value, double *d_value, long tagtype)
 {
 	ExifEntry *entry;
 	ExifTag tag;
 
 	if (ed == NULL) {
-		/*media_svc_debug("ExifData is NULL"); */
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
@@ -288,7 +287,6 @@ static int __media_svc_get_exif_info(ExifData *ed, char *buf, int *i_value, doub
 
 			ExifByteOrder mByteOrder = exif_data_get_byte_order(ed);
 			short exif_value = exif_get_short(entry->data, mByteOrder);
-			/*media_svc_debug("%s : %d", exif_tag_get_name_in_ifd(tag, ifd), exif_value); */
 			*i_value = (int)exif_value;
 
 		} else if (tag == EXIF_TAG_GPS_LATITUDE || tag == EXIF_TAG_GPS_LONGITUDE || tag == EXIF_TAG_GPS_ALTITUDE) {
@@ -303,7 +301,6 @@ static int __media_svc_get_exif_info(ExifData *ed, char *buf, int *i_value, doub
 			exif_entry_get_value(entry, gps_buf, sizeof(gps_buf));
 			gps_buf[strlen(gps_buf)] = '\0';
 			int ret = MS_MEDIA_ERR_NONE;
-			/*media_svc_debug("%s: [%s]", exif_tag_get_name_in_ifd(tag, ifd), gps_buf); */
 
 			double tmp_arr[3] = { 0.0, 0.0, 0.0 };
 
@@ -311,7 +308,6 @@ static int __media_svc_get_exif_info(ExifData *ed, char *buf, int *i_value, doub
 			media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 			*d_value = tmp_arr[0] + tmp_arr[1] / 60 + tmp_arr[2] / 3600;
-			/*media_svc_debug("GPS value is [%f], %f, %f, %f", *d_value, tmp_arr[0], tmp_arr[1], tmp_arr[2]); */
 		} else if (tag == EXIF_TAG_EXPOSURE_TIME) {
 
 			if (buf == NULL) {
@@ -1221,8 +1217,8 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 		goto GET_WIDTH_HEIGHT;
 	}
 
-	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE) == MS_MEDIA_ERR_NONE) {
-		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_GPS, EXIF_TAG_GPS_LATITUDE_REF) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_TAG_GPS_LATITUDE) == MS_MEDIA_ERR_NONE) {
+		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_TAG_GPS_LATITUDE_REF) == MS_MEDIA_ERR_NONE) {
 			if (strlen(buf) > 0) {
 				if (strcmp(buf, "S") == 0) {
 					value = -1 * value;
@@ -1238,8 +1234,8 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE) == MS_MEDIA_ERR_NONE) {
-		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_GPS, EXIF_TAG_GPS_LONGITUDE_REF) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_TAG_GPS_LONGITUDE) == MS_MEDIA_ERR_NONE) {
+		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_TAG_GPS_LONGITUDE_REF) == MS_MEDIA_ERR_NONE) {
 			if (strlen(buf) > 0) {
 				if (strcmp(buf, "W") == 0) {
 					value = -1 * value;
@@ -1255,7 +1251,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (__media_svc_get_exif_info(ed, description_buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_IMAGE_DESCRIPTION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, description_buf, NULL, NULL, EXIF_TAG_IMAGE_DESCRIPTION) == MS_MEDIA_ERR_NONE) {
 		if (strlen(description_buf) == 0) {
 			/*media_svc_debug("Use 'No description'"); */
 			ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.description, MEDIA_SVC_TAG_UNKNOWN);
@@ -1274,7 +1270,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (!has_datetaken && __media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_DATE_TIME_ORIGINAL) == MS_MEDIA_ERR_NONE) {
+	if (!has_datetaken && __media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_TAG_DATE_TIME_ORIGINAL) == MS_MEDIA_ERR_NONE) {
 		if (strlen(buf) == 0) {
 			/*media_svc_debug("time is NULL"); */
 		} else {
@@ -1293,7 +1289,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 
 	memset(buf, 0x00, sizeof(buf));
 
-	if (!has_datetaken && __media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_DATE_TIME) == MS_MEDIA_ERR_NONE) {
+	if (!has_datetaken && __media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_TAG_DATE_TIME) == MS_MEDIA_ERR_NONE) {
 		if (strlen(buf) == 0) {
 			/*media_svc_debug("time is NULL"); */
 		} else {
@@ -1320,7 +1316,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get exposure_time value from exif. */
-	if (__media_svc_get_exif_info(ed, exposure_time_buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_EXPOSURE_TIME) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, exposure_time_buf, NULL, NULL, EXIF_TAG_EXPOSURE_TIME) == MS_MEDIA_ERR_NONE) {
 		if (strlen(exposure_time_buf) == 0) {
 			//media_svc_debug("exposure_time_buf is NULL");
 		} else {
@@ -1331,7 +1327,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get fnumber value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, NULL, &fnumber, EXIF_IFD_0, EXIF_TAG_FNUMBER) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, NULL, &fnumber, EXIF_TAG_FNUMBER) == MS_MEDIA_ERR_NONE) {
 		if (fnumber > 0.0) {
 			content_info->media_meta.fnumber = fnumber;
 		} else {
@@ -1342,7 +1338,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get iso value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &iso, NULL, EXIF_IFD_0, EXIF_TAG_ISO_SPEED_RATINGS) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &iso, NULL, EXIF_TAG_ISO_SPEED_RATINGS) == MS_MEDIA_ERR_NONE) {
 		if (iso > 0) {
 			content_info->media_meta.iso = iso;
 		} else {
@@ -1353,7 +1349,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get model value from exif. */
-	if (__media_svc_get_exif_info(ed, model_buf, NULL, NULL, EXIF_IFD_0, EXIF_TAG_MODEL) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, model_buf, NULL, NULL, EXIF_TAG_MODEL) == MS_MEDIA_ERR_NONE) {
 		if (strlen(model_buf) == 0) {
 			//media_svc_debug("model_buf is NULL");
 		} else {
@@ -1364,7 +1360,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get orientation value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &orient_value, NULL, EXIF_IFD_0, EXIF_TAG_ORIENTATION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &orient_value, NULL, EXIF_TAG_ORIENTATION) == MS_MEDIA_ERR_NONE) {
 		if (orient_value >= NOT_AVAILABLE && orient_value <= ROT_270) {
 			content_info->media_meta.orientation = orient_value;
 		} else {
@@ -1375,7 +1371,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get width value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &exif_width, NULL, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_X_DIMENSION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &exif_width, NULL, EXIF_TAG_PIXEL_X_DIMENSION) == MS_MEDIA_ERR_NONE) {
 		if (exif_width > 0) {
 			content_info->media_meta.width = exif_width;
 		} else {
@@ -1386,7 +1382,7 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 	}
 
 	/* Get height value from exif. */
-	if (__media_svc_get_exif_info(ed, NULL, &exif_height, NULL, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_Y_DIMENSION) == MS_MEDIA_ERR_NONE) {
+	if (__media_svc_get_exif_info(ed, NULL, &exif_height, NULL, EXIF_TAG_PIXEL_Y_DIMENSION) == MS_MEDIA_ERR_NONE) {
 		if (exif_height > 0) {
 			content_info->media_meta.height = exif_height;
 		} else {
