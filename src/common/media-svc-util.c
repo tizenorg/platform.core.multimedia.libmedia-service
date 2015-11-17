@@ -648,7 +648,7 @@ static int __media_svc_resize_artwork(void *image, int size, const char *img_for
 		SAFE_FREE(raw_image);
 
 		/* encoding */
-		ret = image_util_encode_jpeg_to_memory(resized_raw_image, resized_width, resized_height, IMAGE_UTIL_COLORSPACE_RGB888, 90,  resize_image, resize_size);
+		ret = image_util_encode_jpeg_to_memory(resized_raw_image, resized_width, resized_height, IMAGE_UTIL_COLORSPACE_RGB888, 90, resize_image, resize_size);
 		if (ret != MS_MEDIA_ERR_NONE) {
 			media_svc_error("image_util_encode_jpeg_to_memory failed");
 			*resize_image = image;
@@ -1484,7 +1484,7 @@ int _media_svc_extract_music_metadata_for_update(sqlite3 *handle, media_svc_cont
 		}
 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_TITLE, &p, &size, NULL);
-		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == FILEINFO_ERROR_NONE) && (size > 0)/* && 	(!isspace(*p))*/) {
+		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == FILEINFO_ERROR_NONE) && (size > 0)/* && (!isspace(*p))*/) {
 			if (!isspace(*p)) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, p);
 				if (ret != MS_MEDIA_ERR_NONE)
@@ -1669,7 +1669,7 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 		}
 
 		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_TITLE, &p, &size, NULL);
-		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == FILEINFO_ERROR_NONE) && (size > 0)/* && 	(!isspace(*p))*/) {
+		if ((!(extracted_field & MEDIA_SVC_EXTRACTED_FIELD_TITLE)) && (mmf_error == FILEINFO_ERROR_NONE) && (size > 0)/* && (!isspace(*p))*/) {
 			if (!isspace(*p)) {
 				ret = __media_svc_malloc_and_strncpy(&content_info->media_meta.title, p);
 				if (ret != MS_MEDIA_ERR_NONE)

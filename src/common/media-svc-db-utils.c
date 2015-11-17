@@ -1299,7 +1299,7 @@ int _media_svc_sql_query_list(sqlite3 *handle, GList **query_list, uid_t uid)
 	char *sql = NULL;
 	char query_bundle[8000] = {0, };
 	int query_len = 0;
-	int total_len =0;
+	int total_len = 0;
 
 	media_svc_debug("query list length : [%d]", length);
 
