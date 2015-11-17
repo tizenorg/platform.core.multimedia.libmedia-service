@@ -326,7 +326,7 @@ int _media_svc_update_folder_table(sqlite3 *handle, const char *storage_id, uid_
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
 
-	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE folder_uuid IN (SELECT folder_uuid FROM '%s' WHERE folder_uuid NOT IN (SELECT folder_uuid FROM '%s'))",
+	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE folder_uuid IN (SELECT folder_uuid FROM '%s' WHERE folder_uuid NOT IN (SELECT folder_uuid FROM '%s'));",
 		MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_TABLE_FOLDER, storage_id);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
@@ -548,7 +548,7 @@ int _media_svc_get_and_append_folder_id_by_folder_path(sqlite3 *handle, const ch
 		_strncpy_safe(folder_id, folder_uuid, MEDIA_SVC_UUID_SIZE+1);
 
 	} else {
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity=1 WHERE storage_uuid = '%q' AND path = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity=1 WHERE storage_uuid = '%q' AND path = '%q';", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
 
 		if (!stack_query) {
 			ret = _media_svc_sql_query(handle, sql, uid);
@@ -568,7 +568,7 @@ int _media_svc_delete_invalid_folder(sqlite3 *handle, const char *storage_id, ui
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
 
-	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid = '%q' AND validity = 0", MEDIA_SVC_DB_TABLE_FOLDER, storage_id);
+	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid = '%q' AND validity = 0;", MEDIA_SVC_DB_TABLE_FOLDER, storage_id);
 	ret = _media_svc_sql_query(handle, sql, uid);
 
 	sqlite3_free(sql);
@@ -587,10 +587,10 @@ int _media_svc_set_folder_validity(sqlite3 *handle, const char *storage_id, cons
 		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_get_folder_id_by_foldername fail");
 		media_svc_retvm_if(!STRING_VALID(start_path_id), MS_MEDIA_ERR_INVALID_PARAMETER, "start_path_id is NULL");
 
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND (parent_folder_uuid = '%q' OR folder_uuid ='%q')",
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND (parent_folder_uuid = '%q' OR folder_uuid ='%q');",
 						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path_id, start_path_id);
 	} else {
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND path = '%q'",
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND path = '%q';",
 						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path);
 	}
 
@@ -606,7 +606,7 @@ int _media_svc_delete_folder_by_storage_id(sqlite3 *handle, const char *storage_
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
 
-	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid = '%q' AND storage_type = %d", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, storage_type);
+	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid = '%q' AND storage_type = %d;", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, storage_type);
 	ret = _media_svc_sql_query(handle, sql, uid);
 
 	sqlite3_free(sql);
@@ -630,7 +630,7 @@ int _media_svc_delete_invalid_folder_by_path(sqlite3 *handle, const char *storag
 		return MS_MEDIA_ERR_INVALID_PARAMETER;
 
 	/*check the number of the deleted folder*/
-	sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE (storage_uuid = '%q' AND validity = 0 AND PATH LIKE '%q/%%')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_path);
+	sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE (storage_uuid = '%q' AND validity = 0 AND PATH LIKE '%q/%%');", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_path);
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -641,7 +641,7 @@ int _media_svc_delete_invalid_folder_by_path(sqlite3 *handle, const char *storag
 	sql = NULL;
 
 	/*delete invalid folder*/
-	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE (storage_uuid = '%q' AND validity = 0 AND PATH LIKE '%q%%')", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_path);
+	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE (storage_uuid = '%q' AND validity = 0 AND PATH LIKE '%q%%');", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, folder_path);
 	ret = _media_svc_sql_query(handle, sql, uid);
 
 	sqlite3_free(sql);

@@ -137,19 +137,19 @@ int _media_svc_update_storage_path(sqlite3 *handle, const char *storage_id, cons
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*Storage table update*/
-	sql = sqlite3_mprintf("UPDATE '%s' SET storage_path=%Q WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_STORAGE, path, storage_id);
+	sql = sqlite3_mprintf("UPDATE '%s' SET storage_path=%Q WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, path, storage_id);
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*Folder table update*/
-	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q) WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_FOLDER, old_storage_path, path, storage_id);
+	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q) WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_FOLDER, old_storage_path, path, storage_id);
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*Media table update*/
-	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q)", storage_id, old_storage_path, path);
+	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q);", storage_id, old_storage_path, path);
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -163,9 +163,9 @@ int _media_svc_delete_storage(sqlite3 *handle, const char *storage_id, const cha
 	char *sql = NULL;
 
 	if (storage_name != NULL)
-			sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid=%Q AND storage_name=%Q", MEDIA_SVC_DB_TABLE_STORAGE, storage_id, storage_name);
+			sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid=%Q AND storage_name=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, storage_id, storage_name);
 	else if (storage_id != NULL)
-		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
+		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
@@ -179,7 +179,7 @@ int _media_svc_update_storage_validity(sqlite3 *handle, const char *storage_id, 
 	char *sql = NULL;
 
 	if (storage_id == NULL)
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_uuid != 'media' AND storage_type != %d", MEDIA_SVC_DB_TABLE_STORAGE, validity, MEDIA_SVC_STORAGE_CLOUD);
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_uuid != 'media' AND storage_type != %d;", MEDIA_SVC_DB_TABLE_STORAGE, validity, MEDIA_SVC_STORAGE_CLOUD);
 	else
 		sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, validity, storage_id);
 
@@ -337,9 +337,9 @@ int _media_svc_set_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	char *sql = NULL;
 
 	if (storage_id == NULL)
-		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid != 'media'", MEDIA_SVC_DB_TABLE_STORAGE, scan_status);
+		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid != 'media';", MEDIA_SVC_DB_TABLE_STORAGE, scan_status);
 	else
-		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_STORAGE, scan_status, storage_id);
+		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, scan_status, storage_id);
 
 	ret = _media_svc_sql_query(handle, sql, uid);
 	sqlite3_free(sql);
