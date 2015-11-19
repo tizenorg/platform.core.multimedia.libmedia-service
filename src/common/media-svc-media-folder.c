@@ -587,8 +587,8 @@ int _media_svc_set_folder_validity(sqlite3 *handle, const char *storage_id, cons
 		media_svc_retvm_if(ret != MS_MEDIA_ERR_NONE, ret, "_media_svc_get_folder_id_by_foldername fail");
 		media_svc_retvm_if(!STRING_VALID(start_path_id), MS_MEDIA_ERR_INVALID_PARAMETER, "start_path_id is NULL");
 
-		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND (parent_folder_uuid = '%q' OR folder_uuid ='%q');",
-						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path_id, start_path_id);
+		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND (path LIKE '%q/%%' OR folder_uuid ='%q')",
+						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path, start_path_id);
 	} else {
 		sql = sqlite3_mprintf("UPDATE '%s' SET validity = %d WHERE storage_uuid = '%q' AND path = '%q';",
 						MEDIA_SVC_DB_TABLE_FOLDER, validity, storage_id, start_path);
