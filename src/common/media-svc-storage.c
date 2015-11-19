@@ -46,7 +46,7 @@ int _media_svc_init_storage(sqlite3 *handle, uid_t uid)
 		sql = sqlite3_mprintf("INSERT INTO %s (storage_uuid, storage_name, storage_path, storage_type) VALUES ('%s', '%s', '%s', 0);",
 						MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA, internal_path);
 
-		ret = _media_svc_sql_query(handle, sql, uid);
+		ret = _media_svc_sql_query(sql, uid);
 		sqlite3_free(sql);
 		SAFE_FREE(internal_path);
 		media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -113,13 +113,13 @@ int _media_svc_check_storage(sqlite3 *handle, const char *storage_id, const char
 	return MS_MEDIA_ERR_NONE;
 }
 
-int _media_svc_append_storage(sqlite3 *handle, const char *storage_id, const char *storage_name, const char *storage_path, const char *storage_account, media_svc_storage_type_e storage_type, uid_t uid)
+int _media_svc_append_storage(const char *storage_id, const char *storage_name, const char *storage_path, const char *storage_account, media_svc_storage_type_e storage_type, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = sqlite3_mprintf("INSERT INTO %s (storage_uuid, storage_name, storage_path, storage_account, storage_type) values (%Q, %Q, %Q, %Q, %d); ",
 						MEDIA_SVC_DB_TABLE_STORAGE, storage_id, storage_name, storage_path, storage_account, storage_type);
 
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 
 	return ret;
@@ -138,26 +138,26 @@ int _media_svc_update_storage_path(sqlite3 *handle, const char *storage_id, cons
 
 	/*Storage table update*/
 	sql = sqlite3_mprintf("UPDATE '%s' SET storage_path=%Q WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, path, storage_id);
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*Folder table update*/
 	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q) WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_FOLDER, old_storage_path, path, storage_id);
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*Media table update*/
 	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q);", storage_id, old_storage_path, path);
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	return ret;
 }
 
-int _media_svc_delete_storage(sqlite3 *handle, const char *storage_id, const char *storage_name, uid_t uid)
+int _media_svc_delete_storage(const char *storage_id, const char *storage_name, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
@@ -167,13 +167,13 @@ int _media_svc_delete_storage(sqlite3 *handle, const char *storage_id, const cha
 	else if (storage_id != NULL)
 		sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
 
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 
 	return ret;
 }
 
-int _media_svc_update_storage_validity(sqlite3 *handle, const char *storage_id, int validity, uid_t uid)
+int _media_svc_update_storage_validity(const char *storage_id, int validity, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
@@ -183,7 +183,7 @@ int _media_svc_update_storage_validity(sqlite3 *handle, const char *storage_id, 
 	else
 		sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, validity, storage_id);
 
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 
 	return ret;
@@ -331,7 +331,7 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	return ret;
 }
 
-int _media_svc_set_storage_scan_status(sqlite3 *handle, const char *storage_id, media_svc_scan_status_type_e scan_status, uid_t uid)
+int _media_svc_set_storage_scan_status(const char *storage_id, media_svc_scan_status_type_e scan_status, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
@@ -341,7 +341,7 @@ int _media_svc_set_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	else
 		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, scan_status, storage_id);
 
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 
 	return ret;

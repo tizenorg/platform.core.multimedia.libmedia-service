@@ -107,7 +107,7 @@ int main()
 	}
 
 #if 1
-	ret = media_svc_create_table(db_handle);
+	ret = media_svc_create_table(tzplatform_getuid(TZ_USER_NAME));
 	if (ret < 0) {
 		msg_print(__LINE__, "table already exists");
 	} else {

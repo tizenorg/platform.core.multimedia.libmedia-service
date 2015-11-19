@@ -98,7 +98,7 @@ gboolean _send_noti_batch_operations(gpointer data)
 	int idx = 0;
 	char *file_list[10];
 
-	ret = media_svc_insert_item_begin(g_db_handle, 100, TRUE, getpid());
+	ret = media_svc_insert_item_begin(100, TRUE, getpid());
 	/*ret = media_svc_insert_item_begin(g_db_handle, 100); */
 	for (idx = 0; idx < 10; idx++) {
 		char filepath[255] = {0, };
@@ -113,7 +113,7 @@ gboolean _send_noti_batch_operations(gpointer data)
 		}
 	}
 
-	ret = media_svc_insert_item_end(g_db_handle);
+	ret = media_svc_insert_item_end(tzplatform_getuid(TZ_USER_NAME));
 
 	SAFE_FREE(user_str);
 	return FALSE;

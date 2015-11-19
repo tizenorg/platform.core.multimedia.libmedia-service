@@ -100,7 +100,7 @@ int _media_svc_append_album(sqlite3 *handle, const char *album, const char *arti
 
 	char *sql = sqlite3_mprintf("INSERT INTO %s (name, artist, album_art, album_art) values (%Q, %Q, %Q, %Q); ",
 				MEDIA_SVC_DB_TABLE_ALBUM, album, artist, album_art, album_art);
-	ret = _media_svc_sql_query(handle, sql, uid);
+	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
