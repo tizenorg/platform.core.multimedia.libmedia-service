@@ -40,6 +40,14 @@ static int __media_svc_publish_noti_by_item(media_svc_noti_item *noti_item)
 		} else {
 			media_svc_debug("media_db_update_send success");
 		}
+
+		ret = media_db_update_send_internal(noti_item->pid, noti_item->update_item, noti_item->update_type, noti_item->path, noti_item->media_uuid, noti_item->media_type, noti_item->mime_type);
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("media_db_update_send_internal failed : %d [%s]", ret, noti_item->path);
+			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
+		} else {
+			media_svc_debug("media_db_update_send_internal success");
+		}
 	} else {
 		media_svc_debug("invalid path");
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
@@ -65,6 +73,14 @@ int _media_svc_publish_noti(media_item_type_e update_item,
 			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
 		} else {
 			media_svc_debug("Send noti success [%d][%d]", update_item, update_type);
+		}
+
+		ret = media_db_update_send_internal(getpid(), update_item, update_type, (char *)path, (char *)uuid, media_type, (char *)mime_type);
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("media_db_update_send_internal failed : %d [%s]", ret, path);
+			ret = MS_MEDIA_ERR_SEND_NOTI_FAIL;
+		} else {
+			media_svc_debug("media_db_update_send_internal success [%d][%d]", update_item, update_type);
 		}
 	} else {
 		media_svc_debug("invalid path");
