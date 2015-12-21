@@ -1144,7 +1144,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 
 		/* Rename thumbnail file of file system */
 		char *default_thumbnail_path = _media_svc_get_thumb_default_path(uid);
-		if ((!no_thumb) && (strncmp(media_thumb_path, default_thumbnail_path, strlen(default_thumbnail_path)) != 0)) {
+		if ((!no_thumb) && (default_thumbnail_path != NULL) && (strncmp(media_thumb_path, default_thumbnail_path, strlen(default_thumbnail_path)) != 0)) {
 			ret = _media_svc_rename_file(media_thumb_path, media_new_thumb_path);
 			if (ret != MS_MEDIA_ERR_NONE) {
 				media_svc_error("_media_svc_rename_file failed : %d", ret);
