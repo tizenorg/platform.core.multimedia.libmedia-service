@@ -635,6 +635,15 @@ static int __media_svc_resize_artwork(void *image, int size, const char *img_for
 		image_util_calculate_buffer_size(resized_width, resized_height, IMAGE_UTIL_COLORSPACE_RGB888 , &buf_size);
 
 		resized_raw_image = malloc(buf_size);
+
+		if (resized_raw_image == NULL) {
+			media_svc_error("malloc failed");
+			*resize_image = image;
+			*resize_size = size;
+			SAFE_FREE(raw_image);
+			return MS_MEDIA_ERR_NONE;
+		}
+
 		memset(resized_raw_image, 0, buf_size);
 
 		ret = image_util_resize(resized_raw_image, &resized_width, &resized_height, raw_image, width, height, IMAGE_UTIL_COLORSPACE_RGB888);
@@ -643,6 +652,7 @@ static int __media_svc_resize_artwork(void *image, int size, const char *img_for
 			*resize_image = image;
 			*resize_size = size;
 			SAFE_FREE(raw_image);
+			SAFE_FREE(resized_raw_image);
 			return MS_MEDIA_ERR_NONE;
 		}
 		SAFE_FREE(raw_image);
@@ -653,8 +663,8 @@ static int __media_svc_resize_artwork(void *image, int size, const char *img_for
 			media_svc_error("image_util_encode_jpeg_to_memory failed");
 			*resize_image = image;
 			*resize_size = size;
-			return MS_MEDIA_ERR_NONE;
 			SAFE_FREE(resized_raw_image);
+			return MS_MEDIA_ERR_NONE;
 		}
 		SAFE_FREE(resized_raw_image);
 
