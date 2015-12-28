@@ -26,7 +26,7 @@ BuildRequires:  pkgconfig(iniparser)
 BuildRequires:  pkgconfig(capi-media-image-util)
 
 %description
-Media information service library for multimedia applications.
+This package is a library that provides the media information service for the multimedia applications.
 
 %package devel
 Summary:    Media information service library for multimedia applications. (development)
@@ -34,7 +34,7 @@ Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
 
 %description devel
-Media information service library for multimedia applications. (development files)
+This package is a library that provides the media information service for the multimedia applications. (Development files included)
 
 %prep
 %setup -q
