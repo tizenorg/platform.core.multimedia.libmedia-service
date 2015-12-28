@@ -50,7 +50,7 @@ rm -rf %{buildroot}
 
 #License
 mkdir -p %{buildroot}/%{_datadir}/license
-cp -rf %{_builddir}/%{name}-%{version}/LICENSE %{buildroot}/%{_datadir}/license/%{name}
+cp -rf %{_builddir}/%{name}-%{version}/LICENSE.APLv2.0 %{buildroot}/%{_datadir}/license/%{name}
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
