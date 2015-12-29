@@ -2,7 +2,7 @@ Name:       libmedia-service
 Summary:    Media information service library for multimedia applications
 Version: 0.2.62
 Release:    0
-Group:      System/Libraries
+Group:      Multimedia/Libraries
 License:    Apache-2.0 and public domain
 Source0:    %{name}-%{version}.tar.gz
 Source1001: 	libmedia-service.manifest
@@ -30,7 +30,7 @@ This package is a library that provides the media information service for the mu
 
 %package devel
 Summary:    Media information service library for multimedia applications. (development)
-Group:      Development/Libraries
+Group:      Multimedia/Development
 Requires:   %{name} = %{version}-%{release}
 
 %description devel
