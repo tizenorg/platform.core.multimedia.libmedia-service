@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <mm_file.h>
 #include <media-thumbnail.h>
+#include <media-util.h>
 #include "media-svc.h"
 #include "media-svc-util.h"
 
@@ -461,6 +462,12 @@ int update_end(const char *start_path, uid_t uid)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 #endif
+	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
+
+	ret = dcm_svc_request_extract_all(uid);
+	if (ret < 0) {
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
