@@ -74,7 +74,6 @@ int _media_svc_get_ini_value();
 char *_media_svc_get_title_from_path(const char *path);
 void _media_svc_print_stderror(void);
 
-
 #ifdef __cplusplus
 }
 #endif

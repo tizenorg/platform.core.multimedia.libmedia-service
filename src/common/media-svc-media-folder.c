@@ -27,6 +27,8 @@
 #include "media-svc-util.h"
 #include "media-svc-db-utils.h"
 
+#define FOLDER_SCAN_DONE 4
+
 extern __thread GList *g_media_svc_move_item_query_list;
 static __thread GList *g_media_svc_insert_folder_query_list;
 
@@ -617,6 +619,200 @@ int _media_svc_delete_folder_by_storage_id(const char *storage_id, media_svc_sto
 GList ** _media_svc_get_folder_list_ptr(void)
 {
 	return &g_media_svc_insert_folder_query_list;
+}
+
+int _media_svc_get_folder_scan_status(sqlite3 *handle, const char *storage_id, const char *path, int *scan_status)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+	char *sql = NULL;
+
+	if (!STRING_VALID(path)) {
+		media_svc_error("Not found valid path");
+		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
+	}
+
+	sql = sqlite3_mprintf("SELECT scan_status FROM '%s' WHERE path = '%q' AND storage_uuid = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, path, storage_id);
+
+	ret = _media_svc_sql_prepare_to_step_simple(handle, sql, &sql_stmt);
+
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	while(sqlite3_step(sql_stmt) == SQLITE_ROW) {
+		*scan_status = sqlite3_column_int(sql_stmt, 0);
+	}
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return ret;
+}
+
+int _media_svc_set_folder_scan_status(const char *storage_id, const char *path, int scan_status, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	char *sql = NULL;
+
+	if (path) {
+		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE path = '%q' AND storage_uuid = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, scan_status, path, storage_id);
+	} else {
+		sql = sqlite3_mprintf("UPDATE '%s' SET scan_status=%d WHERE storage_uuid = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, scan_status, storage_id);
+	}
+
+	ret = _media_svc_sql_query(sql, uid);
+	sqlite3_free(sql);
+
+	return ret;
+}
+
+int _media_svc_get_folder_modified_time_by_path(sqlite3 *handle, const char *path, const char *storage_id, time_t *modified_time)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	sqlite3_stmt *sql_stmt = NULL;
+
+	char *sql = sqlite3_mprintf("SELECT modified_time FROM '%s' WHERE path = '%q' AND storage_uuid = '%q';", MEDIA_SVC_DB_TABLE_FOLDER, path, storage_id);
+
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	if (ret != MS_MEDIA_ERR_NONE) {
+		if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+			media_svc_debug("there is no folder.");
+		} else {
+			media_svc_error("error when _media_svc_get_folder_modified_time_by_path. err = [%d]", ret);
+		}
+		return ret;
+	}
+
+	*modified_time = (int)sqlite3_column_int(sql_stmt, 0);
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return ret;
+}
+
+int _media_svc_get_null_scan_folder_list(sqlite3 *handle, char *storage_id, char *path, char ***folder_list, int *count)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+	int idx = 0;
+	int cnt = 0;
+	char *sql = NULL;
+	char folder_id[MEDIA_SVC_UUID_SIZE+1] = {0,};
+	sqlite3_stmt *sql_stmt = NULL;
+
+	if (path == NULL) {
+		sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE storage_uuid = '%q' AND scan_status!=%d", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, FOLDER_SCAN_DONE);
+		ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+		if (ret != MS_MEDIA_ERR_NONE) {
+			if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+				media_svc_debug("there is no folder.");
+			} else {
+				media_svc_error("error when get folder_id by path. err = [%d]", ret);
+			}
+
+			*folder_list = NULL;
+			*count = 0;
+
+			return ret;
+		}
+
+		cnt = sqlite3_column_int(sql_stmt, 0);
+		SQLITE3_FINALIZE(sql_stmt);
+		if (cnt > 0) {
+			sql = sqlite3_mprintf("SELECT path FROM '%s' WHERE storage_uuid = '%q' AND scan_status!=%d", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, FOLDER_SCAN_DONE);
+		} else {
+			*folder_list = NULL;
+			*count = 0;
+
+			return MS_MEDIA_ERR_INTERNAL;
+		}
+
+		ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("prepare error [%s]", sqlite3_errmsg(handle));
+
+			*folder_list = NULL;
+			*count = 0;
+
+			return ret;
+		}
+	} else {
+		sql = sqlite3_mprintf("SELECT folder_uuid FROM '%s' WHERE storage_uuid = '%q' AND path = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, storage_id, path);
+		ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+		if (ret != MS_MEDIA_ERR_NONE) {
+			if (ret == MS_MEDIA_ERR_DB_NO_RECORD) {
+				media_svc_debug("there is no folder.");
+			} else {
+				media_svc_error("error when get folder_id by path [%s]. err = [%d]", path, ret);
+			}
+			return ret;
+		}
+
+		_strncpy_safe(folder_id, (const char *)sqlite3_column_text(sql_stmt, 0), MEDIA_SVC_UUID_SIZE+1);
+
+		SQLITE3_FINALIZE(sql_stmt);
+
+		sql = sqlite3_mprintf("SELECT count(*) FROM '%s' WHERE path LIKE '%q%%' AND parent_folder_uuid = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, path, folder_id);
+
+		ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("error when _media_svc_sql_prepare_to_step. err = [%d]", ret);
+			return ret;
+		}
+
+		cnt = sqlite3_column_int(sql_stmt, 0);
+		SQLITE3_FINALIZE(sql_stmt);
+		if (cnt > 0) {
+			sql = sqlite3_mprintf("SELECT path FROM '%s' WHERE path LIKE '%q%%' AND parent_folder_uuid = '%q'", MEDIA_SVC_DB_TABLE_FOLDER, path, folder_id);
+		} else {
+			*folder_list = NULL;
+			*count = 0;
+
+			return MS_MEDIA_ERR_NONE;
+		}
+
+		ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+		if (ret != MS_MEDIA_ERR_NONE) {
+			media_svc_error("prepare error [%s]", sqlite3_errmsg(handle));
+
+			*folder_list = NULL;
+			*count = 0;
+
+			return ret;
+		}
+	}
+
+	*folder_list = malloc(sizeof(char *) * cnt);
+
+	while (1) {
+		(*folder_list)[idx] = strdup((char *)sqlite3_column_text(sql_stmt, 0));
+
+		if(sqlite3_step(sql_stmt) != SQLITE_ROW)
+			break;
+		idx++;
+	}
+
+	if (cnt == idx + 1) {
+		*count = cnt;
+		media_svc_debug("OK");
+	} else {
+		/* free all data */
+		int i =0;
+		for (i  = 0; i < idx; i ++)
+		{
+			SAFE_FREE((*folder_list)[i]);
+		}
+		SAFE_FREE(*folder_list);
+		*count = 0;
+		ret = MS_MEDIA_ERR_INTERNAL;
+	}
+
+	SQLITE3_FINALIZE(sql_stmt);
+
+	return ret;
 }
 
 int _media_svc_delete_invalid_folder_by_path(sqlite3 *handle, const char *storage_id, const char *folder_path, uid_t uid, int *delete_count)

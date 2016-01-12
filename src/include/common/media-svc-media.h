@@ -52,6 +52,7 @@ char *_media_svc_get_thumb_default_path(uid_t uid);
 int _media_svc_get_fileinfo_by_path(sqlite3 *handle, const char *storage_id, const char *path, time_t *modified_time, unsigned long long *size);
 int _media_svc_update_meta_with_data(media_svc_content_info_s *content_info);
 
+int _media_svc_change_validity_item_batch(const char *storage_id, const char *path, int des_validity, int src_validity, uid_t uid);
 int _media_svc_insert_item_pass1(sqlite3 *handle, const char *storage_id, media_svc_content_info_s *content_info, int is_burst, bool stack_query, uid_t uid);
 int _media_svc_insert_item_pass2(const char *storage_id, media_svc_content_info_s *content_info, int is_burst, bool stack_query, uid_t uid);
 

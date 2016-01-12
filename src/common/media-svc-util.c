@@ -149,12 +149,17 @@ typedef enum {
 char *_media_info_generate_uuid(void)
 {
 	uuid_t uuid_value;
-	static char uuid_unparsed[50];
+	static char uuid_unparsed[37];
 
+RETRY_GEN:
 	uuid_generate(uuid_value);
 	uuid_unparse(uuid_value, uuid_unparsed);
 
-	/*media_svc_debug("UUID : %s", uuid_unparsed); */
+	if (strlen(uuid_unparsed) < 36) {
+		media_svc_debug("INVALID UUID : %s. RETRY GENERATE.", uuid_unparsed);
+		goto RETRY_GEN;
+	}
+
 	return uuid_unparsed;
 }
 

@@ -203,28 +203,20 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 		return MS_MEDIA_ERR_NONE;
 	}
 
-	sql = sqlite3_mprintf("SELECT storage_uuid, storage_path FROM '%s' WHERE validity=1", MEDIA_SVC_DB_TABLE_STORAGE);
-
-	ret = _media_svc_sql_prepare_to_step_simple(handle, sql, &sql_stmt);
-
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-
 	remain_path = strstr(path + (STRING_VALID(MEDIA_ROOT_PATH_USB) ? strlen(MEDIA_ROOT_PATH_USB) : 0) + 1, "/");
 	if (remain_path != NULL)
 		remain_len = strlen(remain_path);
 
 	storage_path = strndup(path, strlen(path) - remain_len);
 
-	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
-		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1))) {
-			if (strlen(storage_path) == strlen((const char *)sqlite3_column_text(sql_stmt, 1))) {
-				if (strncmp(storage_path, (const char *)sqlite3_column_text(sql_stmt, 1), strlen(storage_path)) == 0) {
-					_strncpy_safe(storage_id, (const char *)sqlite3_column_text(sql_stmt, 0), MEDIA_SVC_UUID_SIZE+1);
-					break;
-				}
-			}
-		}
+	sql = sqlite3_mprintf("SELECT storage_uuid FROM '%s' WHERE validity=1 AND storage_path = '%s'", MEDIA_SVC_DB_TABLE_STORAGE, storage_path);
 
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
+	{
+		_strncpy_safe(storage_id, (const char *)sqlite3_column_text(sql_stmt, 0), MEDIA_SVC_UUID_SIZE+1);
 	}
 
 	SQLITE3_FINALIZE(sql_stmt);
@@ -307,24 +299,20 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	char *sql = NULL;
 
 	if (!STRING_VALID(storage_id)) {
-		media_svc_error("Invalid storage_id");
-		return MS_MEDIA_ERR_INVALID_PARAMETER;
+		media_svc_error("Not found valid storage id");
+		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
 	sql = sqlite3_mprintf("SELECT scan_status FROM '%s' WHERE (storage_uuid=%Q AND validity=1)", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
 
-	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+	ret = _media_svc_sql_prepare_to_step_simple(handle, sql, &sql_stmt);
 
-	if (ret != MS_MEDIA_ERR_NONE) {
-		if (ret == MS_MEDIA_ERR_DB_NO_RECORD)
-			media_svc_debug("there is no storage.");
-		else
-			media_svc_error("error when _media_svc_get_storage_scan_status. err = [%d]", ret);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-		return ret;
+	while(sqlite3_step(sql_stmt) == SQLITE_ROW)
+	{
+		*scan_status = sqlite3_column_int(sql_stmt, 0);
 	}
-
-	*scan_status = sqlite3_column_int(sql_stmt, 0);
 
 	SQLITE3_FINALIZE(sql_stmt);
 

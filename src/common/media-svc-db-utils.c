@@ -682,7 +682,7 @@ int _media_svc_init_table_query(const char *event_table_name)
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "content_name", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V2, "media_content_name_idx", false, false, true);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "category", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V2, "media_category_idx", false, false, true);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "category", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V2, NULL, false, false, true);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "location_tag", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V2, "media_location_tag_idx", false, false, true);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
@@ -766,6 +766,8 @@ int _media_svc_init_table_query(const char *event_table_name)
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "parent_folder_uuid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "validity", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 1", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FOLDER], "scan_status", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*playlist_map*/

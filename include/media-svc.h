@@ -94,6 +94,11 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 int media_svc_insert_folder_begin(int data_cnt);
 int media_svc_insert_folder_end(uid_t uid);
 
+int media_svc_get_folder_scan_status(MediaSvcHandle *handle, const char *storage_id, const char *path, int *storage_status);
+int media_svc_set_folder_scan_status(const char *storage_id, const char *path, int storage_status, uid_t uid);
+int media_svc_get_folder_modified_time(MediaSvcHandle *handle, const char *path, const char *storage_id, bool *modified);
+int media_svc_get_null_scan_folder_list(MediaSvcHandle *handle, char *storage_id, char* folder_path, char ***folder_list, int *count);
+int media_svc_change_validity_item_batch(const char *storage_id, const char *path, int des_validity, int src_validity, uid_t uid);
 int media_svc_delete_invalid_folder_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, uid_t uid, int *delete_count);
 int media_svc_check_folder_exist_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path);
 int media_svc_check_subfolder_by_path(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, int *count);

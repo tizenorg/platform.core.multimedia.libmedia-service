@@ -1029,53 +1029,24 @@ int _media_svc_get_fileinfo_by_path(sqlite3 *handle, const char *storage_id, con
 	return MS_MEDIA_ERR_NONE;
 }
 
+int _media_svc_change_validity_item_batch(const char *storage_id, const char *path, int des_validity, int src_validity, uid_t uid)
+{
+	int ret = MS_MEDIA_ERR_NONE;
+
+	char *sql = sqlite3_mprintf("UPDATE '%s' SET validity=%d WHERE validity=%d AND path LIKE '%q%%'", storage_id, des_validity, src_validity, path);
+
+	ret = _media_svc_sql_query(sql, uid);
+	sqlite3_free(sql);
+
+	return ret;
+}
+
 int _media_svc_insert_item_pass1(sqlite3 *handle, const char *storage_id, media_svc_content_info_s *content_info, int is_burst, bool stack_query, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *burst_id = NULL;
 
-	media_svc_debug("START pass1");
-
 	char * db_fields = (char *)"media_uuid, folder_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, is_drm, storage_type, timeline, burst_id, storage_uuid";
-#if 0
-	if (is_burst) {
-		int burst_id_int = 0;
-		ret = _media_svc_get_burst_id(handle, storage_id, &burst_id_int);
-		if (ret != MS_MEDIA_ERR_NONE) {
-			burst_id = NULL;
-		}
-
-		if (burst_id_int > 0) {
-			media_svc_debug("Burst id : %d", burst_id_int);
-			burst_id = sqlite3_mprintf("%d", burst_id_int);
-		}
-
-		/* Get thumbnail for burst shot */
-		char thumb_path[MEDIA_SVC_PATHNAME_SIZE + 1] = {0, };
-		int width = 0;
-		int height = 0;
-
-		ret = _media_svc_request_thumbnail_with_origin_size(content_info->path, thumb_path, sizeof(thumb_path), &width, &height);
-		if (ret == MS_MEDIA_ERR_NONE) {
-			ret = __media_svc_malloc_and_strncpy(&(content_info->thumbnail_path), thumb_path);
-			if (ret != MS_MEDIA_ERR_NONE) {
-				content_info->thumbnail_path = NULL;
-			}
-		}
-
-		if (content_info->media_meta.width <= 0)
-			content_info->media_meta.width = width;
-
-		if (content_info->media_meta.height <= 0)
-			content_info->media_meta.height = height;
-	}
-
-	/* Update Pinyin If Support Pinyin */
-	if (_media_svc_check_pinyin_support()) {
-		if (STRING_VALID(content_info->file_name))
-			_media_svc_get_pinyin_str(content_info->file_name, &content_info->file_name_pinyin);
-	}
-#endif
 
 	char *sql = sqlite3_mprintf("INSERT INTO '%s' (%s) VALUES (%Q, %Q, %Q, %Q, %d, %Q, %lld, \
 								%d, %d, %d, %d, %d, %Q, %Q);",
@@ -1146,7 +1117,6 @@ int _media_svc_insert_item_pass2(const char *storage_id, media_svc_content_info_
 			_media_svc_get_pinyin_str(content_info->media_meta.description, &content_info->media_meta.description_pinyin);
 	}
 
-	/*modified month does not exist in Tizen 2.4*/
 	char *sql = sqlite3_mprintf("UPDATE '%s' SET \
 		thumbnail_path=%Q, title=%Q, album_id=%d, album=%Q, artist=%Q, album_artist=%Q, genre=%Q, composer=%Q, year=%Q, \
 		recorded_date=%Q, copyright=%Q, track_num=%Q, description=%Q, bitrate=%d, bitpersample=%d, samplerate=%d, channel=%d, \
@@ -1155,7 +1125,7 @@ int _media_svc_insert_item_pass2(const char *storage_id, media_svc_content_info_
 		artist_pinyin=%Q, album_artist_pinyin=%Q, genre_pinyin=%Q, composer_pinyin=%Q, copyright_pinyin=%Q, description_pinyin=%Q WHERE path=%Q;",
 		storage_id,
 		//content_info->folder_uuid,
-		content_info->thumbnail_path,		/**/
+		content_info->thumbnail_path,
 		content_info->media_meta.title,
 		content_info->album_id,
 		content_info->media_meta.album,
@@ -1167,7 +1137,7 @@ int _media_svc_insert_item_pass2(const char *storage_id, media_svc_content_info_
 		content_info->media_meta.recorded_date,
 		content_info->media_meta.copyright,
 		content_info->media_meta.track_num,
-		content_info->media_meta.description,	/**/
+		content_info->media_meta.description,
 		content_info->media_meta.bitrate,
 		content_info->media_meta.bitpersample,
 		content_info->media_meta.samplerate,

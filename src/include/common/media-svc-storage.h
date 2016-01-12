@@ -38,5 +38,4 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char*storage_id, m
 int _media_svc_set_storage_scan_status(const char*storage_id, media_svc_scan_status_type_e scan_status, uid_t uid);
 int _media_svc_get_all_storage(sqlite3 *handle, char ***storage_list, char ***storage_id_list, int **scan_status_list, int *count);
 
-
 #endif /*_MEDIA_SVC_STORAGE_H_*/
