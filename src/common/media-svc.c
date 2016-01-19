@@ -1045,7 +1045,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 		bool no_thumb = FALSE;
 
 		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0))) {
-			strncpy(media_uuid,	(const char *)sqlite3_column_text(sql_stmt, 0), sizeof(media_uuid));
+			strncpy(media_uuid, (const char *)sqlite3_column_text(sql_stmt, 0), sizeof(media_uuid));
 			media_uuid[sizeof(media_uuid) - 1] = '\0';
 		} else {
 			media_svc_error("media UUID is NULL");
@@ -1053,7 +1053,7 @@ int media_svc_rename_folder(MediaSvcHandle *handle, const char *storage_id, cons
 		}
 
 		if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 1))) {
-			strncpy(media_path,	(const char *)sqlite3_column_text(sql_stmt, 1), sizeof(media_path));
+			strncpy(media_path, (const char *)sqlite3_column_text(sql_stmt, 1), sizeof(media_path));
 			media_path[sizeof(media_path) - 1] = '\0';
 		} else {
 			media_svc_error("media path is NULL");

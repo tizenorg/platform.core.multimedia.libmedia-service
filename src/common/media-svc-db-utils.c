@@ -1080,7 +1080,7 @@ static int __media_svc_db_upgrade(sqlite3 *db_handle, int cur_version, uid_t uid
 		SQLITE3_SAFE_FREE(sql);
 
 	} else {
-		ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_FOLDER , MEDIA_SVC_DB_LIST_FOLDER, uid);
+		ret = _media_svc_upgrade_table_query(db_handle, MEDIA_SVC_DB_TABLE_FOLDER, MEDIA_SVC_DB_LIST_FOLDER, uid);
 		if (ret != MS_MEDIA_ERR_NONE) {
 			 media_svc_error("_media_svc_upgrade_table_query failed");
 			goto ERROR;

@@ -1131,7 +1131,7 @@ int check_folder_exist(void * handle, const char *storage_id, const char *folder
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int count_subfolder(void * handle, const char *storage_id, const char *folder_path, int *count, char **err_msg)
+int count_subfolder(void *handle, const char *storage_id, const char *folder_path, int *count, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 	int cnt = 0;
