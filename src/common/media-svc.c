@@ -2098,8 +2098,7 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 
 	char *sql;
 	char folder_uuid[MEDIA_SVC_UUID_SIZE+1] = {0,};
-	if (scan_type == MS_MSG_DIRECTORY_SCANNING_NON_RECURSIVE)
-	{
+	if (scan_type == MS_MSG_DIRECTORY_SCANNING_NON_RECURSIVE) {
 		ret = _media_svc_get_folder_id_by_foldername(handle, storage_id, extract_path, folder_uuid, uid);
 	}
 
@@ -2118,7 +2117,7 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 			sql = sqlite3_mprintf("SELECT path, media_type FROM '%s' WHERE validity = 1 and title IS NULL and path LIKE '%q%%' LIMIT %d", storage_id, extract_path, BATCH_REQUEST_MAX);
 		}
 	} else {
-		if(is_burst == 1) {
+		if (is_burst == 1) {
 			sql = sqlite3_mprintf("SELECT path, media_type FROM '%s' WHERE validity = 1 and title IS NULL", storage_id);
 		} else {
 			sql = sqlite3_mprintf("SELECT path, media_type FROM '%s' WHERE validity = 1 and title IS NULL LIMIT %d", storage_id, BATCH_REQUEST_MAX);

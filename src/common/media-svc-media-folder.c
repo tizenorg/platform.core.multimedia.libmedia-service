@@ -616,7 +616,7 @@ int _media_svc_delete_folder_by_storage_id(const char *storage_id, media_svc_sto
 	return ret;
 }
 
-GList ** _media_svc_get_folder_list_ptr(void)
+GList **_media_svc_get_folder_list_ptr(void)
 {
 	return &g_media_svc_insert_folder_query_list;
 }
@@ -638,7 +638,7 @@ int _media_svc_get_folder_scan_status(sqlite3 *handle, const char *storage_id, c
 
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	while(sqlite3_step(sql_stmt) == SQLITE_ROW) {
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
 		*scan_status = sqlite3_column_int(sql_stmt, 0);
 	}
 
@@ -790,7 +790,7 @@ int _media_svc_get_null_scan_folder_list(sqlite3 *handle, char *storage_id, char
 	while (1) {
 		(*folder_list)[idx] = strdup((char *)sqlite3_column_text(sql_stmt, 0));
 
-		if(sqlite3_step(sql_stmt) != SQLITE_ROW)
+		if (sqlite3_step(sql_stmt) != SQLITE_ROW)
 			break;
 		idx++;
 	}
@@ -800,9 +800,8 @@ int _media_svc_get_null_scan_folder_list(sqlite3 *handle, char *storage_id, char
 		media_svc_debug("OK");
 	} else {
 		/* free all data */
-		int i =0;
-		for (i  = 0; i < idx; i ++)
-		{
+		int i = 0;
+		for (i  = 0; i < idx; i++) {
 			SAFE_FREE((*folder_list)[i]);
 		}
 		SAFE_FREE(*folder_list);

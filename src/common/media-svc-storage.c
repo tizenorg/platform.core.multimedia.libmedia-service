@@ -214,8 +214,7 @@ int _media_svc_get_storage_uuid(sqlite3 *handle, const char *path, char *storage
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-	if(STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0)))
-	{
+	if (STRING_VALID((const char *)sqlite3_column_text(sql_stmt, 0))) {
 		_strncpy_safe(storage_id, (const char *)sqlite3_column_text(sql_stmt, 0), MEDIA_SVC_UUID_SIZE+1);
 	}
 
@@ -309,8 +308,7 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
-	while(sqlite3_step(sql_stmt) == SQLITE_ROW)
-	{
+	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
 		*scan_status = sqlite3_column_int(sql_stmt, 0);
 	}
 
