@@ -69,7 +69,7 @@ int media_svc_get_pinyin(const char *src_str, char **pinyin_str);
 int media_svc_check_pinyin_support(bool *support);
 int media_svc_update_item_begin(int data_cnt);
 int media_svc_update_item_end(uid_t uid);
-int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, int storage_type, uid_t uid);
+int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, const char *storage_id, int storage_type, uid_t uid);
 int media_svc_insert_item_immediately_with_data(MediaSvcHandle *handle, media_svc_content_info_s *content_info, uid_t uid);
 void media_svc_destroy_content_info(media_svc_content_info_s *content_info);
 

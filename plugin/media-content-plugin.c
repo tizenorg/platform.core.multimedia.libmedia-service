@@ -841,7 +841,7 @@ int update_item_end(void *handle, uid_t uid, char **err_msg)
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int update_item_meta(void *handle, const char *file_path, int storage_type, uid_t uid, char **err_msg)
+int update_item_meta(void *handle, const char *file_path, const char *storage_id, int storage_type, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
@@ -855,7 +855,12 @@ int update_item_meta(void *handle, const char *file_path, int storage_type, uid_
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 
-	ret = media_svc_update_item_meta(handle, file_path, storage_type, uid);
+	if (storage_id == NULL) {
+		__set_error_message(ERR_HANDLE, err_msg);
+		return MEDIA_SVC_PLUGIN_ERROR;
+	}
+
+	ret = media_svc_update_item_meta(handle, file_path, storage_id, storage_type, uid);
 	if (ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;

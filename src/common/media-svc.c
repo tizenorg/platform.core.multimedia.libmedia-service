@@ -1306,7 +1306,7 @@ int media_svc_update_item_end(uid_t uid)
 	return ret;
 }
 
-int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, int storage_type, uid_t uid)
+int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, const char *storage_id, int storage_type, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	sqlite3 *db_handle = (sqlite3 *)handle;
@@ -1321,7 +1321,7 @@ int media_svc_update_item_meta(MediaSvcHandle *handle, const char *file_path, in
 	memset(&content_info, 0, sizeof(media_svc_content_info_s));
 
 	/*Set media info*/
-	ret = _media_svc_set_media_info(&content_info, DEFAULT_MEDIA_SVC_STORAGE_ID, storage_type, file_path, &media_type, FALSE);
+	ret = _media_svc_set_media_info(&content_info, storage_id, storage_type, file_path, &media_type, FALSE);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		return ret;
 	}
