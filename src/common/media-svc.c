@@ -1223,7 +1223,7 @@ int media_svc_count_invalid_items_in_folder(MediaSvcHandle *handle, const char *
 	return _media_svc_count_invalid_folder_items(db_handle, storage_id, folder_path, count);
 }
 
-int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, int user_version, uid_t uid)
+int media_svc_check_db_upgrade(MediaSvcHandle *handle, int user_version, uid_t uid)
 {
 	sqlite3 *db_handle = (sqlite3 *)handle;
 
@@ -1231,7 +1231,7 @@ int media_svc_check_db_upgrade(MediaSvcHandle *handle, bool *need_full_scan, int
 
 	media_svc_retvm_if(db_handle == NULL, MS_MEDIA_ERR_INVALID_PARAMETER, "Handle is NULL");
 
-	return _media_svc_check_db_upgrade(db_handle, need_full_scan, user_version, uid);
+	return _media_svc_check_db_upgrade(db_handle, user_version, uid);
 }
 
 int media_svc_check_db_corrupt(MediaSvcHandle *handle)

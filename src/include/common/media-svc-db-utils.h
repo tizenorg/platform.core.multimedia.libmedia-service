@@ -46,7 +46,7 @@ int _media_svc_sql_rollback_trans(uid_t uid);
 int _media_svc_sql_query_list(GList **query_list, uid_t uid);
 void _media_svc_sql_query_add(GList **query_list, char **query);
 void _media_svc_sql_query_release(GList **query_list);
-int _media_svc_check_db_upgrade(sqlite3 *db_handle, bool *need_full_scan, int user_version, uid_t uid);
+int _media_svc_check_db_upgrade(sqlite3 *db_handle, int user_version, uid_t uid);
 int _media_db_check_corrupt(sqlite3 *db_handle);
 char *_media_svc_get_path(uid_t uid);
 

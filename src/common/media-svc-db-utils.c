@@ -1356,12 +1356,9 @@ void _media_svc_sql_query_release(GList **query_list)
 	}
 }
 
-int _media_svc_check_db_upgrade(sqlite3 *db_handle, bool *need_full_scan, int user_version, uid_t uid)
+int _media_svc_check_db_upgrade(sqlite3 *db_handle, int user_version, uid_t uid)
 {
 	if (user_version < LATEST_VERSION_NUMBER) {
-		if (user_version < USER_V4) {
-			*need_full_scan = true;
-		}
 		media_svc_error("Current DB is out of date(%d).. So start to upgrade DB(%d)", user_version, LATEST_VERSION_NUMBER);
 		return __media_svc_db_upgrade(db_handle, user_version, uid);
 	} else {
