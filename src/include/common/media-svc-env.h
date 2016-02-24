@@ -36,7 +36,7 @@ extern "C" {
  * DB information
  */
 
-#define LATEST_VERSION_NUMBER					4
+#define LATEST_VERSION_NUMBER					5
 
 /**
  * Notice : New table user version -1 : alter table issue
@@ -45,6 +45,8 @@ extern "C" {
 #define USER_V2									2
 #define USER_V3									3
 #define USER_V4									4
+#define USER_V5									5
+
 
 /**
  * DB table information
