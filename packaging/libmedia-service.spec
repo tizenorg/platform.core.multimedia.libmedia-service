@@ -67,9 +67,9 @@ cp -rf %{_builddir}/%{name}-%{version}/LICENSE.APLv2.0 %{buildroot}/%{_datadir}/
 %{_libdir}/libmedia-content-plugin.so
 %{_libdir}/libmedia-content-plugin.so.1
 %{_libdir}/libmedia-content-plugin.so.1.0.0
-/usr/lib/libmedia-content-plugin.so
-/usr/lib/libmedia-content-plugin.so.1
-/usr/lib/libmedia-content-plugin.so.1.0.0
+#/usr/lib/libmedia-content-plugin.so
+#/usr/lib/libmedia-content-plugin.so.1
+#/usr/lib/libmedia-content-plugin.so.1.0.0
 
 #License
 %{_datadir}/license/%{name}
