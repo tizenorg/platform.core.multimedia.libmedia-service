@@ -42,7 +42,7 @@ GList ** _media_svc_get_folder_list_ptr(void);
 int _media_svc_get_folder_scan_status(sqlite3 *handle, const char *storage_id, const char *path, int *scan_status);
 int _media_svc_set_folder_scan_status(const char *storage_id, const char *path, int scan_status, uid_t uid);
 int _media_svc_get_folder_modified_time_by_path(sqlite3 *handle, const char *path, const char *storage_id, time_t *modified_time);
-int _media_svc_get_null_scan_folder_list(sqlite3 *handle, char *storage_id, char *path, char ***folder_list, int *count);
+int _media_svc_get_null_scan_folder_list(sqlite3 *handle, const char *storage_id, const char *path, char ***folder_list, int *count);
 int _media_svc_delete_invalid_folder_by_path(sqlite3 *handle, const char *storage_id, const char *folder_path, uid_t uid, int *del_count);
 int _media_svc_count_folder_with_path(sqlite3 *handle, const char *storage_id, const char *path, int *count);
 int _media_svc_count_subfolder_with_path(sqlite3 *handle, const char *storage_id, const char *path, int *count);

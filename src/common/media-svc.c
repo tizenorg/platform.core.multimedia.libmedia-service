@@ -1197,14 +1197,15 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *storage_i
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	if (folder_id != NULL) {
-		uuid = folder_id;
+		uuid = strndup(folder_id, strlen(folder_id));
 	} else {
-		uuid = noti_item->media_uuid;
+		uuid = strndup(noti_item->media_uuid, strlen(noti_item->media_uuid));
 	}
 
 	ret = _media_svc_publish_dir_noti(MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, dir_path, -1, noti_item->media_uuid, NULL, pid);
 	ret = _media_svc_publish_dir_noti_v2(MS_MEDIA_ITEM_DIRECTORY, update_type, dir_path, -1, uuid, NULL, pid);
 	_media_svc_destroy_noti_item(noti_item);
+	SAFE_FREE(uuid);
 
 	return ret;
 }
@@ -2247,7 +2248,7 @@ int media_svc_get_folder_modified_time(MediaSvcHandle *handle, const char *path,
 	return ret;
 }
 
-int media_svc_get_null_scan_folder_list(MediaSvcHandle *handle, char *storage_id, char* folder_path, char ***folder_list, int *count)
+int media_svc_get_null_scan_folder_list(MediaSvcHandle *handle, const char *storage_id, const char *folder_path, char ***folder_list, int *count)
 {
 	sqlite3 * db_handle = (sqlite3 *)handle;
 

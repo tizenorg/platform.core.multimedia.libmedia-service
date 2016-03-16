@@ -878,7 +878,7 @@ int _media_svc_append_query_list(const char *query, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	g_media_svc_update_list = g_list_append(g_media_svc_update_list, query);
+	g_media_svc_update_list = g_list_append(g_media_svc_update_list, (gpointer)query);
 
 	g_media_svc_update_list_count++;
 

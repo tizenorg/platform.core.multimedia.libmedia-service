@@ -689,7 +689,7 @@ int _media_svc_get_folder_modified_time_by_path(sqlite3 *handle, const char *pat
 	return ret;
 }
 
-int _media_svc_get_null_scan_folder_list(sqlite3 *handle, char *storage_id, char *path, char ***folder_list, int *count)
+int _media_svc_get_null_scan_folder_list(sqlite3 *handle, const char *storage_id, const char *path, char ***folder_list, int *count)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	int idx = 0;

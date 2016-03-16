@@ -598,10 +598,10 @@ static char *__media_svc_get_thumb_path(uid_t uid)
 	return result_passwd;
 }
 
-static int __media_svc_resize_artwork(void *image, int size, const char *img_format, void **resize_image, int *resize_size)
+static int __media_svc_resize_artwork(unsigned char *image, unsigned int size, const char *img_format, unsigned char **resize_image, unsigned int *resize_size)
 {
 	int ret = MS_MEDIA_ERR_NONE;
-	void *raw_image = NULL;
+	unsigned char *raw_image = NULL;
 	int width = 0;
 	int height = 0;
 	unsigned int raw_size = 0;
@@ -687,7 +687,7 @@ static int __media_svc_resize_artwork(void *image, int size, const char *img_for
 	return ret;
 }
 
-static int _media_svc_save_image(void *image, int size, char *image_path, uid_t uid)
+static int _media_svc_save_image(unsigned char *image, unsigned int size, char *image_path, uid_t uid)
 {
 	media_svc_debug("start save image, path [%s] image size [%d]", image_path, size);
 
@@ -1613,8 +1613,8 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	MMHandleType content = 0;
 	MMHandleType tag = 0;
 	char *p = NULL;
-	void *image = NULL;
-	int size = -1;
+	unsigned char *image = NULL;
+	unsigned int size = 0;
 	int extracted_field = MEDIA_SVC_EXTRACTED_FIELD_NONE;
 	int mmf_error = FILEINFO_ERROR_NONE;
 	char *err_attr_name = NULL;
@@ -1624,8 +1624,8 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 	int album_id = 0;
 	int ret = MS_MEDIA_ERR_NONE;
 	int cdis_value = 0;
-	int resize_size = -1;
-	void *resize_image = NULL;
+	unsigned int resize_size = 0;
+	unsigned char *resize_image = NULL;
 
 	/*Get Content Tag attribute ===========*/
 	mmf_error = mm_file_create_tag_attrs(&tag, content_info->path);
