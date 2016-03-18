@@ -92,9 +92,9 @@ char *_mb_svc_generate_hash_name(const char *file)
 	*t = '\0';
 #undef _check_uri_char
 
-	MD5Init(&ctx);
-	MD5Update(&ctx, (unsigned char const *)uri, (unsigned)strlen(uri));
-	MD5Final(hash, &ctx);
+	media_svc_MD5Init(&ctx);
+	media_svc_MD5Update(&ctx, (unsigned char const *)uri, (unsigned)strlen(uri));
+	media_svc_MD5Final(hash, &ctx);
 
 	for (n = 0; n < MD5_HASHBYTES; n++) {
 		md5out[2 * n] = hex[hash[n] >> 4];
