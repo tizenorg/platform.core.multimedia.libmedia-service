@@ -73,7 +73,7 @@
 		value = iniparser_getint(dict, key, default); \
 		media_svc_debug("get %s = %d", key, value); \
 	} while (0)
-#define MEDIA_SVC_INI_DEFAULT_PATH "/usr/etc/media_content_config.ini"
+#define MEDIA_SVC_INI_DEFAULT_PATH SYSCONFDIR"/multimedia/media_content_config.ini"
 #define MEDIA_SVC_ARTWORK_SIZE 2000
 
 static int g_ini_value = -1;

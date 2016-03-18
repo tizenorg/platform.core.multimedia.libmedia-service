@@ -1,6 +1,6 @@
 Name:       libmedia-service
 Summary:    Media information service library for multimedia applications
-Version: 0.2.64
+Version: 0.2.65
 Release:    0
 Group:      Multimedia/Libraries
 License:    Apache-2.0 and public domain
@@ -41,6 +41,7 @@ This package is a library that provides the media information service for the mu
 cp %{SOURCE1001} .
 
 %build
+export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE -DSYSCONFDIR=\\\"%{_sysconfdir}\\\""
 %cmake .
 make %{?jobs:-j%jobs}
 
