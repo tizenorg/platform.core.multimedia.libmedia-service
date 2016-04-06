@@ -725,7 +725,7 @@ int set_storage_validity(void * handle, const char *storage_id, int validity, ui
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int set_all_storage_validity(void * handle, int validity, char **err_msg, uid_t uid)
+int set_all_storage_validity(void * handle, int validity, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
