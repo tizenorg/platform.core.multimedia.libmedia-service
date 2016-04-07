@@ -24,16 +24,21 @@
 
 #define MD5_HASHBYTES 16
 
+#ifndef LIBMEDIA_SVC_EXPORT_API
+#define LIBMEDIA_SVC_EXPORT_API
+#endif // LIBMEDIA_SVC_EXPORT_API
+
+
 typedef struct MD5Context {
 	uint32_t buf[4];
 	uint32_t bits[2];
 	unsigned char in[64];
 } MD5_CTX;
 
-extern void   media_svc_MD5Init(MD5_CTX *context);
-extern void   media_svc_MD5Update(MD5_CTX *context, unsigned char const *buf, unsigned len);
-extern void   media_svc_MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *context);
+LIBMEDIA_SVC_EXPORT_API extern void   media_svc_MD5Init(MD5_CTX *context);
+LIBMEDIA_SVC_EXPORT_API extern void   media_svc_MD5Update(MD5_CTX *context, unsigned char const *buf, unsigned len);
+LIBMEDIA_SVC_EXPORT_API extern void   media_svc_MD5Final(unsigned char digest[MD5_HASHBYTES], MD5_CTX *context);
 
-extern void   MD5Transform(uint32_t buf[4], uint32_t const in[16]);
+LIBMEDIA_SVC_EXPORT_API extern void   MD5Transform(uint32_t buf[4], uint32_t const in[16]);
 
 #endif

@@ -22,7 +22,11 @@
 #ifndef _MEDIA_SVC_HASH_
 #define _MEDIA_SVC_HASH_
 
-int mb_svc_generate_hash_code(const char *origin_path, char *hash_code, int max_length);
+#ifndef LIBMEDIA_SVC_EXPORT_API
+#define LIBMEDIA_SVC_EXPORT_API
+#endif // LIBMEDIA_SVC_EXPORT_API
+
+
+LIBMEDIA_SVC_EXPORT_API int mb_svc_generate_hash_code(const char *origin_path, char *hash_code, int max_length);
 
 #endif /*MEDIA_SVC_HASH_*/
-
