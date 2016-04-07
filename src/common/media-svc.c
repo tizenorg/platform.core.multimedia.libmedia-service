@@ -214,7 +214,7 @@ int media_svc_create_table(uid_t uid)
 		goto ERROR;
 	}
 
-	sql = sqlite3_mprintf("pragma user_version = %d;", LATEST_VERSION_NUMBER);
+	sql = sqlite3_mprintf("pragma user_version = %d;pragma journal_mode = wal;", LATEST_VERSION_NUMBER);
 	ret = _media_svc_sql_query(sql, uid);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("user_version update fail.");
