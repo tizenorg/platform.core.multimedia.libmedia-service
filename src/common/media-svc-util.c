@@ -21,7 +21,14 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#ifndef __USE_XOPEN
+#define DEF_XOPEN
+#define __USE_XOPEN /* needed for strptime */
+#endif
 #include <time.h>
+#ifdef DEF_XOPEN
+#undef __USE_XOPEN
+#endif
 #include <string.h>
 #include <sys/vfs.h>
 #include <glib/gstdio.h>
