@@ -572,6 +572,7 @@ static int __media_svc_get_location_value(MMHandleType tag, double *longitude, d
 
 static char *__media_svc_get_thumb_path(uid_t uid)
 {
+	int len = 0;
 	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
@@ -580,7 +581,9 @@ static char *__media_svc_get_thumb_path(uid_t uid)
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
-		result_passwd = g_strdup(MEDIA_SVC_THUMB_PATH_PREFIX);
+		len = strlen(MEDIA_SVC_THUMB_PATH_PREFIX);
+		if (len > 0)
+			result_passwd = strndup(MEDIA_SVC_THUMB_PATH_PREFIX, len);
 	} else {
 		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
@@ -598,8 +601,9 @@ static char *__media_svc_get_thumb_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb", userinfo->pw_dir);
-		result_passwd = g_strdup(passwd_str);
+		len = snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb", userinfo->pw_dir);
+		if (len > 0)
+			result_passwd = strndup(passwd_str, len);
 	}
 
 	return result_passwd;
@@ -862,6 +866,7 @@ int _media_svc_remove_all_files_in_dir(const char *dir_path)
 
 char *_media_svc_get_thumb_internal_path(uid_t uid)
 {
+	int len = 0;
 	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
@@ -870,7 +875,9 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
-		result_passwd = g_strdup(MEDIA_SVC_THUMB_INTERNAL_PATH);
+		len = strlen(MEDIA_SVC_THUMB_INTERNAL_PATH);
+		if (len > 0)
+			result_passwd = strndup(MEDIA_SVC_THUMB_INTERNAL_PATH, len);
 	} else {
 		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
@@ -888,8 +895,9 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb/phone", userinfo->pw_dir);
-		result_passwd = g_strdup(passwd_str);
+		len = snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb/phone", userinfo->pw_dir);
+		if (len > 0)
+			result_passwd = strndup(passwd_str, len);
 	}
 
 	return result_passwd;
@@ -897,6 +905,7 @@ char *_media_svc_get_thumb_internal_path(uid_t uid)
 
 char *_media_svc_get_thumb_external_path(uid_t uid)
 {
+	int len = 0;
 	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
@@ -905,7 +914,9 @@ char *_media_svc_get_thumb_external_path(uid_t uid)
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
-		result_passwd = g_strdup(MEDIA_SVC_THUMB_EXTERNAL_PATH);
+		len = strlen(MEDIA_SVC_THUMB_EXTERNAL_PATH);
+		if (len > 0)
+			result_passwd = strndup(MEDIA_SVC_THUMB_EXTERNAL_PATH, len);
 	} else {
 		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
@@ -923,8 +934,9 @@ char *_media_svc_get_thumb_external_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb/mmc", userinfo->pw_dir);
-		result_passwd = g_strdup(passwd_str);
+		len = snprintf(passwd_str, sizeof(passwd_str), "%s/share/media/.thumb/mmc", userinfo->pw_dir);
+		if (len > 0)
+			result_passwd = strndup(passwd_str, len);
 	}
 
 	return result_passwd;

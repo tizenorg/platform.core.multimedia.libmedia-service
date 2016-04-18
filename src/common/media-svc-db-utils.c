@@ -43,6 +43,7 @@ static GSList *column_list[MEDIA_SVC_DB_LIST_MAX];
 
 char *_media_svc_get_path(uid_t uid)
 {
+	int len = 0;
 	char *result_passwd = NULL;
 	struct group *grpinfo = NULL;
 	if (uid == getuid()) {
@@ -51,7 +52,9 @@ char *_media_svc_get_path(uid_t uid)
 			media_svc_error("getgrnam(users) returns NULL !");
 			return NULL;
 		}
-		result_passwd = g_strdup(MEDIA_ROOT_PATH_INTERNAL);
+		len = strlen(MEDIA_ROOT_PATH_INTERNAL);
+		if (len > 0)
+			result_passwd = strndup(MEDIA_ROOT_PATH_INTERNAL, len);
 	} else {
 		char passwd_str[MEDIA_SVC_PATHNAME_SIZE] = {0, };
 		struct passwd *userinfo = getpwuid(uid);
@@ -69,8 +72,9 @@ char *_media_svc_get_path(uid_t uid)
 			media_svc_error("UID [%d] does not belong to 'users' group!", uid);
 			return NULL;
 		}
-		snprintf(passwd_str, sizeof(passwd_str), "%s/%s", userinfo->pw_dir, MEDIA_CONTENT_PATH);
-		result_passwd = g_strdup(passwd_str);
+		len = snprintf(passwd_str, sizeof(passwd_str), "%s/%s", userinfo->pw_dir, MEDIA_CONTENT_PATH);
+		if (len > 0)
+			result_passwd = strndup(passwd_str, len);
 	}
 
 	return result_passwd;
