@@ -415,9 +415,10 @@ static int __media_svc_get_content_type_from_mime(const char *path, const char *
 		}
 	}
 
-	/*in application type, exitst sound file ex) x-smafs */
+	/*in application type, exitst sound file ex) x-smafs, asf */
 	if (*category & MEDIA_SVC_CATEGORY_ETC) {
 		int prefix_len = strlen(content_category[0].content_type);
+		char *ext = NULL;
 
 		for (idx = 0; idx < SOUND_MIME_NUM; idx++) {
 			if (strstr(mimetype + prefix_len, sound_mime_table[idx]) != NULL) {
@@ -430,6 +431,27 @@ static int __media_svc_get_content_type_from_mime(const char *path, const char *
 		if (strncasecmp(mimetype, "text/x-iMelody", strlen("text/x-iMelody")) == 0) {
 			*category ^= MEDIA_SVC_CATEGORY_ETC;
 			*category |= MEDIA_SVC_CATEGORY_SOUND;
+		}
+
+		/*"asf" must check video stream and then categorize in directly. */
+		ext = strrchr(path, '.');
+		if (ext != NULL) {
+			if (strncasecmp(ext, _ASF_FILE, 5) == 0) {
+				int audio = 0;
+				int video = 0;
+				int err = 0;
+
+				err = mm_file_get_stream_info(path, &audio, &video);
+				if (err == 0) {
+					if (audio > 0 && video == 0) {
+						*category ^= MEDIA_SVC_CATEGORY_ETC;
+						*category |= MEDIA_SVC_CATEGORY_MUSIC;
+					} else {
+						*category ^= MEDIA_SVC_CATEGORY_ETC;
+						*category |= MEDIA_SVC_CATEGORY_VIDEO;
+					}
+				}
+			}
 		}
 	}
 
@@ -456,7 +478,7 @@ static int __media_svc_get_content_type_from_mime(const char *path, const char *
 		/*"3gp" and "mp4" must check video stream and then categorize in directly. */
 		ext = strrchr(path, '.');
 		if (ext != NULL) {
-			if ((strncasecmp(ext, _3GP_FILE, 4) == 0) || (strncasecmp(ext, _MP4_FILE, 5) == 0) || (strncasecmp(ext, _ASF_FILE, 5) == 0)) {
+			if ((strncasecmp(ext, _3GP_FILE, 4) == 0) || (strncasecmp(ext, _MP4_FILE, 5) == 0)) {
 				int audio = 0;
 				int video = 0;
 				int err = 0;
