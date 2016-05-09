@@ -41,8 +41,8 @@ static int __media_svc_is_root_path(const char *folder_path, bool *is_root, uid_
 	char *internal_path = _media_svc_get_path(uid);
 
 	if ((STRING_VALID(internal_path) && (strcmp(folder_path, internal_path) == 0)) ||
-		(STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && strcmp(folder_path, MEDIA_ROOT_PATH_SDCARD) == 0) ||
-		(STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && strcmp(folder_path, MEDIA_ROOT_PATH_CLOUD) == 0)) {
+		(STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && strncmp(folder_path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0) ||
+		(STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && strncmp(folder_path, MEDIA_ROOT_PATH_CLOUD, strlen(MEDIA_ROOT_PATH_CLOUD)) == 0)) {
 		media_svc_debug("ROOT PATH [%s]", folder_path);
 		*is_root = TRUE;
 	}
