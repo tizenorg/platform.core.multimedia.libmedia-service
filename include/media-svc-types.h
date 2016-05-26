@@ -100,6 +100,7 @@ typedef struct {
 	char		*composer_pinyin;				/**< pinyin for composer*/
 	char		*copyright_pinyin;				/**< pinyin for copyright*/
 	char		*description_pinyin;			/**< pinyin for description*/
+	int		is_360;
 } media_svc_content_meta_s;
 
 /**

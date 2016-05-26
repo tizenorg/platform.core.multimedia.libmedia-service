@@ -1630,6 +1630,7 @@ static int __media_svc_copy_para_to_content(media_svc_content_info_s *content_in
 		}
 	}
 
+	new_content_info->media_meta.is_360= content_info->media_meta.is_360;
 	//new_content_info->media_meta.bitrate = content_info->media_meta.bitrate;
 	//new_content_info->media_meta.samplerate = content_info->media_meta.samplerate;
 	//new_content_info->media_meta.channel = content_info->media_meta.channel;

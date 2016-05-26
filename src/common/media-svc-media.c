@@ -226,7 +226,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 					category, keyword, location_tag, content_name, age_rating, author, provider, last_played_time, played_count, favourite, \
 					bitrate, bitpersample, samplerate, channel, duration, longitude, latitude, altitude, exposure_time, fnumber, iso, model, width, height, datetaken, orientation, \
 					rating, is_drm, storage_type, burst_id, timeline, weather, sync_status, \
-					file_name_pinyin, title_pinyin, album_pinyin, artist_pinyin, album_artist_pinyin, genre_pinyin, composer_pinyin, copyright_pinyin, description_pinyin, storage_uuid";
+					file_name_pinyin, title_pinyin, album_pinyin, artist_pinyin, album_artist_pinyin, genre_pinyin, composer_pinyin, copyright_pinyin, description_pinyin, storage_uuid, is_360";
 
 	/* This sql is due to sqlite3_mprintf's wrong operation when using floating point in the text format */
 	/* This code will be removed when sqlite3_mprintf works clearly */
@@ -292,7 +292,7 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %d, %d, %d, \
 													%d, %d, %d, %d, %d, %.6f, %.6f, %.6f, %Q, %.6f, %d, %Q, %d, %d, %Q, %d, \
 													%d, %d, %d, %Q, %d, %Q, %d, \
-													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q);",
+													%Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %d);",
 								content_info->storage_uuid, db_fields,
 								content_info->media_uuid,
 								content_info->path,
@@ -358,7 +358,8 @@ int _media_svc_insert_item_with_data(sqlite3 *handle, const char *storage_id, me
 								content_info->media_meta.composer_pinyin,
 								content_info->media_meta.copyright_pinyin,
 								content_info->media_meta.description_pinyin,
-								content_info->storage_uuid
+								content_info->storage_uuid,
+								content_info->media_meta.is_360
 				);
 
 	if (burst_id) {
@@ -1126,7 +1127,7 @@ int _media_svc_insert_item_pass2(const char *storage_id, media_svc_content_info_
 		recorded_date=%Q, copyright=%Q, track_num=%Q, description=%Q, bitrate=%d, bitpersample=%d, samplerate=%d, channel=%d, \
 		duration=%d, longitude=%.6f, latitude=%.6f, altitude=%.6f, width=%d, height=%d, datetaken=%Q, orientation=%d, exposure_time=%Q,\
 		fnumber=%.6f, iso=%d, model=%Q,	rating=%d, weather=%Q, file_name_pinyin=%Q, title_pinyin=%Q, album_pinyin=%Q, \
-		artist_pinyin=%Q, album_artist_pinyin=%Q, genre_pinyin=%Q, composer_pinyin=%Q, copyright_pinyin=%Q, description_pinyin=%Q WHERE path=%Q;",
+		artist_pinyin=%Q, album_artist_pinyin=%Q, genre_pinyin=%Q, composer_pinyin=%Q, copyright_pinyin=%Q, description_pinyin=%Q, is_360=%d WHERE path=%Q;",
 		storage_id,
 		//content_info->folder_uuid,
 		content_info->thumbnail_path,
@@ -1169,6 +1170,7 @@ int _media_svc_insert_item_pass2(const char *storage_id, media_svc_content_info_
 		content_info->media_meta.composer_pinyin,
 		content_info->media_meta.copyright_pinyin,
 		content_info->media_meta.description_pinyin,
+		content_info->media_meta.is_360,
 		content_info->path
 		);
 

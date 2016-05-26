@@ -747,6 +747,7 @@ int _media_svc_init_table_query(const char *event_table_name)
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "color_g", MEDIA_SVC_DB_TYPE_INT, NULL, USER_V5, NULL, false, false, false);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "color_b", MEDIA_SVC_DB_TYPE_INT, NULL, USER_V5, NULL, false, false, false);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_MEDIA], "is_360", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V2, NULL, false, false, true);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*folder*/

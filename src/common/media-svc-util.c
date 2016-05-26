@@ -1230,6 +1230,90 @@ int _media_svc_set_media_info(media_svc_content_info_s *content_info, const char
 	return MS_MEDIA_ERR_NONE;
 }
 
+int image_360_check(char *path)
+{
+	FILE *fp = NULL;
+	long app1_size = 0;
+	int size = 1;
+	unsigned char exif_header[4];
+	unsigned char exif_app1[2];
+	unsigned char *exif_app1_data;
+	unsigned char exif_app1_xmp[2];
+	long exif_app1_xmp_size = 0;
+	unsigned char exif_app1_xmp_t[2];
+	char *xmp_data = 0;
+	int size1 = 0;
+	int size2 = 0;
+	char ch;
+	int temp = 0;
+
+	fp = fopen(path, "rb");
+	if (fp == NULL)
+		return 0;
+
+	size = fread(exif_header, 1, sizeof (exif_header), fp);
+	if (size <= 0)
+		return 0;
+
+	if ((exif_header[0] == 0xff) && (exif_header[1] == 0xd8) && (exif_header[2] == 0xff) && (exif_header[3] == 0xe1)) {
+		size = fread(exif_app1, 1, sizeof (exif_app1), fp);
+		if (size <= 0)
+			return 0;
+
+		size1 = exif_app1[0];
+		size2 = exif_app1[1];
+
+		app1_size = size1 * 256 + size2 - 2;
+
+		if (fseek(fp, app1_size, SEEK_CUR) != 0)
+			return 0;
+
+		size = fread(exif_app1_xmp, 1, sizeof (exif_app1_xmp), fp);
+		if (size <= 0)
+			return 0;
+
+		if ((exif_app1_xmp[0] == 0xff) && (exif_app1_xmp[1] == 0xe1)) {
+			int result = 0;
+			size = fread(exif_app1_xmp_t, 1, sizeof (exif_app1_xmp_t), fp);
+			if (size <= 0)
+				return 0;
+
+			size1 = exif_app1_xmp_t[0];
+			size2 = exif_app1_xmp_t[1];
+
+			exif_app1_xmp_size = size1 * 256 + size2 - 2;
+
+			xmp_data = (char *)malloc(exif_app1_xmp_size);
+			memset(xmp_data, 0x00, exif_app1_xmp_size);
+			while (exif_app1_xmp_size >= 0) {
+				exif_app1_xmp_size--;
+				ch = (char)fgetc(fp);
+				if (ch == '\0')
+					continue;
+				*xmp_data = ch;
+				xmp_data++;
+				temp++;
+			}
+			xmp_data = xmp_data - temp;
+
+			if(strstr(xmp_data, "UsePanoramaViewer")
+			&& strstr(xmp_data, "True")
+			&& strstr(xmp_data, "ProjectionType")
+			&& strstr(xmp_data, "equirectangular"))
+				result = 1;
+
+			free(xmp_data);
+
+			return result;
+		} else {
+			return 0;
+		}
+	} else {
+		return 0;
+	}
+	return 0;
+}
+
 int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s *content_info)
 {
 	int ret = MS_MEDIA_ERR_NONE;
@@ -1272,6 +1356,8 @@ int _media_svc_extract_image_metadata(sqlite3 *handle, media_svc_content_info_s 
 		media_svc_sec_debug("There is no exif data in [ %s ]", path);
 		goto GET_WIDTH_HEIGHT;
 	}
+
+	content_info->media_meta.is_360 = image_360_check(path);
 
 	if (__media_svc_get_exif_info(ed, NULL, NULL, &value, EXIF_TAG_GPS_LATITUDE) == MS_MEDIA_ERR_NONE) {
 		if (__media_svc_get_exif_info(ed, buf, NULL, NULL, EXIF_TAG_GPS_LATITUDE_REF) == MS_MEDIA_ERR_NONE) {
@@ -1782,6 +1868,12 @@ int _media_svc_extract_media_metadata(sqlite3 *handle, media_svc_content_info_s 
 				media_svc_error("strcpy error");
 			/*media_svc_debug("desc : %s", content_info->media_meta.description); */
 		} else {
+			SAFE_FREE(err_attr_name);
+		}
+
+		mmf_error = mm_file_get_attrs(tag, &err_attr_name, MM_FILE_TAG_360, &content_info->media_meta.is_360, NULL);
+
+		if (mmf_error != FILEINFO_ERROR_NONE) {
 			SAFE_FREE(err_attr_name);
 		}
 
