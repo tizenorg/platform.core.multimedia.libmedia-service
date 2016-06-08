@@ -1249,16 +1249,16 @@ int image_360_check(char *path)
 
 	fp = fopen(path, "rb");
 	if (fp == NULL)
-		return 0;
+		goto ERROR;
 
 	size = fread(exif_header, 1, sizeof (exif_header), fp);
 	if (size <= 0)
-		return 0;
+		goto ERROR;
 
 	if ((exif_header[0] == 0xff) && (exif_header[1] == 0xd8) && (exif_header[2] == 0xff) && (exif_header[3] == 0xe1)) {
 		size = fread(exif_app1, 1, sizeof (exif_app1), fp);
 		if (size <= 0)
-			return 0;
+			goto ERROR;
 
 		size1 = exif_app1[0];
 		size2 = exif_app1[1];
@@ -1266,17 +1266,18 @@ int image_360_check(char *path)
 		app1_size = size1 * 256 + size2 - 2;
 
 		if (fseek(fp, app1_size, SEEK_CUR) != 0)
-			return 0;
+			goto ERROR;
 
 		size = fread(exif_app1_xmp, 1, sizeof (exif_app1_xmp), fp);
 		if (size <= 0)
-			return 0;
+			goto ERROR;
 
 		if ((exif_app1_xmp[0] == 0xff) && (exif_app1_xmp[1] == 0xe1)) {
 			int result = 0;
+			char *ptr = NULL;
 			size = fread(exif_app1_xmp_t, 1, sizeof (exif_app1_xmp_t), fp);
 			if (size <= 0)
-				return 0;
+				goto ERROR;
 
 			size1 = exif_app1_xmp_t[0];
 			size2 = exif_app1_xmp_t[1];
@@ -1285,31 +1286,40 @@ int image_360_check(char *path)
 
 			xmp_data = (char *)malloc(exif_app1_xmp_size);
 			memset(xmp_data, 0x00, exif_app1_xmp_size);
+			ptr = xmp_data;
 			while (exif_app1_xmp_size >= 0) {
 				exif_app1_xmp_size--;
 				ch = (char)fgetc(fp);
 				if (ch == '\0')
 					continue;
-				*xmp_data = ch;
-				xmp_data++;
+				*ptr = ch;
+				ptr++;
 				temp++;
 			}
-			xmp_data = xmp_data - temp;
+			ptr = ptr - temp;
 
-			if(strstr(xmp_data, "UsePanoramaViewer")
-			&& strstr(xmp_data, "True")
-			&& strstr(xmp_data, "ProjectionType")
-			&& strstr(xmp_data, "equirectangular"))
+			if(strstr(ptr, "UsePanoramaViewer")
+			&& strstr(ptr, "True")
+			&& strstr(ptr, "ProjectionType")
+			&& strstr(ptr, "equirectangular"))
 				result = 1;
 
-			free(xmp_data);
-
+			SAFE_FREE(xmp_data);
+			if (fp) {
+				fclose(fp);
+				fp = NULL;
+			}
 			return result;
 		} else {
-			return 0;
+			goto ERROR;
 		}
 	} else {
-		return 0;
+		goto ERROR;
+	}
+ERROR:
+	if (fp) {
+		fclose(fp);
+		fp = NULL;
 	}
 	return 0;
 }
