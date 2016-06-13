@@ -1244,7 +1244,7 @@ int image_360_check(char *path)
 	char *xmp_data = 0;
 	int size1 = 0;
 	int size2 = 0;
-	char ch;
+	int fdata = 0;
 	int temp = 0;
 
 	fp = fopen(path, "rb");
@@ -1289,10 +1289,10 @@ int image_360_check(char *path)
 			ptr = xmp_data;
 			while (exif_app1_xmp_size >= 0) {
 				exif_app1_xmp_size--;
-				ch = (char)fgetc(fp);
-				if (ch == '\0')
+				fdata = fgetc(fp);
+				if (fdata == EOF)
 					continue;
-				*ptr = ch;
+				*ptr = (char)fdata;
 				ptr++;
 				temp++;
 			}
