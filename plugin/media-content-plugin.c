@@ -461,10 +461,12 @@ int update_end(uid_t uid)
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
 #endif
+#if 0
 	ret = dcm_svc_request_extract_all(uid);
 	if (ret < 0) {
 		return MEDIA_SVC_PLUGIN_ERROR;
 	}
+#endif
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
