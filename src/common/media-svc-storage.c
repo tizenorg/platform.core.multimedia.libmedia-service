@@ -61,7 +61,7 @@ int _media_svc_get_mmc_info(MediaSvcHandle *handle, char **storage_name, char **
 	sqlite3_stmt *sql_stmt = NULL;
 	char *sql = NULL;
 
-	sql = sqlite3_mprintf("SELECT * FROM '%s' WHERE storage_uuid=%Q AND storage_name IS NOT '%s'", MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA, MEDIA_SVC_DB_TABLE_MEDIA);
+	sql = sqlite3_mprintf("SELECT * FROM '%s' WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_TABLE_MEDIA);
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 	if (ret != MS_MEDIA_ERR_NONE) {
@@ -240,7 +240,7 @@ int _media_svc_get_storage_type(sqlite3 *handle, const char *storage_id, media_s
 		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
-	sql = sqlite3_mprintf("SELECT storage_type FROM '%s' WHERE (storage_uuid=%Q AND validity=1)", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
+	sql = sqlite3_mprintf("SELECT storage_type FROM '%s' WHERE storage_uuid=%Q", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 
