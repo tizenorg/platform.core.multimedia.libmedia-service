@@ -391,6 +391,7 @@ int _media_svc_get_all_folders(sqlite3 *handle, char *start_path, char ***folder
 		goto ERROR;
 	}
 	memset(folder_uuid, 0x0, sizeof(char *) * cnt);
+	memset(*folder_list, 0x0, sizeof(char *) * cnt);
 
 	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
 	if (ret != MS_MEDIA_ERR_NONE) {
