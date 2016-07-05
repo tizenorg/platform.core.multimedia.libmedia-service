@@ -1237,7 +1237,6 @@ int image_360_check(char *path)
 	int size = 1;
 	unsigned char exif_header[4];
 	unsigned char exif_app1[2];
-	unsigned char *exif_app1_data;
 	unsigned char exif_app1_xmp[2];
 	long exif_app1_xmp_size = 0;
 	unsigned char exif_app1_xmp_t[2];
