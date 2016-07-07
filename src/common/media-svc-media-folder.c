@@ -37,17 +37,36 @@ static int __media_svc_is_root_path(const char *folder_path, bool *is_root, uid_
 	media_svc_retvm_if(!STRING_VALID(folder_path), MS_MEDIA_ERR_INVALID_PARAMETER, "folder_path is NULL");
 
 	*is_root = FALSE;
-
+	int i = 0;
+	int start_len = 0;
+	int path_len = 0;
 	char *internal_path = _media_svc_get_path(uid);
 
-	if ((STRING_VALID(internal_path) && (strcmp(folder_path, internal_path) == 0)) ||
-		(STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && strcmp(folder_path, MEDIA_ROOT_PATH_SDCARD) == 0) ||
-		(STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && strcmp(folder_path, MEDIA_ROOT_PATH_CLOUD) == 0)) {
+	if (STRING_VALID(internal_path) && (strcmp(folder_path, internal_path) == 0)) {
+		media_svc_debug("ROOT PATH [%s]", folder_path);
+		*is_root = TRUE;
+
+		SAFE_FREE(internal_path);
+
+		return MS_MEDIA_ERR_NONE;
+	}
+	SAFE_FREE(internal_path);
+
+	if ((STRING_VALID(MEDIA_ROOT_PATH_SDCARD) && strncmp(folder_path, MEDIA_ROOT_PATH_SDCARD, strlen(MEDIA_ROOT_PATH_SDCARD)) == 0) ||
+		(STRING_VALID(MEDIA_ROOT_PATH_CLOUD) && strncmp(folder_path, MEDIA_ROOT_PATH_CLOUD, strlen(MEDIA_ROOT_PATH_CLOUD)) == 0)) {
+
+		start_len = strlen(MEDIA_ROOT_PATH_SDCARD);
+		path_len = strlen(folder_path);
+
+		for (i = start_len; i < path_len; i++) {
+			if (folder_path[i] == '/')
+				return MS_MEDIA_ERR_NONE;
+		}
+
 		media_svc_debug("ROOT PATH [%s]", folder_path);
 		*is_root = TRUE;
 	}
 
-	SAFE_FREE(internal_path);
 	return MS_MEDIA_ERR_NONE;
 }
 
