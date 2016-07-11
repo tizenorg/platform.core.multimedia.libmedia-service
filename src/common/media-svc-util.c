@@ -2371,7 +2371,7 @@ int _media_svc_get_pinyin_str(const char *src_str, char **pinyin_str)
 
 	ret = _media_svc_convert_chinese_to_pinyin(src_str, &pinyinname, &size);
 	if (ret == MS_MEDIA_ERR_NONE) {
-		if (STRING_VALID(pinyinname[0].pinyin_name))
+		if (size > 0 && STRING_VALID(pinyinname[0].pinyin_name))
 			*pinyin_str = strdup(pinyinname[0].pinyin_name);
 		else
 			*pinyin_str = strdup(src_str);	//Return Original Non China Character
