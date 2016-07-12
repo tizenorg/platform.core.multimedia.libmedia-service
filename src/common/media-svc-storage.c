@@ -140,18 +140,25 @@ int _media_svc_update_storage_path(sqlite3 *handle, const char *storage_id, cons
 	sql = sqlite3_mprintf("UPDATE '%s' SET storage_path=%Q WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_STORAGE, path, storage_id);
 	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		G_SAFE_FREE(old_storage_path);
+		return ret;
+	}
 
 	/*Folder table update*/
 	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q) WHERE storage_uuid=%Q;", MEDIA_SVC_DB_TABLE_FOLDER, old_storage_path, path, storage_id);
 	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		G_SAFE_FREE(old_storage_path);
+		return ret;
+	}
 
 	/*Media table update*/
 	sql = sqlite3_mprintf("UPDATE '%s' SET path=REPLACE(path, %Q, %Q);", storage_id, old_storage_path, path);
 	ret = _media_svc_sql_query(sql, uid);
 	sqlite3_free(sql);
+	G_SAFE_FREE(old_storage_path);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	return ret;

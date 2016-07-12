@@ -43,6 +43,7 @@ extern "C" {
 #endif
 
 #define SAFE_FREE(src)	{ if (src) {free(src); src = NULL;}}
+#define G_SAFE_FREE(src)	{ if (src) {g_free(src); src = NULL;}}
 #define STRING_VALID(str)	\
 	((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
 
