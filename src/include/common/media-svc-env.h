@@ -67,6 +67,8 @@ extern "C" {
 #define MEDIA_SVC_DB_TABLE_TMP_TABLE				"tmp"			/**< tmp table for backup*/
 #define MEDIA_SVC_DB_TABLE_FACE					"face"			/**< face table*/
 #define MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST			"face_scan_list"	/**< face_scan_list table*/
+#define MEDIA_SVC_DB_TABLE_UHD					"uhd"				/**<  uhd table*/
+#define MEDIA_SVC_DB_TABLE_PVR					"pvr"				/**<  pvr table*/
 
 /**
  * View Name
@@ -88,7 +90,8 @@ extern "C" {
 #define MEDIA_SVC_DB_TRIGGER_STORAGE			"storage_folder_cleanup"
 #define MEDIA_SVC_DB_TRIGGER_FACE_SCAN_LIST	"face_scan_list_cleanup"
 #define MEDIA_SVC_DB_TRIGGER_FACE				"face_cleanup"
-
+#define MEDIA_SVC_DB_TRIGGER_PVR			    "pvr_item_cleanup"
+#define MEDIA_SVC_DB_TRIGGER_UHD			    "uhd_item_cleanup"
 
 /**
  * Trigger Name
@@ -171,6 +174,8 @@ typedef enum {
 	MEDIA_SVC_DB_LIST_TAG,
 	MEDIA_SVC_DB_LIST_BOOKMARK,
 	MEDIA_SVC_DB_LIST_STORAGE,
+	MEDIA_SVC_DB_LIST_UHD,
+	MEDIA_SVC_DB_LIST_PVR,
 	MEDIA_SVC_DB_LIST_FACE_SCAN_LIST,
 	MEDIA_SVC_DB_LIST_FACE,
 	MEDIA_SVC_DB_LIST_MAX,

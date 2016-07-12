@@ -305,19 +305,23 @@ int _media_svc_get_storage_scan_status(sqlite3 *handle, const char *storage_id, 
 	char *sql = NULL;
 
 	if (!STRING_VALID(storage_id)) {
-		media_svc_error("Not found valid storage id");
-		ret = MS_MEDIA_ERR_INVALID_PARAMETER;
+		media_svc_error("Invalid storage_id");
+		return MS_MEDIA_ERR_INVALID_PARAMETER;
 	}
 
 	sql = sqlite3_mprintf("SELECT scan_status FROM '%s' WHERE (storage_uuid=%Q AND validity=1)", MEDIA_SVC_DB_TABLE_STORAGE, storage_id);
 
-	ret = _media_svc_sql_prepare_to_step_simple(handle, sql, &sql_stmt);
+	ret = _media_svc_sql_prepare_to_step(handle, sql, &sql_stmt);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		if (ret == MS_MEDIA_ERR_DB_NO_RECORD)
+			media_svc_debug("there is no storage.");
+		else
+			media_svc_error("error when _media_svc_get_storage_scan_status. err = [%d]", ret);
 
-	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
-
-	while (sqlite3_step(sql_stmt) == SQLITE_ROW) {
-		*scan_status = sqlite3_column_int(sql_stmt, 0);
+		return ret;
 	}
+
+	*scan_status = sqlite3_column_int(sql_stmt, 0);
 
 	SQLITE3_FINALIZE(sql_stmt);
 

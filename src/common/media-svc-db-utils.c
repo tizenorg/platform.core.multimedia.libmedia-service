@@ -589,6 +589,10 @@ int _media_svc_init_table_query(const char *event_table_name)
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_FACE, MEDIA_SVC_DB_TRIGGER_FACE, MEDIA_SVC_DB_TABLE_FACE_SCAN_LIST, MEDIA_SVC_DB_TABLE_FACE, NULL);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_UHD, MEDIA_SVC_DB_TRIGGER_UHD, event_table_name, MEDIA_SVC_DB_TABLE_UHD, NULL);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_table_info(MEDIA_SVC_DB_TABLE_PVR, MEDIA_SVC_DB_TRIGGER_PVR, event_table_name, MEDIA_SVC_DB_TABLE_PVR, NULL);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
 	/*insert column info.. */
 	/*media*/
@@ -872,6 +876,132 @@ int _media_svc_init_table_query(const char *event_table_name)
 	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_FACE], "face_tag", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V3, NULL, false, false, false);
 	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
 
+	/*uhd*/
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "media_uuid", MEDIA_SVC_DB_TYPE_TEXT, "PRIMARY KEY", USER_V4, NULL, true, true, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "storage_uuid", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", USER_V4, "uhd_storage_id_idx", true, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "path", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "size", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "content_id", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "content_title", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "file_name", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "folder_uuid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "release_date", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "modified_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "played_position", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "sub_type", MEDIA_SVC_DB_TYPE_INT, "DEFAULT -1", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_UHD], "played_count", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
+	/*pvr*/
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "media_uuid", MEDIA_SVC_DB_TYPE_TEXT, "PRIMARY KEY", USER_V4, NULL, false, true, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "storage_uuid", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", USER_V4, "pvr_storage_id_idx", true, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "path", MEDIA_SVC_DB_TYPE_TEXT, "NOT NULL", USER_V4, NULL, true, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "size", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "duration", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "timezone", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "ptc", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "major", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "minor", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "channel_type", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "channel_name", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "channel_num", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "program_title", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "program_num", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "program_crid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "guidance", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "synopsis", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "genre", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "language", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "embargo_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "expiry_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "start_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "program_start_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "program_end_time", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "program_date", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "parental_rating", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "timer_record", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "series_record", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "hd", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "subtitle", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "ttx", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "ad", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "hard_of_hearing_radio", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "data_service", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "content_lock", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "content_watch", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "has_audio_only", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "is_local_record", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "resolution", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "aspectratio", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "modified_date", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "sports_type", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "guidance_length", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "tvmode", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "play_count", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "private_data", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "highlight", MEDIA_SVC_DB_TYPE_INT, "DEFAULT 0", USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+	ret = __media_svc_add_column_info(&column_list[MEDIA_SVC_DB_LIST_PVR], "folder_uuid", MEDIA_SVC_DB_TYPE_TEXT, NULL, USER_V4, NULL, false, false, false);
+	media_svc_retv_if(ret != MS_MEDIA_ERR_NONE, ret);
+
 	return ret;
 }
 void __media_svc_table_free(table_info_s *tb)
@@ -935,6 +1065,14 @@ void _media_svc_destroy_table_query()
 	tb = g_hash_table_lookup(table, MEDIA_SVC_DB_TABLE_STORAGE);
 	__media_svc_table_free(tb);
 	g_hash_table_remove(table, MEDIA_SVC_DB_TABLE_STORAGE);
+
+	tb = g_hash_table_lookup(table, MEDIA_SVC_DB_TABLE_UHD);
+	__media_svc_table_free(tb);
+	g_hash_table_remove (table, MEDIA_SVC_DB_TABLE_UHD);
+
+	tb = g_hash_table_lookup(table, MEDIA_SVC_DB_TABLE_PVR);
+	__media_svc_table_free(tb);
+	g_hash_table_remove (table, MEDIA_SVC_DB_TABLE_PVR);
 
 	g_hash_table_destroy(table);
 

@@ -66,6 +66,9 @@
 #define MEDIA_SVC_CATEGORY_VIDEO	0x00000004	/**< Video category */
 #define MEDIA_SVC_CATEGORY_MUSIC	0x00000008	/**< Music category */
 #define MEDIA_SVC_CATEGORY_SOUND	0x00000010	/**< Sound category */
+#define MEDIA_SVC_CATEGORY_PVR	0x00000020	/**< PVR category */
+#define MEDIA_SVC_CATEGORY_UHD	0x00000040	/**< UHD category */
+#define MEDIA_SVC_CATEGORY_SCSA	0x00000080	/**< SCSA category */
 
 #define CONTENT_TYPE_NUM 5
 #define MUSIC_MIME_NUM 29

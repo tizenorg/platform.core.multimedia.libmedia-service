@@ -185,13 +185,26 @@ int media_svc_create_table(uid_t uid)
 		goto ERROR;
 	}
 
-	/*create storage table. from tizen 2.4*/
+	/*create storage table from tizen 2.4 */
 	ret = _media_svc_make_table_query(MEDIA_SVC_DB_TABLE_STORAGE, MEDIA_SVC_DB_LIST_STORAGE, uid);
 	if (ret != MS_MEDIA_ERR_NONE) {
 		media_svc_error("_media_svc_make_table_query fail.");
 		goto ERROR;
 	}
 
+	/*create uhd table from tizen 3.0 */
+	ret = _media_svc_make_table_query(MEDIA_SVC_DB_TABLE_UHD, MEDIA_SVC_DB_LIST_UHD, uid);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
+
+	/*create pvr table from tizen 3.0 */
+	ret = _media_svc_make_table_query(MEDIA_SVC_DB_TABLE_PVR, MEDIA_SVC_DB_LIST_PVR, uid);
+	if (ret != MS_MEDIA_ERR_NONE) {
+		media_svc_error("_media_svc_make_table_query fail.");
+		goto ERROR;
+	}
 #if 0
 	/*init storage table*/
 	ret = _media_svc_init_storage(db_handle, uid);
@@ -351,7 +364,10 @@ int media_svc_insert_item_bulk(MediaSvcHandle *handle, const char *storage_id, m
 	if (ret != MS_MEDIA_ERR_NONE)
 		return ret;
 
-	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
+	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_PVR)
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_UHD)
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_SCSA)) {
 		/*Do nothing.*/
 	} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 		ret = _media_svc_extract_image_metadata(db_handle, &content_info);
@@ -440,7 +456,10 @@ int media_svc_insert_item_immediately(MediaSvcHandle *handle, const char *storag
 		return ret;
 	}
 
-	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
+	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_PVR)
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_UHD)
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_SCSA)) {
 		/*Do nothing.*/
 	} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 		ret = _media_svc_extract_image_metadata(db_handle, &content_info);
@@ -934,7 +953,10 @@ int media_svc_refresh_item(MediaSvcHandle *handle, const char *storage_id, media
 	media_type = noti_item->media_type;
 	content_info.media_type = media_type;
 
-	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
+	if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_PVR)
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_UHD)
+	||(media_type == MEDIA_SVC_MEDIA_TYPE_SCSA)) {
 		/*Do nothing.*/
 	} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 		ret = _media_svc_extract_image_metadata(db_handle, &content_info);
@@ -1199,7 +1221,13 @@ int media_svc_send_dir_update_noti(MediaSvcHandle *handle, const char *storage_i
 	if (folder_id != NULL) {
 		uuid = strndup(folder_id, strlen(folder_id));
 	} else {
-		uuid = strndup(noti_item->media_uuid, strlen(noti_item->media_uuid));
+		if (noti_item->media_uuid != NULL) {
+			uuid = strndup(noti_item->media_uuid, strlen(noti_item->media_uuid));
+		} else {
+			_media_svc_destroy_noti_item(noti_item);
+			media_svc_error("folder uuid is wrong");
+			return MS_MEDIA_ERR_DB_INTERNAL;
+		}
 	}
 
 	ret = _media_svc_publish_dir_noti(MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, dir_path, -1, noti_item->media_uuid, NULL, pid);
@@ -2170,7 +2198,10 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 
 		_media_svc_set_default_value(&content_info, FALSE);
 
-		if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER) {
+		if (media_type == MEDIA_SVC_MEDIA_TYPE_OTHER
+			||(media_type == MEDIA_SVC_MEDIA_TYPE_PVR)
+			||(media_type == MEDIA_SVC_MEDIA_TYPE_UHD)
+			||(media_type == MEDIA_SVC_MEDIA_TYPE_SCSA)) {
 			/*Do nothing.*/
 		} else if (media_type == MEDIA_SVC_MEDIA_TYPE_IMAGE) {
 			ret = _media_svc_extract_image_metadata(db_handle, &content_info);
@@ -2196,6 +2227,19 @@ int media_svc_insert_item_pass2(MediaSvcHandle *handle, const char *storage_id, 
 			ret = _media_svc_create_noti_list(idx);
 		}
 	}
+
+	while (db_data_array->len != 0) {
+		db_data = NULL;
+		db_data = g_array_index(db_data_array, media_svc_item_info_s*, 0);
+		g_array_remove_index (db_data_array, 0);
+
+		if(db_data) {
+			SAFE_FREE(db_data->path);
+			free(db_data);
+			db_data = NULL;
+		}
+	}
+
 	g_array_free(db_data_array, FALSE);
 	db_data_array = NULL;
 

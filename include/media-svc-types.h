@@ -48,6 +48,9 @@ typedef enum {
 	MEDIA_SVC_MEDIA_TYPE_SOUND	= 2,	/**< Sound Content like Ringtone*/
 	MEDIA_SVC_MEDIA_TYPE_MUSIC	= 3,	/**< Music Content like mp3*/
 	MEDIA_SVC_MEDIA_TYPE_OTHER	= 4,	/**< Not media Content*/
+	MEDIA_SVC_MEDIA_TYPE_PVR	= 5,	/**< PVR Content*/
+	MEDIA_SVC_MEDIA_TYPE_UHD	= 6,	/**< UHD Content*/
+	MEDIA_SVC_MEDIA_TYPE_SCSA	= 7,	/**< SCSA Content*/
 } media_svc_media_type_e;
 
 /**
