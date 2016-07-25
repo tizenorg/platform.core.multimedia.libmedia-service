@@ -400,7 +400,7 @@ int _media_svc_get_all_folders(sqlite3 *handle, char *start_path, char ***folder
 
 	media_svc_debug("QEURY OK");
 
-	while (1) {
+	while (idx < cnt) {
 		(*folder_list)[idx] = g_strdup((char *)sqlite3_column_text(sql_stmt, 0));
 		(*modified_time_list)[idx] = (int)sqlite3_column_int(sql_stmt, 1);
 
