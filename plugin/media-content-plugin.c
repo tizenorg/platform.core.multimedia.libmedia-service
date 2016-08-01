@@ -980,11 +980,11 @@ int insert_folder(void * handle, const char *storage_id, const char *file_path, 
 	return MEDIA_SVC_PLUGIN_ERROR_NONE;
 }
 
-int delete_invalid_folder(void * handle, const char *storage_id, uid_t uid, char **err_msg)
+int delete_invalid_folder(void * handle, const char *storage_id, int storage_type, uid_t uid, char **err_msg)
 {
 	int ret = MEDIA_SVC_PLUGIN_ERROR_NONE;
 
-	ret = media_svc_delete_invalid_folder(storage_id, uid);
+	ret = media_svc_delete_invalid_folder(storage_id, storage_type, uid);
 	if (ret < 0) {
 		__set_error_message(ret, err_msg);
 		return MEDIA_SVC_PLUGIN_ERROR;

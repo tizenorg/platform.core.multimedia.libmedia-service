@@ -85,7 +85,7 @@ int media_svc_get_storage_path(MediaSvcHandle *handle, const char *storage_uuid,
 int media_svc_get_storage_scan_status(MediaSvcHandle *handle, const char *storage_uuid, media_svc_scan_status_type_e *storage_status);
 int media_svc_set_storage_scan_status(const char *storage_uuid, media_svc_scan_status_type_e storage_status, uid_t uid);
 int media_svc_get_storage_list(MediaSvcHandle *handle, char ***storage_list, char ***storage_id_list, int **scan_status_list, int *count);
-int media_svc_delete_invalid_folder(const char *storage_id, uid_t uid);
+int media_svc_delete_invalid_folder(const char *storage_id, int storage_type, uid_t uid);
 int media_svc_set_folder_validity(MediaSvcHandle *handle, const char *storage_id, const char *start_path, int validity, bool is_recursive, uid_t uid);
 
 int media_svc_insert_item_pass1(MediaSvcHandle *handle, const char *storage_id, media_svc_storage_type_e storage_type, const char *path, int is_burst, uid_t uid);

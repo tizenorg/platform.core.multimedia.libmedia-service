@@ -1993,11 +1993,11 @@ int media_svc_insert_folder(MediaSvcHandle *handle, const char *storage_id, medi
 	return ret;
 }
 
-int media_svc_delete_invalid_folder(const char *storage_id, uid_t uid)
+int media_svc_delete_invalid_folder(const char *storage_id, int storage_type, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 
-	ret = _media_svc_delete_invalid_folder(storage_id, uid);
+	ret = _media_svc_delete_invalid_folder(storage_id, storage_type, uid);
 
 	return ret;
 }

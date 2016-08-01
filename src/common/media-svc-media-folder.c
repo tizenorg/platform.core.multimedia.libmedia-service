@@ -585,12 +585,12 @@ int _media_svc_get_and_append_folder_id_by_folder_path(sqlite3 *handle, const ch
 	return ret;
 }
 
-int _media_svc_delete_invalid_folder(const char *storage_id, uid_t uid)
+int _media_svc_delete_invalid_folder(const char *storage_id, int storage_type, uid_t uid)
 {
 	int ret = MS_MEDIA_ERR_NONE;
 	char *sql = NULL;
 
-	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid = '%q' AND validity = 0;", MEDIA_SVC_DB_TABLE_FOLDER, storage_id);
+	sql = sqlite3_mprintf("DELETE FROM '%s' WHERE storage_uuid = '%q' AND storage_type = %d validity = 0;", MEDIA_SVC_DB_TABLE_FOLDER, storage_type, storage_id);
 	ret = _media_svc_sql_query(sql, uid);
 
 	sqlite3_free(sql);
